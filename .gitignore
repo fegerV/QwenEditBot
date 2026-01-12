@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+.venv/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# IDE
+.idea/
+.vscode/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Python cache
+.pytest_cache/
+
+# Mac
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Backend specific
+backend/qwen.db
+backend/*.db
