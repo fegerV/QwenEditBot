@@ -3,9 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi import HTTPException, status
 from .config import settings
-from .database import engine, Base
-from .api import users, presets, jobs, balance, telegram
+from .database import engine, Base, SessionLocal
+from .api import users, presets, jobs, balance, telegram, payments, webhooks
 from . import models
+from .services.scheduler import WeeklyBonusScheduler
 import logging
 from pathlib import Path
 
@@ -46,11 +47,31 @@ app.include_router(presets.router, prefix="/api/presets", tags=["presets"])
 app.include_router(jobs.router, prefix="/api/jobs", tags=["jobs"])
 app.include_router(balance.router, prefix="/api/balance", tags=["balance"])
 app.include_router(telegram.router, prefix="/api/telegram", tags=["telegram"])
+app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
+app.include_router(webhooks.router, prefix="/api/webhooks", tags=["webhooks"])
+
+# Global scheduler instance
+scheduler: WeeklyBonusScheduler = None
 
 @app.on_event("startup")
-def on_startup():
+async def on_startup():
     create_tables()
+    
+    # Start weekly bonus scheduler
+    global scheduler
+    scheduler = WeeklyBonusScheduler(SessionLocal)
+    await scheduler.start()
+    
     logger.info("QwenEditBot Backend started successfully")
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    # Stop weekly bonus scheduler
+    global scheduler
+    if scheduler:
+        await scheduler.stop()
+    
+    logger.info("QwenEditBot Backend shutdown complete")
 
 @app.get("/")
 def read_root():

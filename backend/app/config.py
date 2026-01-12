@@ -29,6 +29,17 @@ class Settings(BaseSettings):
     # Payment configuration
     YUKASSA_SHOP_ID: Optional[str] = Field(None, env="YUKASSA_SHOP_ID")
     YUKASSA_API_KEY: Optional[str] = Field(None, env="YUKASSA_API_KEY")
+    YUKASSA_WEBHOOK_SECRET: Optional[str] = Field(None, env="YUKASSA_WEBHOOK_SECRET")
+    PAYMENT_MIN_AMOUNT: int = Field(1, env="PAYMENT_MIN_AMOUNT")  # rubles
+    PAYMENT_MAX_AMOUNT: int = Field(10000, env="PAYMENT_MAX_AMOUNT")  # rubles
+    PAYMENT_RETURN_URL: str = Field("https://t.me/YourBotUsername", env="PAYMENT_RETURN_URL")
+    POINTS_PER_RUBLE: int = Field(100, env="POINTS_PER_RUBLE")
+    
+    # Weekly bonus configuration
+    WEEKLY_BONUS_ENABLED: bool = Field(True, env="WEEKLY_BONUS_ENABLED")
+    WEEKLY_BONUS_AMOUNT: int = Field(10, env="WEEKLY_BONUS_AMOUNT")  # points
+    WEEKLY_BONUS_DAY: int = Field(4, env="WEEKLY_BONUS_DAY")  # 0=Monday, 4=Friday
+    WEEKLY_BONUS_TIME: str = Field("20:00", env="WEEKLY_BONUS_TIME")  # HH:MM UTC
     
     # Security
     SECRET_KEY: str = Field("dev-secret-key-change-in-production", env="SECRET_KEY")
