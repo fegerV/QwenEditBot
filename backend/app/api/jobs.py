@@ -5,6 +5,7 @@ from .. import models, schemas
 from ..database import get_db
 from ..config import settings
 from ..services.balance import check_balance, deduct_balance, refund_balance
+from ..services.users import get_user_by_any_id
 import logging
 import os
 from pathlib import Path
@@ -24,7 +25,7 @@ async def create_job(
     """Create a new job"""
     try:
         # Check if user exists
-        user = db.query(models.User).filter(models.User.user_id == user_id).first()
+        user = get_user_by_any_id(db, user_id)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -79,6 +80,9 @@ async def create_job(
         logger.info(f"Job created: {new_job.id}")
         return new_job
         
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         logger.error(f"Error creating job: {e}")
@@ -101,6 +105,8 @@ def get_job(job_id: int, db: Session = Depends(get_db)):
                 detail="Job not found"
             )
         return job
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting job: {e}")
         raise HTTPException(
@@ -123,6 +129,8 @@ def get_jobs(
         
         jobs = query.order_by(models.Job.created_at.asc()).limit(limit).all()
         return jobs
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting jobs: {e}")
         raise HTTPException(
@@ -142,6 +150,8 @@ def get_user_jobs(
         jobs = db.query(models.Job).filter(models.Job.user_id == user_id)
         jobs = jobs.offset(skip).limit(limit).order_by(models.Job.created_at.desc()).all()
         return jobs
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting user jobs: {e}")
         raise HTTPException(
@@ -178,6 +188,9 @@ def update_job_status(
         
         logger.info(f"Job updated: {job_id}, status: {job_update.status}")
         return job
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         logger.error(f"Error updating job: {e}")

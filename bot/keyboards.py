@@ -4,7 +4,7 @@ from aiogram.types import (
     ReplyKeyboardMarkup,
     KeyboardButton,
     InlineKeyboardMarkup,
-    InlineKeyboardButton
+    InlineKeyboardButton,
 )
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 
@@ -14,11 +14,15 @@ def main_menu_keyboard() -> ReplyKeyboardMarkup:
     """Create main menu keyboard"""
     builder = ReplyKeyboardBuilder()
     builder.add(KeyboardButton(text="🎨 Редактировать фото"))
-    builder.row(KeyboardButton(text="🧩 Стили"), KeyboardButton(text="💡 Освещение"), KeyboardButton(text="🖼 Оформление"))
+    builder.row(
+        KeyboardButton(text="🧩 Стили"),
+        KeyboardButton(text="💡 Освещение"),
+        KeyboardButton(text="🖼 Оформление"),
+    )
     builder.add(KeyboardButton(text="✍️ Свой промпт"))
     builder.row(KeyboardButton(text="💰 Баланс"), KeyboardButton(text="➕ Пополнить"))
     builder.add(KeyboardButton(text="ℹ️ Помощь"))
-    
+
     return builder.as_markup(resize_keyboard=True)
 
 
@@ -29,7 +33,7 @@ def edit_photo_submenu_keyboard() -> InlineKeyboardMarkup:
     builder.row(InlineKeyboardButton(text="🧩 Выбрать пресет", callback_data="edit_preset"))
     builder.add(InlineKeyboardButton(text="✍️ Собственный промпт", callback_data="edit_custom"))
     builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
-    
+
     return builder.as_markup()
 
 
@@ -41,7 +45,7 @@ def category_keyboard() -> InlineKeyboardMarkup:
     builder.add(InlineKeyboardButton(text="💡 Освещение", callback_data="category_lighting"))
     builder.add(InlineKeyboardButton(text="🖼 Оформление", callback_data="category_design"))
     builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
-    
+
     return builder.as_markup()
 
 
@@ -49,23 +53,23 @@ def category_keyboard() -> InlineKeyboardMarkup:
 def presets_keyboard(presets: list) -> InlineKeyboardMarkup:
     """Create presets keyboard from list of presets"""
     builder = InlineKeyboardBuilder()
-    
+
     # Add preset buttons (2 per row)
     for i, preset in enumerate(presets):
-        preset_id = preset.get('id')
-        name = preset.get('name', 'Без названия')
-        icon = preset.get('icon', '📷')
-        
+        preset_id = preset.get("id")
+        name = preset.get("name", "Без названия")
+        icon = preset.get("icon", "📷")
+
         button = InlineKeyboardButton(text=f"{icon} {name}", callback_data=f"preset_{preset_id}")
-        
+
         if i % 2 == 0:
             builder.row(button)
         else:
             builder.add(button)
-    
+
     # Add back button
     builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_edit"))
-    
+
     return builder.as_markup()
 
 
@@ -75,19 +79,31 @@ def balance_menu_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="➕ Пополнить", callback_data="top_up"))
     builder.add(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
-    
+
     return builder.as_markup()
 
 
-# Top Up Keyboard (Inline)
-def top_up_keyboard() -> InlineKeyboardMarkup:
-    """Create top up keyboard"""
+def payment_amount_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="💳 СБП", callback_data="pay_sbp"))
-    builder.add(InlineKeyboardButton(text="💳 Карта", callback_data="pay_card"))
+
+    builder.row(InlineKeyboardButton(text="100 ₽", callback_data="pay_amount_100"))
+    builder.row(InlineKeyboardButton(text="250 ₽", callback_data="pay_amount_250"))
+    builder.row(InlineKeyboardButton(text="500 ₽", callback_data="pay_amount_500"))
+    builder.row(InlineKeyboardButton(text="1000 ₽", callback_data="pay_amount_1000"))
+
+    builder.row(InlineKeyboardButton(text="✍️ Свою сумму", callback_data="pay_amount_custom"))
     builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
-    
+
     return builder.as_markup()
+
+
+def payment_link_keyboard(confirmation_url: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="💳 Оплатить", url=confirmation_url)],
+            [InlineKeyboardButton(text="🔙 Отмена", callback_data="back_to_menu")],
+        ]
+    )
 
 
 # Cancel Keyboard (Inline)
@@ -95,5 +111,5 @@ def cancel_keyboard() -> InlineKeyboardMarkup:
     """Create cancel keyboard"""
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="❌ Отменить", callback_data="cancel"))
-    
+
     return builder.as_markup()

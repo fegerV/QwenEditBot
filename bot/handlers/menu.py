@@ -105,9 +105,10 @@ async def btn_balance(message: types.Message):
 async def btn_top_up(message: types.Message, state: FSMContext):
     """Handle 'Пополнить' button"""
     try:
-        from .balance import show_top_up_menu
+        from .payments import show_top_up_menu
+
         await show_top_up_menu(message, state)
-        
+
     except Exception as e:
         logger.error(f"Error in top_up button: {e}")
         await send_error_message(message)

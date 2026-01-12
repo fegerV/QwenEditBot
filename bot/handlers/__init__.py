@@ -6,6 +6,7 @@ from .presets import router as presets_router
 from .custom_prompt import router as custom_prompt_router
 from .image_upload import router as image_upload_router
 from .balance import router as balance_router
+from .payments import router as payments_router
 from .help import router as help_router
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     "custom_prompt_router",
     "image_upload_router",
     "balance_router",
-    "help_router"
+    "payments_router",
+    "help_router",
 ]

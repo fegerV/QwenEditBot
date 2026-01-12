@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..database import get_db
 from ..services.balance import check_balance, deduct_balance, refund_balance, add_balance
+from ..services.users import get_user_by_any_id
 import logging
 
 router = APIRouter()
@@ -12,13 +13,15 @@ logger = logging.getLogger(__name__)
 def get_balance(user_id: int, db: Session = Depends(get_db)):
     """Get user balance"""
     try:
-        user = db.query(models.User).filter(models.User.user_id == user_id).first()
+        user = get_user_by_any_id(db, user_id)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
             )
         return {"user_id": user.user_id, "balance": user.balance}
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting balance: {e}")
         raise HTTPException(
@@ -40,6 +43,8 @@ def check_user_balance(
             "required": balance_check.required_points,
             "user_id": user_id
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error checking balance: {e}")
         raise HTTPException(
@@ -62,6 +67,9 @@ def deduct_user_balance(
             db
         )
         return {"user_id": user_id, "balance": updated_balance}
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         logger.error(f"Error deducting balance: {e}")
@@ -85,6 +93,9 @@ def refund_user_balance(
             db
         )
         return {"user_id": user_id, "balance": updated_balance}
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         logger.error(f"Error refunding balance: {e}")
@@ -108,6 +119,9 @@ def add_user_balance(
             db
         )
         return {"user_id": user_id, "balance": updated_balance}
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         logger.error(f"Error adding balance: {e}")

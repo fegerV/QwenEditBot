@@ -4,7 +4,8 @@ from fastapi.responses import FileResponse
 from fastapi import HTTPException, status
 from .config import settings
 from .database import engine, Base
-from .api import users, presets, jobs, balance, telegram
+from .api import users, presets, jobs, balance, telegram, payments, webhooks
+from .services.scheduler import WeeklyBonusScheduler
 from . import models
 import logging
 from pathlib import Path
@@ -45,12 +46,23 @@ app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(presets.router, prefix="/api/presets", tags=["presets"])
 app.include_router(jobs.router, prefix="/api/jobs", tags=["jobs"])
 app.include_router(balance.router, prefix="/api/balance", tags=["balance"])
+app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
+app.include_router(webhooks.router, prefix="/api/webhooks", tags=["webhooks"])
 app.include_router(telegram.router, prefix="/api/telegram", tags=["telegram"])
 
+weekly_bonus_scheduler = WeeklyBonusScheduler()
+
+
 @app.on_event("startup")
-def on_startup():
+async def on_startup():
     create_tables()
+    weekly_bonus_scheduler.start()
     logger.info("QwenEditBot Backend started successfully")
+
+
+@app.on_event("shutdown")
+def on_shutdown():
+    weekly_bonus_scheduler.shutdown()
 
 @app.get("/")
 def read_root():

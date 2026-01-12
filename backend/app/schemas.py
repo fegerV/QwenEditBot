@@ -98,9 +98,66 @@ class PaymentLogCreate(PaymentLogBase):
 class PaymentLogResponse(PaymentLogBase):
     id: int
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
+
+
+class PaymentStatus(str, Enum):
+    pending = "pending"
+    succeeded = "succeeded"
+    failed = "failed"
+    canceled = "canceled"
+
+
+class PaymentType(str, Enum):
+    payment = "payment"
+    weekly_bonus = "weekly_bonus"
+    refund = "refund"
+
+
+class PaymentCreate(BaseModel):
+    user_id: int
+    amount: int = Field(..., description="Amount in RUB")
+
+
+class PaymentCreateResponse(BaseModel):
+    payment_id: int
+    status: PaymentStatus
+    confirmation_url: Optional[str] = None
+    amount: int
+    created_at: datetime
+
+
+class PaymentResponse(BaseModel):
+    id: int
+    user_id: int
+    type: PaymentType
+    status: PaymentStatus
+    amount: int
+    confirmation_url: Optional[str] = None
+    created_at: datetime
+    paid_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class PaymentHistoryItem(BaseModel):
+    id: int
+    amount: int
+    status: PaymentStatus
+    type: PaymentType
+    created_at: datetime
+    paid_at: Optional[datetime] = None
+
+
+class PaymentHistoryResponse(BaseModel):
+    payments: List[PaymentHistoryItem]
+    total: int
+    limit: int
+    offset: int
+
 
 # Telegram webhook schema
 class TelegramWebhook(BaseModel):
