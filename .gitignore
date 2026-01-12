@@ -25,6 +25,10 @@ venv/
 .env.local
 .env.*.local
 
+# Bot specific
+bot/.env
+backend/.env
+
 # Python cache
 .pytest_cache/
 
