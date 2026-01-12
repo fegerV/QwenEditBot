@@ -45,6 +45,17 @@ python run.py
 
 The bot will start and connect to the backend API.
 
+4. **Worker Setup (in another terminal):**
+```bash
+cd worker
+cp .env.example .env
+# Edit worker/.env with your configuration
+pip install -r requirements.txt
+python run.py
+```
+
+The worker will start processing jobs from the queue and sending results to users.
+
 ### Quick Start Guide
 
 1. Start the backend server (it runs on port 8000)
@@ -101,6 +112,18 @@ The bot will start and connect to the backend API.
 - Complete error handling
 - Full integration with backend API
 
+### ✅ Worker System (Phase 3)
+- Async worker process with job queue
+- GPU lock mechanism (file-based)
+- Job status management (queued → processing → completed/failed)
+- ComfyUI integration with workflow processing
+- Automatic retry with exponential backoff (5s, 10s, 20s)
+- Result delivery to Telegram users
+- Error handling with balance refunds
+- Complete logging and monitoring
+- Configurable polling intervals
+- Graceful shutdown handling
+
 ## 🔧 Configuration
 
 ### Backend Configuration (backend/.env)
@@ -144,6 +167,36 @@ TELEGRAM_WEBHOOK_URL =
 # Balance Configuration
 INITIAL_BALANCE = 60
 EDIT_COST = 30
+```
+
+### Worker Configuration (worker/.env)
+```env
+# Backend API
+BACKEND_API_URL=http://localhost:8000
+BACKEND_API_TIMEOUT=60
+
+# ComfyUI
+COMFYUI_URL=http://127.0.0.1:8188
+COMFYUI_TIMEOUT=300
+COMFYUI_POLL_INTERVAL=0.5
+COMFYUI_INPUT_DIR=C:/ComfyUI/input
+COMFYUI_OUTPUT_DIR=C:/ComfyUI/output
+
+# Telegram
+BOT_TOKEN=your_bot_token_here
+TELEGRAM_API_URL=https://api.telegram.org
+
+# Worker
+WORKER_POLLING_INTERVAL=2
+WORKER_GPU_LOCK_TIMEOUT=30
+WORKER_LOG_LEVEL=INFO
+
+# Retry
+MAX_RETRIES=3
+RETRY_DELAYS=5,10,20
+
+# Results
+RESULTS_DIR=./results
 ```
 
 ## 📖 Additional Documentation
@@ -200,6 +253,35 @@ QwenEditBot/
 │   ├── requirements.txt           # Dependencies
 │   └── run.py                     # Bot entry point
 │
+├── worker/                        # Phase 3 - Worker System
+│   ├── __init__.py
+│   ├── main.py                    # Worker application
+│   ├── config.py                  # Worker configuration
+│   ├── run.py                     # Worker entry point
+│   ├── gpu/
+│   │   ├── __init__.py
+│   │   └── lock.py                 # GPU lock mechanism
+│   ├── queue/
+│   │   ├── __init__.py
+│   │   ├── job_queue.py            # Job queue management
+│   ├── processors/
+│   │   ├── __init__.py
+│   │   ├── image_editor.py         # Image processing
+│   │   └── result_handler.py       # Result delivery
+│   ├── retry/
+│   │   ├── __init__.py
+│   │   └── strategy.py             # Retry logic
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── backend_client.py       # Backend API client
+│   │   ├── comfyui_client.py       # ComfyUI client
+│   │   └── telegram_client.py      # Telegram client
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   └── logger.py               # Logging utilities
+│   ├── .env.example               # Environment template
+│   └── requirements.txt           # Dependencies
+│
 ├── .gitignore
 └── README.md                      # This file
 ```
@@ -224,15 +306,20 @@ curl -X POST "http://localhost:8000/api/jobs/create?user_id=1&preset_id=1" \
   -F "image_file=@test_image.jpg"
 ```
 
-## 🔮 Future Phases
+## ✅ Completed Phases
 
-### Phase 3: Worker System (Next)
-- Background job processing with Celery or asyncio
-- Queue management and job priority
+### ✅ Worker System (Phase 3 - Complete)
+- Background job processing with asyncio
+- Job queue management with polling
+- GPU lock mechanism (file-based)
 - Real-time result notifications to users
 - ComfyUI task execution monitoring
-- Automatic retry on failures
+- Automatic retry with exponential backoff
 - Result delivery to Telegram
+- Error handling and balance refunds
+- Complete logging and monitoring
+
+## 🔮 Future Phases
 
 ### Phase 4: Payment Integration (Final)
 - SBP (Система быстрых платежей) integration

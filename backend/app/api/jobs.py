@@ -108,6 +108,28 @@ def get_job(job_id: int, db: Session = Depends(get_db)):
             detail=f"Error getting job: {str(e)}"
         )
 
+@router.get("/", response_model=List[schemas.JobResponse])
+def get_jobs(
+    status: Optional[str] = None,
+    limit: int = 10,
+    db: Session = Depends(get_db)
+):
+    """Get jobs with optional status filter"""
+    try:
+        query = db.query(models.Job)
+        
+        if status:
+            query = query.filter(models.Job.status == status)
+        
+        jobs = query.order_by(models.Job.created_at.asc()).limit(limit).all()
+        return jobs
+    except Exception as e:
+        logger.error(f"Error getting jobs: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error getting jobs: {str(e)}"
+        )
+
 @router.get("/user/{user_id}", response_model=List[schemas.JobResponse])
 def get_user_jobs(
     user_id: int,
@@ -146,6 +168,10 @@ def update_job_status(
         job.status = job_update.status
         job.result_path = job_update.result_path
         job.error = job_update.error
+
+        # Update retry count if provided
+        if job_update.retry_count is not None:
+            job.retry_count = job_update.retry_count
         
         db.commit()
         db.refresh(job)

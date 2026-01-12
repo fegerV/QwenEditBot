@@ -1,10 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi import HTTPException, status
 from .config import settings
 from .database import engine, Base
 from .api import users, presets, jobs, balance, telegram
 from . import models
 import logging
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(
@@ -56,3 +59,45 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "version": "1.0.0"}
+
+@app.get("/file/{file_path:path}")
+async def download_file(file_path: str):
+    """Download file from server"""
+    try:
+        file_path_obj = Path(file_path)
+        
+        # Security check - only allow files within certain directories
+        allowed_dirs = [
+            settings.COMFY_INPUT_DIR,
+            settings.COMFY_OUTPUT_DIR,
+            "./results"
+        ]
+        
+        # Check if file is in allowed directory
+        is_allowed = False
+        for allowed_dir in allowed_dirs:
+            allowed_dir_path = Path(allowed_dir)
+            if allowed_dir_path in file_path_obj.parents or str(file_path_obj).startswith(str(allowed_dir_path)):
+                is_allowed = True
+                break
+        
+        if not is_allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access to this file is not allowed"
+            )
+        
+        if not file_path_obj.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="File not found"
+            )
+        
+        return FileResponse(file_path)
+        
+    except Exception as e:
+        logger.error(f"Error downloading file: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error downloading file: {str(e)}"
+        )

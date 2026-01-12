@@ -44,6 +44,7 @@ class Job(Base):
     status = Column(Enum(JobStatus), default=JobStatus.queued)
     result_path = Column(String(255))
     error = Column(Text)
+    retry_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

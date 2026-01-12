@@ -1,0 +1,168 @@
+import logging
+import asyncio
+import os
+from pathlib import Path
+from typing import Optional
+
+from worker.services.comfyui_client import ComfyUIClient
+from worker.services.backend_client import BackendAPIClient
+from worker.queue.job_queue import Job
+from worker.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+class ImageEditorProcessor:
+    """Image processor through ComfyUI"""
+
+    def __init__(self):
+        self.comfyui_client = ComfyUIClient()
+        self.backend_client = BackendAPIClient()
+
+    async def process(self, job: Job) -> str:
+        """
+        Full processing cycle.
+        
+        1. Download image from backend
+        2. Upload to ComfyUI/input
+        3. Prepare workflow JSON
+        4. Send to ComfyUI
+        5. Poll for result
+        6. Download result
+        7. Return path to result
+        """
+        logger.info(f"Processing job {job.id}")
+
+        try:
+            # Step 1: Download image from backend
+            image_data = await self.backend_client.download_image(job.image_path)
+            if not image_data:
+                raise Exception("Failed to download image from backend")
+
+            # Step 2: Save image to ComfyUI input directory
+            input_filename = f"job_{job.id}_input.png"
+            input_path = Path(settings.COMFYUI_INPUT_DIR) / input_filename
+            
+            with open(input_path, "wb") as f:
+                f.write(image_data)
+            
+            logger.debug(f"Image saved to {input_path}")
+
+            # Step 3: Prepare workflow
+            workflow = await self._prepare_workflow(job, input_filename)
+
+            # Step 4: Send to ComfyUI
+            comfyui_job_id = await self.comfyui_client.send_workflow(workflow)
+            logger.info(f"ComfyUI job {comfyui_job_id} created for job {job.id}")
+
+            # Step 5: Wait and download result
+            result_path = await self._wait_and_download(comfyui_job_id, job.id)
+            logger.info(f"Result saved to {result_path}")
+
+            return str(result_path)
+
+        except Exception as e:
+            logger.error(f"Error processing job {job.id}: {str(e)}")
+            raise
+
+    async def _prepare_workflow(self, job: Job, input_filename: str) -> dict:
+        """Prepare workflow JSON with parameter substitution"""
+        # Basic workflow structure for ComfyUI
+        workflow = {
+            "prompt": {
+                "3": {
+                    "inputs": {
+                        "text": job.prompt,
+                        "clip": ["4", 0]
+                    },
+                    "class_type": "CLIPTextEncode"
+                },
+                "4": {
+                    "inputs": {
+                        "ckpt_name": "sd_xl_base_1.0.safetensors"
+                    },
+                    "class_type": "CheckpointLoaderSimple"
+                },
+                "5": {
+                    "inputs": {
+                        "image": f"{input_filename}",
+                        "resize_mode": "0",
+                        "crop_w": 1024,
+                        "crop_h": 1024
+                    },
+                    "class_type": "LoadImage"
+                },
+                "6": {
+                    "inputs": {
+                        "samples": ["7", 0],
+                        "vae": ["4", 2]
+                    },
+                    "class_type": "VAEEncode"
+                },
+                "7": {
+                    "inputs": {
+                        "positive": ["3", 0],
+                        "negative": ["8", 0],
+                        "empty_latent_image": ["5", 0],
+                        "model": ["4", 0]
+                    },
+                    "class_type": "KSampler"
+                },
+                "8": {
+                    "inputs": {
+                        "text": "bad quality, low quality",
+                        "clip": ["4", 0]
+                    },
+                    "class_type": "CLIPTextEncode"
+                },
+                "9": {
+                    "inputs": {
+                        "samples": ["7", 0],
+                        "vae": ["4", 2]
+                    },
+                    "class_type": "VAEDecode"
+                },
+                "10": {
+                    "inputs": {
+                        "filename_prefix": f"job_{job.id}_result",
+                        "images": ["9", 0]
+                    },
+                    "class_type": "SaveImage"
+                }
+            },
+            "output": ["10", 0]
+        }
+        
+        return workflow
+
+    async def _wait_and_download(self, comfyui_job_id: str, job_id: int) -> Path:
+        """Wait for result and download"""
+        max_attempts = 100  # 50 seconds max (0.5s * 100)
+        
+        for attempt in range(max_attempts):
+            # Check job status
+            history = await self.comfyui_client.get_history(comfyui_job_id)
+            
+            if history and history.get("status") == "completed":
+                # Job completed, download result
+                result_filename = f"job_{job_id}_result.png"
+                result_data = await self.comfyui_client.download_result(comfyui_job_id, result_filename)
+                
+                if result_data:
+                    # Save to results directory
+                    results_dir = Path(settings.RESULTS_DIR)
+                    result_path = results_dir / result_filename
+                    
+                    with open(result_path, "wb") as f:
+                        f.write(result_data)
+                    
+                    return result_path
+                else:
+                    raise Exception("Failed to download result from ComfyUI")
+            elif history and history.get("status") == "failed":
+                raise Exception(f"ComfyUI job failed: {history.get('error', 'Unknown error')}")
+            
+            # Wait before checking again
+            await asyncio.sleep(settings.COMFYUI_POLL_INTERVAL)
+        
+        raise Exception("ComfyUI job timeout")
