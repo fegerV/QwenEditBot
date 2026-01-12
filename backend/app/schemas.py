@@ -57,6 +57,7 @@ class JobResponse(JobBase):
     status: JobStatus
     result_path: Optional[str] = None
     error: Optional[str] = None
+    retry_count: int = 0
     created_at: datetime
     updated_at: datetime
     
@@ -67,6 +68,7 @@ class JobUpdate(BaseModel):
     status: JobStatus
     result_path: Optional[str] = None
     error: Optional[str] = None
+    retry_count: Optional[int] = None
 
 # Balance schemas
 class BalanceResponse(BaseModel):
