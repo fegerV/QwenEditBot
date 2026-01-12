@@ -74,17 +74,18 @@ def balance_menu_keyboard() -> InlineKeyboardMarkup:
     """Create balance menu keyboard"""
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="➕ Пополнить", callback_data="top_up"))
-    builder.add(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
+    builder.add(InlineKeyboardButton(text="📜 История", callback_data="payment_history"))
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
     
     return builder.as_markup()
 
 
-# Top Up Keyboard (Inline)
+# Top Up Keyboard (Inline) - kept for backward compatibility
 def top_up_keyboard() -> InlineKeyboardMarkup:
-    """Create top up keyboard"""
+    """Create top up keyboard (deprecated - use payments handler)"""
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="💳 СБП", callback_data="pay_sbp"))
-    builder.add(InlineKeyboardButton(text="💳 Карта", callback_data="pay_card"))
+    builder.row(InlineKeyboardButton(text="💳 СБП", callback_data="top_up"))
+    builder.add(InlineKeyboardButton(text="💳 Карта", callback_data="top_up"))
     builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
     
     return builder.as_markup()

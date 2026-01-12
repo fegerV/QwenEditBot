@@ -65,6 +65,67 @@ async def callback_balance(callback: types.CallbackQuery):
         await callback.answer("Произошла ошибка")
 
 
+@router.callback_query(F.data == "payment_history")
+async def callback_payment_history(callback: types.CallbackQuery):
+    """Handle payment history callback"""
+    try:
+        from ..main import api_client
+        
+        result = await api_client.get_user_payments(callback.from_user.id, limit=10)
+        
+        if result and result.get("payments"):
+            payments = result["payments"]
+            
+            text = "📜 *История платежей*\n\n"
+            
+            for payment in payments:
+                # Convert amount from kopeks to rubles
+                amount_rubles = payment["amount"] / 100
+                
+                # Format status
+                status_emoji = {
+                    "succeeded": "✅",
+                    "pending": "⏳",
+                    "failed": "❌",
+                    "cancelled": "🚫"
+                }.get(payment["status"], "❓")
+                
+                # Format payment type
+                type_label = {
+                    "payment": "Пополнение",
+                    "weekly_bonus": "Бонус",
+                    "refund": "Возврат"
+                }.get(payment["payment_type"], "Платёж")
+                
+                text += (
+                    f"{status_emoji} *{type_label}*\n"
+                    f"💰 {amount_rubles:.0f} ₽\n"
+                    f"📅 {payment['created_at'][:10]}\n\n"
+                )
+            
+            text += f"Всего: {result['total']} платежей"
+        else:
+            text = "📜 *История платежей*\n\nУ вас пока нет платежей."
+        
+        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🔙 Назад", callback_data="balance")]
+        ])
+        
+        await callback.message.edit_text(
+            text,
+            parse_mode="Markdown",
+            reply_markup=keyboard
+        )
+        
+        await callback.answer()
+        
+    except Exception as e:
+        logger.error(f"Error in payment history callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
 async def show_top_up_menu(message: types.Message, state: FSMContext):
     """Show top up menu"""
     try:
@@ -89,56 +150,11 @@ async def show_top_up_menu(message: types.Message, state: FSMContext):
 
 @router.callback_query(F.data == "top_up")
 async def callback_top_up(callback: types.CallbackQuery, state: FSMContext):
-    """Handle top up callback"""
+    """Handle top up callback - redirect to payments handler"""
     try:
-        await state.set_state(UserState.awaiting_payment)
-        
-        text = (
-            "➕ *Пополнение баланса*\n\n"
-            "Выберите способ пополнения:"
-        )
-        
-        await callback.message.edit_text(
-            text,
-            parse_mode="Markdown",
-            reply_markup=top_up_keyboard()
-        )
-        
-        await callback.answer()
+        from .payments import handle_top_up
+        await handle_top_up(callback, state)
         
     except Exception as e:
         logger.error(f"Error in top_up callback: {e}")
-        await callback.answer("Произошла ошибка")
-
-
-@router.callback_query(F.data.startswith("pay_"))
-async def callback_payment(callback: types.CallbackQuery):
-    """Handle payment method selection"""
-    try:
-        payment_method = callback.data.split("_")[1]
-        
-        if payment_method == "sbp":
-            text = (
-                "💳 *Пополнение через СБП*\n\n"
-                "Функция пополнения будет доступна в Фазе 4.\n\n"
-                "Следите за обновлениями! 🚀"
-            )
-        elif payment_method == "card":
-            text = (
-                "💳 *Пополнение картой*\n\n"
-                "Функция пополнения будет доступна в Фазе 4.\n\n"
-                "Следите за обновлениями! 🚀"
-            )
-        else:
-            text = "Неизвестный способ оплаты."
-        
-        await callback.message.edit_text(
-            text,
-            parse_mode="Markdown"
-        )
-        
-        await callback.answer()
-        
-    except Exception as e:
-        logger.error(f"Error in payment callback: {e}")
         await callback.answer("Произошла ошибка")

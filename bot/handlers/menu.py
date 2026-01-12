@@ -150,6 +150,18 @@ async def callback_back_to_menu(callback: types.CallbackQuery, state: FSMContext
         await callback.answer("Произошла ошибка")
 
 
+@router.callback_query(F.data == "back_to_balance")
+async def callback_back_to_balance(callback: types.CallbackQuery):
+    """Handle 'back to balance' callback"""
+    try:
+        from .balance import callback_balance
+        await callback_balance(callback)
+        
+    except Exception as e:
+        logger.error(f"Error in back_to_balance callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
 @router.callback_query(F.data == "edit_preset")
 async def callback_edit_preset(callback: types.CallbackQuery, state: FSMContext):
     """Handle 'edit with preset' callback"""

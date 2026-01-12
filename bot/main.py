@@ -12,7 +12,8 @@ from .handlers import (
     custom_prompt_router,
     image_upload_router,
     balance_router,
-    help_router
+    help_router,
+    payments_router
 )
 
 # Configure logging
@@ -43,6 +44,7 @@ async def create_bot():
     dp.include_router(image_upload_router)
     dp.include_router(balance_router)
     dp.include_router(help_router)
+    dp.include_router(payments_router)
     
     logger.info("Bot initialized successfully")
     

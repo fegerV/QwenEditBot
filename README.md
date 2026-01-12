@@ -4,9 +4,11 @@ A complete Telegram bot for AI-powered image editing using ComfyUI, featuring a 
 
 ## 🎨 Architecture Overview
 
-The project consists of two main components:
-- **Backend (Phase 1)**: FastAPI REST API with database, job queue, and ComfyUI integration
+The project consists of four main components:
+- **Backend (Phase 1)**: FastAPI REST API with database, job queue, ComfyUI integration, and payment system
 - **Bot (Phase 2)**: Telegram bot built with aiogram 3.x for user interaction
+- **Worker (Phase 3)**: Async worker process with job queue and GPU management
+- **Payments (Phase 4)**: YuKassa integration with SBP support and weekly bonus system
 
 ## 🚀 Getting Started
 
@@ -308,6 +310,17 @@ curl -X POST "http://localhost:8000/api/jobs/create?user_id=1&preset_id=1" \
 
 ## ✅ Completed Phases
 
+### ✅ Payment System (Phase 4 - Complete)
+- YuKassa integration for payments (SBP, cards)
+- Payment creation and confirmation URLs
+- Webhook handling for payment status updates
+- Payment history for users
+- Weekly bonus system (automatic +10 points on Friday 20:00 UTC)
+- Telegram notifications for payments and bonuses
+- Refund payment type for balance recovery
+- Full payment lifecycle management
+- HMAC-SHA256 signature verification for webhooks
+
 ### ✅ Worker System (Phase 3 - Complete)
 - Background job processing with asyncio
 - Job queue management with polling
@@ -319,15 +332,97 @@ curl -X POST "http://localhost:8000/api/jobs/create?user_id=1&preset_id=1" \
 - Error handling and balance refunds
 - Complete logging and monitoring
 
+## 💳 Payment Configuration (Phase 4)
+
+### YuKassa Setup
+
+1. Register at [YooKassa](https://yookassa.ru)
+2. Create a shop and obtain credentials:
+   - `SHOP_ID`: Your shop ID
+   - `API_KEY`: From the developer panel
+   - `WEBHOOK_SECRET`: For webhook signature verification
+
+3. Configure webhooks in YooKassa dashboard:
+   - URL: `https://your-backend.com/api/webhooks/yukassa`
+   - Events: `payment.succeeded`, `payment.failed`, `payment.canceled`
+
+### Environment Variables
+
+Add to `backend/.env`:
+
+```env
+# YuKassa Configuration
+YUKASSA_SHOP_ID="your_shop_id"
+YUKASSA_API_KEY="live_your_api_key"
+YUKASSA_WEBHOOK_SECRET="your_webhook_secret"
+
+# Payment Settings
+PAYMENT_MIN_AMOUNT=1           # Minimum amount in rubles
+PAYMENT_MAX_AMOUNT=10000       # Maximum amount in rubles
+PAYMENT_RETURN_URL="https://t.me/YourBotUsername"
+POINTS_PER_RUBLE=100          # 1 ruble = 100 points
+
+# Weekly Bonus Configuration
+WEEKLY_BONUS_ENABLED=true
+WEEKLY_BONUS_AMOUNT=10         # Points to give each user
+WEEKLY_BONUS_DAY=4            # 0=Monday, 4=Friday
+WEEKLY_BONUS_TIME="20:00"     # HH:MM UTC
+```
+
+### Payment Flow
+
+1. User selects "➕ Пополнить" in bot
+2. Chooses amount (100₽, 250₽, 500₽, 1000₽, or custom)
+3. Backend creates payment in YuKassa
+4. Bot sends payment link to user
+5. User pays via SBP/card
+6. YuKassa sends webhook to backend
+7. Backend verifies signature and updates payment status
+8. Balance is credited automatically
+9. User receives Telegram notification
+
+### Weekly Bonus
+
+Every Friday at 20:00 UTC:
+- All registered users receive +10 points
+- Telegram notification sent to each user
+- Payment recorded as "weekly_bonus" type
+- Configurable amount and schedule
+
+### Payment History
+
+Users can view:
+- All their payments (top-ups, bonuses, refunds)
+- Payment status (pending, succeeded, failed, cancelled)
+- Payment type (payment, weekly_bonus, refund)
+- Timestamp and amount
+
+## 🧪 API Testing
+
+Use the Swagger UI at `http://localhost:8000/docs` to test all endpoints.
+
+### Payment API Examples
+
+**Create payment:**
+```bash
+curl -X POST "http://localhost:8000/api/payments/create" \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": 1, "amount": 100}'
+```
+
+**Get payment status:**
+```bash
+curl -X GET "http://localhost:8000/api/payments/1"
+```
+
+**Get payment history:**
+```bash
+curl -X GET "http://localhost:8000/api/payments/user/1?limit=10"
+```
+
 ## 🔮 Future Phases
 
-### Phase 4: Payment Integration (Final)
-- SBP (Система быстрых платежей) integration
-- Bank card payments via Yukassa
-- Payment confirmation and validation
-- Automatic balance top-up
-- Payment history and receipts
-- Webhook for payment notifications
+All phases are now complete! The system is production-ready.
 
 ## 📝 Notes
 

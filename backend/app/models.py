@@ -11,6 +11,17 @@ class JobStatus(str, PyEnum):
     completed = "completed"
     failed = "failed"
 
+class PaymentStatus(str, PyEnum):
+    pending = "pending"
+    succeeded = "succeeded"
+    failed = "failed"
+    cancelled = "cancelled"
+
+class PaymentType(str, PyEnum):
+    payment = "payment"
+    weekly_bonus = "weekly_bonus"
+    refund = "refund"
+
 class User(Base):
     __tablename__ = "users"
     
@@ -22,6 +33,7 @@ class User(Base):
     
     jobs = relationship("Job", back_populates="user")
     payment_logs = relationship("PaymentLog", back_populates="user")
+    payments = relationship("Payment", back_populates="user")
 
 class Preset(Base):
     __tablename__ = "presets"
@@ -61,3 +73,30 @@ class PaymentLog(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     user = relationship("User", back_populates="payment_logs")
+
+class Payment(Base):
+    __tablename__ = "payments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"))
+    
+    # YuKassa data
+    yukassa_payment_id = Column(String(100), unique=True, nullable=True, index=True)
+    amount = Column(Integer)  # in kopeks (e.g., 100 = 1 ruble)
+    currency = Column(String(3), default="RUB")
+    
+    # Status and type
+    status = Column(Enum(PaymentStatus), default=PaymentStatus.pending)
+    payment_type = Column(Enum(PaymentType), default=PaymentType.payment)
+    
+    # Metadata
+    description = Column(Text, nullable=True)
+    confirmation_url = Column(String(500), nullable=True)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    paid_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    user = relationship("User", back_populates="payments")

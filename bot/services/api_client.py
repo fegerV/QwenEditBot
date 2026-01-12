@@ -152,3 +152,47 @@ class BackendAPIClient:
         except Exception as e:
             logger.error(f"Failed to get jobs for user {user_id}: {e}")
             return []
+    
+    async def create_payment(self, user_id: int, amount: int) -> Dict[str, Any]:
+        """Create a payment"""
+        try:
+            response = await self._request(
+                "POST",
+                "/api/payments/create",
+                data={
+                    "user_id": user_id,
+                    "amount": amount
+                }
+            )
+            logger.info(f"Payment created for user {user_id}: amount {amount}")
+            return response
+        except Exception as e:
+            logger.error(f"Failed to create payment for user {user_id}: {e}")
+            raise
+    
+    async def get_payment(self, payment_id: int) -> Optional[Dict[str, Any]]:
+        """Get payment information"""
+        try:
+            response = await self._request("GET", f"/api/payments/{payment_id}")
+            return response
+        except Exception as e:
+            logger.error(f"Failed to get payment {payment_id}: {e}")
+            return None
+    
+    async def get_user_payments(
+        self,
+        user_id: int,
+        limit: int = 20,
+        offset: int = 0,
+        status: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Get user's payment history"""
+        try:
+            params = {"limit": limit, "offset": offset}
+            if status:
+                params["status"] = status
+            response = await self._request("GET", f"/api/payments/user/{user_id}", params=params)
+            return response
+        except Exception as e:
+            logger.error(f"Failed to get payments for user {user_id}: {e}")
+            return {"payments": [], "total": 0, "limit": limit, "offset": offset}
