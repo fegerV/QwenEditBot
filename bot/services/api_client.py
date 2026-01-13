@@ -107,25 +107,32 @@ class BackendAPIClient:
             logger.error(f"Failed to get presets (category: {category}): {e}")
             return []
     
+    async def get_preset_prompt(self, preset_id: int) -> Optional[str]:
+        """Get preset prompt by ID"""
+        try:
+            response = await self._request("GET", f"/api/presets/{preset_id}")
+            return response.get('prompt')
+        except Exception as e:
+            logger.error(f"Failed to get preset prompt for {preset_id}: {e}")
+            return None
+    
     async def create_job(
         self,
         user_id: int,
         image_file: tuple,  # (filename, file_content, content_type)
-        preset_id: Optional[int] = None,
-        prompt: Optional[str] = None
+        prompt: str
     ) -> Dict[str, Any]:
-        """Create a new job"""
+        """Create a new job with prompt"""
         try:
             # Prepare multipart form data
             files = {
                 'image_file': image_file
             }
             
-            params = {'user_id': user_id}
-            if preset_id:
-                params['preset_id'] = preset_id
-            if prompt:
-                params['prompt'] = prompt
+            params = {
+                'user_id': user_id,
+                'prompt': prompt
+            }
             
             response = await self._request("POST", "/api/jobs/create", params=params, files=files)
             logger.info(f"Job created for user {user_id}: {response.get('id')}")

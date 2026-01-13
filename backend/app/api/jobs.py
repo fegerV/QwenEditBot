@@ -16,9 +16,7 @@ logger = logging.getLogger(__name__)
 @router.post("/create", response_model=schemas.JobResponse, status_code=status.HTTP_201_CREATED)
 async def create_job(
     user_id: int,
-    preset_id: Optional[int] = None,
-    prompt: Optional[str] = None,
-    workflow_type: Optional[str] = "standard",
+    prompt: str,
     image_file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
@@ -39,18 +37,6 @@ async def create_job(
                 detail=f"Insufficient balance. Required: {settings.EDIT_COST}, Available: {user.balance}"
             )
         
-        # Get preset prompt and workflow_type if preset_id is provided
-        job_prompt = prompt
-        if preset_id:
-            preset = db.query(models.Preset).filter(models.Preset.id == preset_id).first()
-            if not preset:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Preset not found"
-                )
-            job_prompt = preset.prompt
-            workflow_type = preset.workflow_type or "standard"
-        
         # Save uploaded image
         input_dir = Path(settings.COMFY_INPUT_DIR)
         input_dir.mkdir(parents=True, exist_ok=True)
@@ -67,7 +53,7 @@ async def create_job(
         new_job = models.Job(
             user_id=user_id,
             image_path=str(image_path),
-            prompt=job_prompt,
+            prompt=prompt,
             status=schemas.JobStatus.queued
         )
         
