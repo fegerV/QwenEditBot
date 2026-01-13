@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi import HTTPException, status
 from .config import settings
-from .database import engine, Base, SessionLocal
+from .database import engine, Base, SessionLocal, seed_presets_if_empty
 from .api import users, presets, jobs, balance, telegram, payments, webhooks
 from . import models
 from .services.scheduler import WeeklyBonusScheduler
@@ -76,6 +76,14 @@ async def on_startup():
     
     # Create tables (for development, migrations should handle this)
     create_tables()
+    
+    # Seed presets if database is empty
+    db = SessionLocal()
+    try:
+        await seed_presets_if_empty(db)
+        logger.info("Presets initialization completed")
+    finally:
+        db.close()
     
     # Start weekly bonus scheduler
     global scheduler

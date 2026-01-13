@@ -45,6 +45,7 @@ class Preset(Base):
     icon = Column(String(255))
     price = Column(Float, default=30.0)
     order = Column(Integer, default=0)
+    workflow_type = Column(String(50), default="qwen_edit_2511")
 
 class Job(Base):
     __tablename__ = "jobs"

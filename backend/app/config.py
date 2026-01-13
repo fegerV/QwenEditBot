@@ -6,7 +6,7 @@ from pathlib import Path
 
 class Settings(BaseSettings):
     # Bot configuration
-    BOT_TOKEN: str = Field(..., env="BOT_TOKEN")
+    BOT_TOKEN: Optional[str] = Field(None, env="BOT_TOKEN")
     
     # ComfyUI configuration
     COMFYUI_URL: str = Field("http://127.0.0.1:8188", env="COMFYUI_URL")
@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     PAYMENT_MIN_AMOUNT: int = Field(1, env="PAYMENT_MIN_AMOUNT")  # rubles
     PAYMENT_MAX_AMOUNT: int = Field(10000, env="PAYMENT_MAX_AMOUNT")  # rubles
     PAYMENT_RETURN_URL: str = Field("https://t.me/YourBotUsername", env="PAYMENT_RETURN_URL")
-    POINTS_PER_RUBLE: int = Field(100, env="POINTS_PER_RUBLE")
+    POINTS_PER_RUBLE: int = Field(1, env="POINTS_PER_RUBLE")
     
     # Rate limiting configuration
     RATE_LIMIT_ENABLED: bool = Field(True, env="RATE_LIMIT_ENABLED")
