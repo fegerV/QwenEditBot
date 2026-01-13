@@ -18,6 +18,7 @@ async def create_job(
     user_id: int,
     preset_id: Optional[int] = None,
     prompt: Optional[str] = None,
+    workflow_type: Optional[str] = "standard",
     image_file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
@@ -38,7 +39,7 @@ async def create_job(
                 detail=f"Insufficient balance. Required: {settings.EDIT_COST}, Available: {user.balance}"
             )
         
-        # Get preset prompt if preset_id is provided
+        # Get preset prompt and workflow_type if preset_id is provided
         job_prompt = prompt
         if preset_id:
             preset = db.query(models.Preset).filter(models.Preset.id == preset_id).first()
@@ -48,6 +49,7 @@ async def create_job(
                     detail="Preset not found"
                 )
             job_prompt = preset.prompt
+            workflow_type = preset.workflow_type or "standard"
         
         # Save uploaded image
         input_dir = Path(settings.COMFY_INPUT_DIR)

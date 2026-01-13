@@ -45,6 +45,14 @@ class Settings(BaseSettings):
     WEEKLY_BONUS_DAY: int = Field(4, env="WEEKLY_BONUS_DAY")  # 0=Monday, 4=Friday
     WEEKLY_BONUS_TIME: str = Field("20:00", env="WEEKLY_BONUS_TIME")  # HH:MM UTC
     
+    # QwenEdit 2511 configuration
+    QWEN_EDIT_VAE_NAME: str = Field("qwen_image_vae.safetensors", env="QWEN_EDIT_VAE_NAME")
+    QWEN_EDIT_UNET_NAME: str = Field("qwen_image_edit_2511_fp8mixed.safetensors", env="QWEN_EDIT_UNET_NAME")
+    QWEN_EDIT_CLIP_NAME: str = Field("qwen_2.5_vl_7b_fp8_scaled.safetensors", env="QWEN_EDIT_CLIP_NAME")
+    QWEN_EDIT_LORA_NAME: str = Field("Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors", env="QWEN_EDIT_LORA_NAME")
+    QWEN_EDIT_SCALE_MEGAPIXELS: int = Field(2, env="QWEN_EDIT_SCALE_MEGAPIXELS")
+    QWEN_EDIT_STEPS: int = Field(4, env="QWEN_EDIT_STEPS")
+    
     # Security
     SECRET_KEY: str = Field("dev-secret-key-change-in-production", env="SECRET_KEY")
     
