@@ -3,9 +3,10 @@
 import logging
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
-from ..states import UserState
-from ..keyboards import cancel_keyboard, main_menu_keyboard
-from ..utils import send_error_message
+from aiogram.filters import StateFilter
+from states import UserState
+from keyboards import cancel_keyboard, main_menu_keyboard
+from utils import send_error_message
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ async def start_custom_prompt(
             await send_error_message(message)
 
 
-@router.message(UserState.awaiting_custom_prompt)
+@router.message(StateFilter(UserState.awaiting_custom_prompt))
 async def handle_custom_prompt(message: types.Message, state: FSMContext):
     """Handle custom prompt text input"""
     try:
@@ -82,7 +83,7 @@ async def handle_custom_prompt(message: types.Message, state: FSMContext):
         await send_error_message(message)
 
 
-@router.callback_query(F.data == "cancel", state=UserState.awaiting_custom_prompt)
+@router.callback_query(F.data == "cancel", StateFilter(UserState.awaiting_custom_prompt))
 async def callback_cancel_custom_prompt(callback: types.CallbackQuery, state: FSMContext):
     """Handle cancel when waiting for custom prompt"""
     try:
@@ -103,7 +104,7 @@ async def callback_cancel_custom_prompt(callback: types.CallbackQuery, state: FS
         await callback.answer("Произошла ошибка")
 
 
-@router.callback_query(F.data == "cancel", state=UserState.awaiting_image_for_custom)
+@router.callback_query(F.data == "cancel", StateFilter(UserState.awaiting_image_for_custom))
 async def callback_cancel_custom_image(callback: types.CallbackQuery, state: FSMContext):
     """Handle cancel when waiting for image (custom prompt)"""
     try:

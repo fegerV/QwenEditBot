@@ -7,6 +7,10 @@ from ..database import get_db
 from ..schemas import PaymentCreate, PaymentResponse, PaymentHistoryResponse
 from ..services.payment_service import PaymentService
 from ..config import settings
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from redis_client import redis_client
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -19,7 +23,12 @@ limiter = Limiter(key_func=get_remote_address)
 router = APIRouter()
 
 # Add rate limit exceeded handler
-@router.exception_handler(RateLimitExceeded)
+from fastapi import FastAPI
+
+# Create a FastAPI app instance just for the exception handler
+app_for_exception = FastAPI()
+
+@app_for_exception.exception_handler(RateLimitExceeded)
 async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
     logger.warning(f"Rate limit exceeded for {get_remote_address(request)}: {exc.detail}")
     return HTTPException(

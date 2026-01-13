@@ -12,8 +12,16 @@ class Settings(BaseSettings):
     BACKEND_API_URL: str = Field("http://localhost:8000", env="BACKEND_API_URL")
     BACKEND_API_TIMEOUT: int = Field(60, env="BACKEND_API_TIMEOUT")
 
+    # Redis configuration
+    REDIS_HOST: str = Field("localhost", env="REDIS_HOST")
+    REDIS_PORT: int = Field(6379, env="REDIS_PORT")
+    REDIS_PASSWORD: str = Field("", env="REDIS_PASSWORD")
+    REDIS_DB: int = Field(0, env="REDIS_DB")
+    REDIS_JOB_QUEUE_KEY: str = Field("qwenedit:job_queue", env="REDIS_JOB_QUEUE_KEY")
+    REDIS_RESULT_TTL: int = Field(3600, env="REDIS_RESULT_TTL")  # 1 hour
+
     # ComfyUI configuration
-    COMFYUI_URL: str = Field("http://127.0.0.1:8188", env="COMFYUI_URL")
+    COMFYUI_URL: str = Field("http://127.0.0.1:8500", env="COMFYUI_URL")
     COMFYUI_TIMEOUT: int = Field(300, env="COMFYUI_TIMEOUT")
     COMFYUI_POLL_INTERVAL: float = Field(0.5, env="COMFYUI_POLL_INTERVAL")
     COMFYUI_INPUT_DIR: str = Field("C:/ComfyUI/input", env="COMFYUI_INPUT_DIR")
@@ -33,7 +41,7 @@ class Settings(BaseSettings):
     RETRY_DELAYS: str = Field("5,10,20", env="RETRY_DELAYS")  # comma-separated seconds
 
     # Results configuration
-    RESULTS_DIR: str = Field("./results", env="RESULTS_DIR")
+    RESULTS_DIR: str = Field("C:/QwenEditBot/data/outputs", env="RESULTS_DIR")
 
     # QwenEdit 2511 configuration
     QWEN_EDIT_VAE_NAME: str = Field("qwen_image_vae.safetensors", env="QWEN_EDIT_VAE_NAME")

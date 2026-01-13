@@ -3,6 +3,10 @@ from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..database import get_db
 from ..services.balance import check_balance, deduct_balance, refund_balance, add_balance
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from redis_client import redis_client
 import logging
 
 router = APIRouter()

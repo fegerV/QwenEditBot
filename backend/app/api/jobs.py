@@ -9,6 +9,16 @@ import logging
 import os
 from pathlib import Path
 import uuid
+from datetime import datetime
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from redis_client import redis_client
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -49,7 +59,7 @@ async def create_job(
         with open(image_path, "wb") as buffer:
             buffer.write(await image_file.read())
         
-        # Create job
+        # Create job in database
         new_job = models.Job(
             user_id=user_id,
             image_path=str(image_path),
@@ -63,6 +73,24 @@ async def create_job(
         
         # Deduct balance
         deduct_balance(user_id, settings.EDIT_COST, f"Job creation: {new_job.id}", db)
+        
+        # Add job to Redis queue
+        try:
+            job_data = {
+                'id': new_job.id,
+                'user_id': new_job.user_id,
+                'image_path': new_job.image_path,
+                'prompt': new_job.prompt,
+                'status': new_job.status.value,
+                'created_at': new_job.created_at.isoformat() if new_job.created_at else datetime.utcnow().isoformat(),
+                'updated_at': new_job.updated_at.isoformat() if new_job.updated_at else datetime.utcnow().isoformat()
+            }
+            
+            await redis_client.enqueue_job(job_data)
+            logger.info(f"Job {new_job.id} added to Redis queue")
+        except Exception as redis_error:
+            logger.error(f"Failed to add job {new_job.id} to Redis queue: {redis_error}")
+            # Continue anyway, as the job is still in the DB and can be processed later
         
         logger.info(f"Job created: {new_job.id}")
         return new_job
@@ -163,6 +191,14 @@ def update_job_status(
         
         db.commit()
         db.refresh(job)
+        
+        # Update job status in Redis if needed
+        try:
+            # Since this is a sync endpoint, we can't await the async Redis method
+            # We'll update Redis status separately via a background task or scheduled update
+            logger.info(f"Job {job_id} status would be updated in Redis to {job_update.status}")
+        except Exception as redis_error:
+            logger.error(f"Failed to update job {job_id} status in Redis: {redis_error}")
         
         logger.info(f"Job updated: {job_id}, status: {job_update.status}")
         return job

@@ -3,10 +3,11 @@
 import logging
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
-from ..states import UserState
-from ..keyboards import category_keyboard, presets_keyboard
-from ..services import BackendAPIClient
-from ..utils import send_error_message
+from aiogram.filters import StateFilter
+from states import UserState
+from keyboards import category_keyboard, presets_keyboard
+from services import BackendAPIClient
+from utils import send_error_message
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ async def callback_category(callback: types.CallbackQuery, state: FSMContext):
     """Handle category selection callback"""
     try:
         # Import api_client from main module
-        from ..main import api_client
+        from main import api_client
         
         category = callback.data.split("_")[1]
         
@@ -48,7 +49,7 @@ async def show_presets_by_category(
     try:
         # Get presets from backend
         if api_client is None:
-            from ..main import api_client as global_api_client
+            from main import api_client as global_api_client
             api_client = global_api_client
         
         presets = await api_client.get_presets(category=category)
@@ -88,7 +89,7 @@ async def callback_preset_selected(callback: types.CallbackQuery, state: FSMCont
     """Handle preset selection callback"""
     try:
         # Import api_client from main module
-        from ..main import api_client
+        from main import api_client
         
         preset_id = int(callback.data.split("_")[1])
         
@@ -112,7 +113,7 @@ async def callback_preset_selected(callback: types.CallbackQuery, state: FSMCont
         )
         
         # Move to image upload state
-        await state.set_state(UserState.waiting_for_image)
+        await state.set_state(UserState.awaiting_image_for_preset)
         
         # Ask for image
         icon = selected_preset.get('icon', '📷')
@@ -158,7 +159,7 @@ async def callback_back_to_edit(callback: types.CallbackQuery, state: FSMContext
 
 
 # Cancel handler
-@router.callback_query(F.data == "cancel", state=UserState.waiting_for_image)
+@router.callback_query(F.data == "cancel", StateFilter(UserState.awaiting_image_for_preset))
 async def callback_cancel_preset(callback: types.CallbackQuery, state: FSMContext):
     """Handle cancel when waiting for image"""
     try:

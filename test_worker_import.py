@@ -18,7 +18,7 @@ def test_worker_imports():
         print("✅ GPU lock imported successfully")
         
         # Test queue
-        from worker.queue.job_queue import JobQueue, Job
+        from worker.job_queue.job_queue import JobQueue, Job
         print("✅ Job queue imported successfully")
         
         # Test retry strategy

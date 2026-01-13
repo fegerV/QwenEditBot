@@ -4,6 +4,10 @@ from typing import List
 from .. import models, schemas
 from ..database import get_db
 from ..config import settings
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from redis_client import redis_client
 import logging
 
 router = APIRouter()
@@ -41,6 +45,24 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error registering user: {str(e)}"
+        )
+
+@router.get("/by-telegram-id/{telegram_id}", response_model=schemas.UserResponse)
+def get_user_by_telegram_id(telegram_id: int, db: Session = Depends(get_db)):
+    """Get user information by telegram_id"""
+    try:
+        user = db.query(models.User).filter(models.User.telegram_id == telegram_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        return user
+    except Exception as e:
+        logger.error(f"Error getting user by telegram_id: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error getting user: {str(e)}"
         )
 
 @router.get("/{user_id}", response_model=schemas.UserResponse)

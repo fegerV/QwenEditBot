@@ -3,9 +3,9 @@
 import logging
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
-from ..states import UserState
-from ..keyboards import balance_menu_keyboard, top_up_keyboard, main_menu_keyboard
-from ..utils import send_error_message, format_balance
+from states import UserState
+from keyboards import balance_menu_keyboard, top_up_keyboard, main_menu_keyboard
+from utils import send_error_message, format_balance
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ async def show_balance(message: types.Message):
     """Show user balance"""
     try:
         # Import api_client from main module
-        from ..main import api_client
+        from main import api_client
         
         balance = await api_client.get_balance(message.from_user.id)
         
@@ -40,7 +40,7 @@ async def callback_balance(callback: types.CallbackQuery):
     """Handle balance callback"""
     try:
         # Import api_client from main module
-        from ..main import api_client
+        from main import api_client
         
         balance = await api_client.get_balance(callback.from_user.id)
         
@@ -69,7 +69,7 @@ async def callback_balance(callback: types.CallbackQuery):
 async def callback_payment_history(callback: types.CallbackQuery):
     """Handle payment history callback"""
     try:
-        from ..main import api_client
+        from main import api_client
         
         result = await api_client.get_user_payments(callback.from_user.id, limit=10)
         
@@ -146,7 +146,7 @@ async def show_top_up_menu(message: types.Message, state: FSMContext):
             await message.answer(text, parse_mode="Markdown", reply_markup=top_up_keyboard())
         else:
             # For callback (from balance menu)
-            from ..keyboards import back_to_menu_keyboard
+            from keyboards import back_to_menu_keyboard
             await message.answer(text, parse_mode="Markdown", reply_markup=top_up_keyboard())
         
     except Exception as e:

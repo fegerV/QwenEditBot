@@ -7,6 +7,7 @@ from .database import engine, Base, SessionLocal, seed_presets_if_empty
 from .api import users, presets, jobs, balance, telegram, payments, webhooks
 from . import models
 from .services.scheduler import WeeklyBonusScheduler
+from redis_client import redis_client
 import logging
 from pathlib import Path
 
@@ -30,7 +31,7 @@ def run_migrations():
         import subprocess
         result = subprocess.run([
             "alembic", "upgrade", "head"
-        ], cwd="/home/engine/project/backend", capture_output=True, text=True)
+        ], cwd=".", capture_output=True, text=True)
         
         if result.returncode == 0:
             logger.info("Database migrations applied successfully")
@@ -77,6 +78,14 @@ async def on_startup():
     # Create tables (for development, migrations should handle this)
     create_tables()
     
+    # Connect to Redis
+    try:
+        await redis_client.connect()
+        logger.info("Connected to Redis successfully")
+    except Exception as e:
+        logger.error(f"Failed to connect to Redis: {e}")
+        # Continue startup even if Redis fails
+    
     # Seed presets if database is empty
     db = SessionLocal()
     try:
@@ -98,6 +107,13 @@ async def on_shutdown():
     global scheduler
     if scheduler:
         await scheduler.stop()
+    
+    # Close Redis connection
+    try:
+        await redis_client.close()
+        logger.info("Redis connection closed")
+    except Exception as e:
+        logger.error(f"Error closing Redis connection: {e}")
     
     logger.info("QwenEditBot Backend shutdown complete")
 

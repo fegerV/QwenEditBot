@@ -2,13 +2,14 @@ import asyncio
 import logging
 from typing import Optional
 
-from worker.queue.job_queue import JobQueue
+from worker.job_queue.job_queue import JobQueue
 from worker.gpu.lock import GPULock
 from worker.processors.image_editor import ImageEditorProcessor
 from worker.processors.result_handler import ResultHandler
 from worker.retry.strategy import RetryStrategy
 from worker.config import settings
 from worker.services.comfyui_client import ComfyUIClient
+from worker.redis_client import redis_client
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +23,18 @@ class QwenEditWorker:
         self.retry = RetryStrategy()
         self.comfyui_client = ComfyUIClient()
 
+    async def initialize(self):
+        """Initialize worker components"""
+        # Connect to Redis
+        await redis_client.connect()
+        logger.info("Worker initialized successfully")
+
     async def process_jobs(self):
         """Main worker loop"""
         logger.info("Worker started, polling for jobs...")
+        
+        # Initialize components
+        await self.initialize()
         
         while True:
             try:
@@ -57,7 +67,7 @@ class QwenEditWorker:
                     
                     # 4. Update job status to processing
                     await self.queue.update_job_status(
-                        job.id, 
+                        job.id,
                         "processing"
                     )
 
@@ -66,10 +76,13 @@ class QwenEditWorker:
 
                     # 5. Update job status to completed
                     await self.queue.update_job_status(
-                        job.id, 
-                        "completed", 
+                        job.id,
+                        "completed",
                         result_path=result_path
                     )
+
+                    # Store result in Redis
+                    await redis_client.set_job_result(job.id, result_path)
 
                     # 6. Send result to user
                     await self.result_handler.send_result(job, result_path)
@@ -86,16 +99,16 @@ class QwenEditWorker:
                     if should_retry:
                         new_retry_count = retry_count + 1
                         await self.queue.update_job_status(
-                            job.id, 
-                            "queued", 
+                            job.id,
+                            "queued",
                             retry_count=new_retry_count
                         )
                         logger.info(f"Job {job.id} will be retried (attempt {new_retry_count})")
                     else:
                         # Final error
                         await self.queue.update_job_status(
-                            job.id, 
-                            "failed", 
+                            job.id,
+                            "failed",
                             error=str(e)
                         )
                         await self.result_handler.send_error(job, str(e))

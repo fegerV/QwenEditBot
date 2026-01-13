@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 
 from worker.services.telegram_client import TelegramClient
-from worker.queue.job_queue import Job
+from worker.job_queue.job_queue import Job
 from worker.config import settings
 
 logger = logging.getLogger(__name__)

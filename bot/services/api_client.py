@@ -68,33 +68,33 @@ class BackendAPIClient:
             logger.error(f"Failed to register user {telegram_id}: {e}")
             raise
     
-    async def get_user(self, user_id: int) -> Optional[Dict[str, Any]]:
-        """Get user information"""
+    async def get_user(self, telegram_id: int) -> Optional[Dict[str, Any]]:
+        """Get user information by telegram_id"""
         try:
-            response = await self._request("GET", f"/api/users/{user_id}")
+            response = await self._request("GET", f"/api/users/by-telegram-id/{telegram_id}")
             return response
         except Exception as e:
-            logger.error(f"Failed to get user {user_id}: {e}")
+            logger.error(f"Failed to get user by telegram_id {telegram_id}: {e}")
             return None
     
-    async def get_balance(self, user_id: int) -> Optional[int]:
-        """Get user balance"""
+    async def get_balance(self, telegram_id: int) -> Optional[int]:
+        """Get user balance by telegram_id"""
         try:
-            response = await self._request("GET", f"/api/users/{user_id}/balance")
+            response = await self._request("GET", f"/api/users/by-telegram-id/{telegram_id}")
             return response.get("balance")
         except Exception as e:
-            logger.error(f"Failed to get balance for user {user_id}: {e}")
+            logger.error(f"Failed to get balance for user by telegram_id {telegram_id}: {e}")
             return None
     
-    async def check_balance(self, user_id: int, required_points: int) -> bool:
+    async def check_balance(self, telegram_id: int, required_points: int) -> bool:
         """Check if user has sufficient balance"""
         try:
-            balance = await self.get_balance(user_id)
+            balance = await self.get_balance(telegram_id)
             if balance is None:
                 return False
             return balance >= required_points
         except Exception as e:
-            logger.error(f"Failed to check balance for user {user_id}: {e}")
+            logger.error(f"Failed to check balance for user by telegram_id {telegram_id}: {e}")
             return False
     
     async def get_preset(self, preset_id: int) -> Optional[Dict[str, Any]]:
@@ -127,12 +127,19 @@ class BackendAPIClient:
     
     async def create_job(
         self,
-        user_id: int,
+        telegram_id: int,
         image_file: tuple,  # (filename, file_content, content_type)
         prompt: str
     ) -> Dict[str, Any]:
-        """Create a new job with prompt"""
+        """Create a new job with prompt by telegram_id"""
         try:
+            # Get user by telegram_id to retrieve internal user_id
+            user_data = await self.get_user(telegram_id)
+            if not user_data:
+                raise Exception(f"User with telegram_id {telegram_id} not found")
+            
+            user_id = user_data['user_id']
+            
             # Prepare multipart form data
             files = {
                 'image_file': image_file
@@ -144,10 +151,10 @@ class BackendAPIClient:
             }
             
             response = await self._request("POST", "/api/jobs/create", params=params, files=files)
-            logger.info(f"Job created for user {user_id}: {response.get('id')}")
+            logger.info(f"Job created for user {telegram_id} (internal user_id {user_id}): {response.get('id')}")
             return response
         except Exception as e:
-            logger.error(f"Failed to create job for user {user_id}: {e}")
+            logger.error(f"Failed to create job for user by telegram_id {telegram_id}: {e}")
             raise
     
     async def get_job_status(self, job_id: int) -> Optional[Dict[str, Any]]:
@@ -159,19 +166,26 @@ class BackendAPIClient:
             logger.error(f"Failed to get job status {job_id}: {e}")
             return None
     
-    async def get_user_jobs(self, user_id: int, limit: int = 10) -> List[Dict[str, Any]]:
-        """Get user's jobs"""
+    async def get_user_jobs(self, telegram_id: int, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get user's jobs by telegram_id"""
         try:
             params = {"limit": limit}
-            response = await self._request("GET", f"/api/jobs/user/{user_id}", params=params)
+            response = await self._request("GET", f"/api/jobs/user/{telegram_id}", params=params)
             return response
         except Exception as e:
-            logger.error(f"Failed to get jobs for user {user_id}: {e}")
+            logger.error(f"Failed to get jobs for user by telegram_id {telegram_id}: {e}")
             return []
     
-    async def create_payment(self, user_id: int, amount: int, payment_method: str = "card") -> Dict[str, Any]:
-        """Create a payment"""
+    async def create_payment(self, telegram_id: int, amount: int, payment_method: str = "card") -> Dict[str, Any]:
+        """Create a payment by telegram_id"""
         try:
+            # Get user by telegram_id to retrieve internal user_id
+            user_data = await self.get_user(telegram_id)
+            if not user_data:
+                raise Exception(f"User with telegram_id {telegram_id} not found")
+            
+            user_id = user_data['user_id']
+            
             response = await self._request(
                 "POST",
                 "/api/payments/create",
@@ -181,10 +195,10 @@ class BackendAPIClient:
                     "payment_method": payment_method
                 }
             )
-            logger.info(f"Payment created for user {user_id}: amount {amount}, method {payment_method}")
+            logger.info(f"Payment created for user {telegram_id} (internal user_id {user_id}): amount {amount}, method {payment_method}")
             return response
         except Exception as e:
-            logger.error(f"Failed to create payment for user {user_id}: {e}")
+            logger.error(f"Failed to create payment for user by telegram_id {telegram_id}: {e}")
             raise
     
     async def get_payment(self, payment_id: int) -> Optional[Dict[str, Any]]:
@@ -198,18 +212,18 @@ class BackendAPIClient:
     
     async def get_user_payments(
         self,
-        user_id: int,
+        telegram_id: int,
         limit: int = 20,
         offset: int = 0,
         status: Optional[str] = None
     ) -> Dict[str, Any]:
-        """Get user's payment history"""
+        """Get user's payment history by telegram_id"""
         try:
             params = {"limit": limit, "offset": offset}
             if status:
                 params["status"] = status
-            response = await self._request("GET", f"/api/payments/user/{user_id}", params=params)
+            response = await self._request("GET", f"/api/payments/user/{telegram_id}", params=params)
             return response
         except Exception as e:
-            logger.error(f"Failed to get payments for user {user_id}: {e}")
+            logger.error(f"Failed to get payments for user by telegram_id {telegram_id}: {e}")
             return {"payments": [], "total": 0, "limit": limit, "offset": offset}

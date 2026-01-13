@@ -7,9 +7,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton
 import logging
 
-from ..services.api_client import BackendAPIClient
-from ..keyboards import main_menu_keyboard
-from ..states import UserState
+from services.api_client import BackendAPIClient
+from keyboards import main_menu_keyboard
+from states import UserState
 
 logger = logging.getLogger(__name__)
 
@@ -226,9 +226,9 @@ async def handle_check_payment(callback_query: CallbackQuery, state: FSMContext)
 
 async def _check_payment_status(user_id: int, payment_id: int, amount: int, state: FSMContext):
     """Check payment status periodically"""
-    from ..main import api_client
+    from main import api_client
     from aiogram import Bot
-    from ..config import settings
+    from config import settings
     
     bot = Bot(token=settings.BOT_TOKEN)
     

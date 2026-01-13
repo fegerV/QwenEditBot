@@ -1,7 +1,8 @@
 """QwenEdit 2511 workflow for comic style transformation"""
 
-from worker.queue.job_queue import Job
+from worker.job_queue.job_queue import Job
 from worker.config import settings
+from pathlib import Path
 
 def build_workflow(job: Job) -> dict:
     """
@@ -13,7 +14,8 @@ def build_workflow(job: Job) -> dict:
     Returns:
         Dictionary representing the QwenEdit 2511 ComfyUI workflow
     """
-    input_filename = f"job_{job.id}_input.png"
+    # Use the same filename format as in image_editor.py
+    input_filename = f"input_{job.id}_{Path(job.image_path).name}"
     
     # Hardcoded parameters for QwenEdit workflow
     scale_megapixels = 2

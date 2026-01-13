@@ -4,10 +4,10 @@ import logging
 from aiogram import Router, F, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from ..states import UserState
-from ..keyboards import main_menu_keyboard
-from ..utils import register_or_get_user
-from ..config import settings
+from states import UserState
+from keyboards import main_menu_keyboard
+from utils import register_or_get_user
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
     """Handle /start command"""
     try:
         # Import api_client from main module
-        from ..main import api_client
+        from main import api_client
         
         # Register or get user
         user_data = await register_or_get_user(message.from_user, api_client)
@@ -99,7 +99,7 @@ async def cmd_balance(message: types.Message):
     """Handle /balance command"""
     try:
         # Import api_client from main module
-        from ..main import api_client
+        from main import api_client
         
         balance = await api_client.get_balance(message.from_user.id)
         

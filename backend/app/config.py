@@ -8,15 +8,24 @@ class Settings(BaseSettings):
     # Bot configuration
     BOT_TOKEN: Optional[str] = Field(None, env="BOT_TOKEN")
     
+    # Redis configuration
+    REDIS_HOST: str = Field("localhost", env="REDIS_HOST")
+    REDIS_PORT: int = Field(6379, env="REDIS_PORT")
+    REDIS_PASSWORD: str = Field("", env="REDIS_PASSWORD")
+    REDIS_DB: int = Field(0, env="REDIS_DB")
+    REDIS_JOB_QUEUE_KEY: str = Field("qwenedit:job_queue", env="REDIS_JOB_QUEUE_KEY")
+    REDIS_RESULT_TTL: int = Field(3600, env="REDIS_RESULT_TTL")  # 1 hour
+    
     # ComfyUI configuration
-    COMFYUI_URL: str = Field("http://127.0.0.1:8188", env="COMFYUI_URL")
+    COMFYUI_URL: str = Field("http://127.0.0.1:8500", env="COMFYUI_URL")
+    UPLOADS_DIR: str = Field("C:/QwenEditBot/data/uploads", env="UPLOADS_DIR")
     COMFY_INPUT_DIR: str = Field("C:/ComfyUI/input", env="COMFY_INPUT_DIR")
     COMFYUI_TIMEOUT: int = Field(300, env="COMFYUI_TIMEOUT")
     COMFYUI_HEALTH_CHECK_INTERVAL: int = Field(10, env="COMFYUI_HEALTH_CHECK_INTERVAL")
     COMFY_OUTPUT_FILENAME: str = Field("qwen_result.png", env="COMFY_OUTPUT_FILENAME")
     
     # Database configuration
-    DATABASE_URL: str = Field("sqlite:///./qwen.db", env="DATABASE_URL")
+    DATABASE_URL: str = Field("sqlite:///./backend/qwen.db", env="DATABASE_URL")
     
     # Backend configuration
     BACKEND_URL: str = Field("http://localhost:8000", env="BACKEND_URL")
@@ -38,13 +47,13 @@ class Settings(BaseSettings):
     # Rate limiting configuration
     RATE_LIMIT_ENABLED: bool = Field(True, env="RATE_LIMIT_ENABLED")
     PAYMENT_RATE_LIMIT: str = Field("5/minute", env="PAYMENT_RATE_LIMIT")  # 5 payments per minute per user
-    
+     
     # Weekly bonus configuration
     WEEKLY_BONUS_ENABLED: bool = Field(True, env="WEEKLY_BONUS_ENABLED")
     WEEKLY_BONUS_AMOUNT: int = Field(10, env="WEEKLY_BONUS_AMOUNT")  # points
     WEEKLY_BONUS_DAY: int = Field(4, env="WEEKLY_BONUS_DAY")  # 0=Monday, 4=Friday
     WEEKLY_BONUS_TIME: str = Field("20:00", env="WEEKLY_BONUS_TIME")  # HH:MM UTC
-    
+     
     # QwenEdit 2511 configuration
     QWEN_EDIT_VAE_NAME: str = Field("qwen_image_vae.safetensors", env="QWEN_EDIT_VAE_NAME")
     QWEN_EDIT_UNET_NAME: str = Field("qwen_image_edit_2511_fp8mixed.safetensors", env="QWEN_EDIT_UNET_NAME")
@@ -66,9 +75,13 @@ settings = Settings()
 
 # Ensure directories exist
 def ensure_directories():
-    input_dir = Path(settings.COMFY_INPUT_DIR)
-    if not input_dir.exists():
-        input_dir.mkdir(parents=True, exist_ok=True)
+   input_dir = Path(settings.COMFY_INPUT_DIR)
+   if not input_dir.exists():
+       input_dir.mkdir(parents=True, exist_ok=True)
+   
+   uploads_dir = Path(settings.UPLOADS_DIR)
+   if not uploads_dir.exists():
+       uploads_dir.mkdir(parents=True, exist_ok=True)
 
 # Initialize directories
 ensure_directories()

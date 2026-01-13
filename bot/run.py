@@ -3,7 +3,13 @@
 import asyncio
 import logging
 import sys
-from bot.main import start_bot
+import os
+
+# Add the bot directory to the Python path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Now import the main module
+from main import start_bot
 
 # Configure logging
 logging.basicConfig(

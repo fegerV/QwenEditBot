@@ -3,9 +3,9 @@
 import logging
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
-from ..states import UserState
-from ..keyboards import edit_photo_submenu_keyboard, category_keyboard, main_menu_keyboard
-from ..utils import send_error_message
+from states import UserState
+from keyboards import edit_photo_submenu_keyboard, category_keyboard, main_menu_keyboard
+from utils import send_error_message
 
 logger = logging.getLogger(__name__)
 

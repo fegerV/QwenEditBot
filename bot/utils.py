@@ -4,7 +4,7 @@ import logging
 from typing import Optional
 from aiogram import Bot
 from aiogram.types import Message, User
-from ..services import BackendAPIClient
+from services import BackendAPIClient
 
 logger = logging.getLogger(__name__)
 

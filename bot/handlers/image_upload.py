@@ -5,23 +5,24 @@ import tempfile
 from pathlib import Path
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
-from ..states import UserState
-from ..keyboards import main_menu_keyboard, cancel_keyboard
-from ..services import BackendAPIClient
-from ..utils import download_telegram_photo, send_error_message, format_balance
-from ..config import settings
+from aiogram.filters import StateFilter
+from states import UserState
+from keyboards import main_menu_keyboard, cancel_keyboard
+from services import BackendAPIClient
+from utils import download_telegram_photo, send_error_message, format_balance
+from config import settings
 
 logger = logging.getLogger(__name__)
 
 router = Router()
 
 
-@router.message(UserState.waiting_for_image, F.photo)
+@router.message(StateFilter(UserState.awaiting_image_for_preset), F.photo)
 async def handle_image_upload(message: types.Message, state: FSMContext):
     """Handle image upload for preset processing"""
     try:
         # Import api_client from main module
-        from ..main import api_client
+        from main import api_client
         
         # Get data from state
         data = await state.get_data()
@@ -70,7 +71,7 @@ async def confirm_processing(callback: types.CallbackQuery, state: FSMContext):
     """Confirm image processing"""
     try:
         # Import api_client from main module
-        from ..main import api_client
+        from main import api_client
         
         # Get data from state
         data = await state.get_data()
@@ -176,7 +177,7 @@ async def cancel_processing(callback: types.CallbackQuery, state: FSMContext):
         await callback.answer("Произошла ошибка", show_alert=True)
 
 
-@router.message(UserState.waiting_for_image)
+@router.message(StateFilter(UserState.awaiting_image_for_preset))
 async def handle_wrong_input(message: types.Message):
     """Handle wrong input when expecting photo"""
     await message.answer(
