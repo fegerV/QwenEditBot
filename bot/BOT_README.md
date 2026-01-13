@@ -83,12 +83,14 @@ bot/
 
 ```env
 BOT_TOKEN=your_telegram_bot_token_here
-BACKEND_API_URL=http://localhost:8000
+BACKEND_URL=http://localhost:8000
 BACKEND_API_TIMEOUT=30
 TELEGRAM_WEBHOOK_URL=
 INITIAL_BALANCE=60
 EDIT_COST=30
 ```
+
+`BACKEND_API_URL` is also supported for backward compatibility.
 
 ## 📱 Bot Commands
 

@@ -160,7 +160,7 @@ SECRET_KEY = "dev-secret-key-change-in-production"
 BOT_TOKEN = your_telegram_bot_token_here
 
 # Backend API URL
-BACKEND_API_URL = http://localhost:8000
+BACKEND_URL = http://localhost:8000
 BACKEND_API_TIMEOUT = 30
 
 # Telegram Webhook (optional, for production)
@@ -368,6 +368,13 @@ WEEKLY_BONUS_AMOUNT=10         # Points to give each user
 WEEKLY_BONUS_DAY=4            # 0=Monday, 4=Friday
 WEEKLY_BONUS_TIME="20:00"     # HH:MM UTC
 ```
+
+## 🔐 Безопасность платежей
+
+- ✅ Все webhook'и от YuKassa проверяются по HMAC-SHA256 подписи
+- ✅ Поддельные платежи автоматически отклоняются (401 Unauthorized)
+- ✅ Все платежи логируются для аудита
+- ✅ YuKassa API ключи хранятся в переменных окружения (не в коде)
 
 ### Payment Flow
 

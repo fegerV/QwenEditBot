@@ -7,6 +7,7 @@ from ..schemas import YuKassaWebhook
 from ..services.payment_service import PaymentService
 from ..services.yukassa import YuKassaClient
 from ..services.telegram_client import TelegramClient
+from ..config import settings
 import logging
 import json
 
@@ -40,22 +41,35 @@ async def yukassa_webhook(
     }
     """
     try:
-        # Get raw body and signature
         body = await request.body()
         body_str = body.decode()
-        
-        signature = request.headers.get("Notification-API-Request-ID") or \
-                   request.headers.get("X-Signature") or ""
-        
-        # Verify signature
-        yukassa_client = YuKassaClient()
-        if not yukassa_client.verify_signature(body_str, signature):
-            logger.warning("Invalid YuKassa webhook signature")
+
+        client_host = request.client.host if request.client else "unknown"
+
+        signature = (
+            request.headers.get("X-Yookassa-Signature")
+            or request.headers.get("X-YooKassa-Signature")
+            or request.headers.get("Content-Hmac")
+        )
+        if not signature:
+            logger.warning("YuKassa webhook rejected (missing signature) from %s", client_host)
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid signature"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing signature",
             )
-        
+
+        yukassa_client = YuKassaClient()
+        if not yukassa_client.verify_signature(signature, body_str):
+            logger.warning(
+                "YuKassa webhook rejected (invalid signature) from %s, signature=%s",
+                client_host,
+                signature,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid signature",
+            )
+
         # Parse webhook data
         data = json.loads(body_str)
         webhook = YuKassaWebhook(**data)
@@ -88,14 +102,14 @@ async def yukassa_webhook(
                 ).first()
                 
                 if user:
-                    # Calculate points credited (1 ruble = 100 points)
-                    points = (payment.amount // 100)
-                    
+                    # Calculate points credited
+                    points = (payment.amount // 100) * settings.POINTS_PER_RUBLE
+
                     try:
                         telegram_client = TelegramClient()
                         await telegram_client.send_message(
                             chat_id=user.telegram_id,
-                            text=f"✅ Платёж успешен!\n\n💰 Пополнено: {points} баллов\n💳 Баланс: {int(user.balance)} баллов\n\nСпасибо за использование QwenEditBot! 🎉"
+                            text=f"✅ Платёж успешен!\n\n💰 Пополнено: {points} баллов\n💳 Баланс: {int(user.balance)} баллов\n\nСпасибо за использование QwenEditBot! 🎉",
                         )
                         logger.info(f"Notification sent to user {user.user_id} about successful payment")
                     except Exception as e:
