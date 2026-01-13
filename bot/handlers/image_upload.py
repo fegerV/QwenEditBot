@@ -26,6 +26,7 @@ async def handle_preset_image(message: types.Message, state: FSMContext):
         # Get state data
         state_data = await state.get_data()
         preset_id = state_data.get('preset_id')
+        preset_name = state_data.get('preset_name')
         
         if not preset_id:
             await message.answer("Ошибка: не выбран пресет. Попробуйте заново.")
@@ -46,6 +47,14 @@ async def handle_preset_image(message: types.Message, state: FSMContext):
             )
             await message.answer(text, reply_markup=main_menu_keyboard())
             await state.clear()
+            return
+        
+        # Get preset prompt
+        preset_prompt = await api_client.get_preset_prompt(preset_id)
+        if not preset_prompt:
+            await message.answer("Ошибка: пресет не найден. Попробуйте заново.")
+            await state.clear()
+            await message.answer("Главное меню:", reply_markup=main_menu_keyboard())
             return
         
         # Download photo from Telegram
@@ -73,11 +82,11 @@ async def handle_preset_image(message: types.Message, state: FSMContext):
             
             await message.answer("📤 Отправляю фото на обработку...")
             
-            # Create job via API
+            # Create job via API with preset prompt
             job_data = await api_client.create_job(
                 user_id=message.from_user.id,
                 image_file=file_tuple,
-                preset_id=preset_id
+                prompt=preset_prompt
             )
             
             job_id = job_data.get('id')
@@ -88,13 +97,14 @@ async def handle_preset_image(message: types.Message, state: FSMContext):
             
             await message.answer(
                 f"✅ Фото отправлено на обработку!\n\n"
+                f"Пресет: {preset_name}\n"
                 f"ID задачи: {job_id}\n"
                 f"Статус: ⏳ В очереди\n\n"
                 f"Когда результат будет готов, вы получите уведомление.",
                 reply_markup=main_menu_keyboard()
             )
             
-            logger.info(f"Job {job_id} created for user {message.from_user.id} with preset {preset_id}")
+            logger.info(f"Job {job_id} created for user {message.from_user.id} with preset {preset_name}")
             
         finally:
             # Clean up temporary file

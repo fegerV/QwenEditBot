@@ -44,7 +44,6 @@ class PresetBase(BaseModel):
     icon: str
     price: float = 30.0
     order: int = 0
-    workflow_type: str = "standard"
 
 class PresetCreate(PresetBase):
     pass
@@ -62,8 +61,7 @@ class JobBase(BaseModel):
     prompt: str
 
 class JobCreate(JobBase):
-    workflow_type: Optional[str] = "standard"
-    workflow_config: Optional[str] = None
+    pass
 
 class JobResponse(JobBase):
     id: int
@@ -71,8 +69,6 @@ class JobResponse(JobBase):
     result_path: Optional[str] = None
     error: Optional[str] = None
     retry_count: int = 0
-    workflow_type: Optional[str] = "standard"
-    workflow_config: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     

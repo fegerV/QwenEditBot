@@ -2,34 +2,22 @@
 
 from worker.queue.job_queue import Job
 from worker.config import settings
-from typing import Dict, Any
-import json
 
-def get_qwen_edit_2511_workflow(job: Job, workflow_config: Dict[str, Any] = None) -> Dict[str, Any]:
+def build_workflow(job: Job) -> dict:
     """
     QwenEdit 2511 workflow for converting images to comic style with watermark removal
     
     Args:
-        job: Job object containing prompt, id, and workflow_config
-        workflow_config: Optional dictionary with parameters (scale_megapixels, steps)
+        job: Job object containing prompt and id
     
     Returns:
         Dictionary representing the QwenEdit 2511 ComfyUI workflow
     """
     input_filename = f"job_{job.id}_input.png"
     
-    # Get workflow configuration from job or use defaults
-    config = workflow_config or {}
-    if job.workflow_config:
-        try:
-            job_config = json.loads(job.workflow_config)
-            config.update(job_config)
-        except (json.JSONDecodeError, TypeError):
-            pass
-    
-    # Use provided config or fall back to settings
-    scale_megapixels = config.get('scale_megapixels', settings.QWEN_EDIT_SCALE_MEGAPIXELS)
-    steps = config.get('steps', settings.QWEN_EDIT_STEPS)
+    # Hardcoded parameters for QwenEdit workflow
+    scale_megapixels = 2
+    steps = 20
     
     workflow = {
         "prompt": {

@@ -8,6 +8,7 @@ from worker.services.comfyui_client import ComfyUIClient
 from worker.services.backend_client import BackendAPIClient
 from worker.queue.job_queue import Job
 from worker.config import settings
+from worker.workflows.qwen_edit_2511 import build_workflow
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +49,8 @@ class ImageEditorProcessor:
             
             logger.debug(f"Image saved to {input_path}")
 
-            # Step 3: Prepare workflow using factory
-            workflow = get_workflow(job.workflow_type, job)
+            # Step 3: Prepare workflow using build_workflow
+            workflow = build_workflow(job)
 
             # Step 4: Send to ComfyUI
             comfyui_job_id = await self.comfyui_client.send_workflow(workflow)
