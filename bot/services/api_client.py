@@ -29,26 +29,55 @@ class BackendAPIClient:
         try:
             async with aiohttp.ClientSession(timeout=self.timeout) as session:
                 if files:
-                    # For file uploads
-                    async with session.post(url, data=files, params=params) as response:
+                    # Построить aiohttp.FormData
+                    form = aiohttp.FormData()
+                    
+                    # Добавить JSON поля как текст (если есть)
+                    if data:
+                        for key, value in data.items():
+                            form.add_field(key, str(value))
+                    
+                    # Добавить файлы
+                    for field_name, file_info in files.items():
+                        if isinstance(file_info, tuple) and len(file_info) == 3:
+                            filename, content, content_type = file_info
+                            form.add_field(
+                                field_name,
+                                content,
+                                filename=filename,
+                                content_type=content_type
+                            )
+                        else:
+                            form.add_field(field_name, file_info)
+                    
+                    async with session.post(url, data=form, params=params) as response:
+                        if response.status >= 400:
+                            error_text = await response.text()
+                            logger.error(f"API request failed: {method} {url}, status={response.status}, error={error_text}")
                         response.raise_for_status()
                         return await response.json()
                 elif data:
                     # For POST/PUT with JSON data
                     async with session.request(method, url, json=data, params=params) as response:
+                        if response.status >= 400:
+                            error_text = await response.text()
+                            logger.error(f"API request failed: {method} {url}, status={response.status}, error={error_text}")
                         response.raise_for_status()
                         return await response.json()
                 else:
                     # For GET requests
                     async with session.get(url, params=params) as response:
+                        if response.status >= 400:
+                            error_text = await response.text()
+                            logger.error(f"API request failed: {method} {url}, status={response.status}, error={error_text}")
                         response.raise_for_status()
                         return await response.json()
                         
         except aiohttp.ClientError as e:
-            logger.error(f"Backend API request failed: {method} {url} - {e}")
+            logger.error(f"Backend API request failed: {method} {url}, params={params}, files={list(files.keys()) if files else None}, error={e}")
             raise Exception(f"Failed to connect to backend: {str(e)}")
         except Exception as e:
-            logger.error(f"Unexpected error in API request: {e}")
+            logger.error(f"Unexpected error in API request: {method} {url}, error={e}")
             raise
     
     async def register_user(self, telegram_id: int, username: str) -> Dict[str, Any]:
@@ -133,25 +162,18 @@ class BackendAPIClient:
     ) -> Dict[str, Any]:
         """Create a new job with prompt by telegram_id"""
         try:
-            # Get user by telegram_id to retrieve internal user_id
-            user_data = await self.get_user(telegram_id)
-            if not user_data:
-                raise Exception(f"User with telegram_id {telegram_id} not found")
-            
-            user_id = user_data['user_id']
-            
             # Prepare multipart form data
             files = {
                 'image_file': image_file
             }
             
             params = {
-                'user_id': user_id,
+                'telegram_id': telegram_id,
                 'prompt': prompt
             }
             
             response = await self._request("POST", "/api/jobs/create", params=params, files=files)
-            logger.info(f"Job created for user {telegram_id} (internal user_id {user_id}): {response.get('id')}")
+            logger.info(f"Job created for user {telegram_id}: {response.get('id')}")
             return response
         except Exception as e:
             logger.error(f"Failed to create job for user by telegram_id {telegram_id}: {e}")

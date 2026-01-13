@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class ComfyUIClient:
     def __init__(self):
         self.base_url = settings.COMFYUI_URL
-        self.input_dir = Path(settings.COMFY_INPUT_DIR)
+        self.input_dir = Path(settings.COMFYUI_INPUT_DIR)
         self.output_filename = settings.COMFY_OUTPUT_FILENAME
         self.timeout = settings.COMFYUI_TIMEOUT
         

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # ComfyUI configuration
     COMFYUI_URL: str = Field("http://127.0.0.1:8500", env="COMFYUI_URL")
     UPLOADS_DIR: str = Field("C:/QwenEditBot/data/uploads", env="UPLOADS_DIR")
-    COMFY_INPUT_DIR: str = Field("C:/ComfyUI/input", env="COMFY_INPUT_DIR")
+    COMFYUI_INPUT_DIR: str = Field("C:/ComfyUI/input", env="COMFYUI_INPUT_DIR")
     COMFYUI_TIMEOUT: int = Field(300, env="COMFYUI_TIMEOUT")
     COMFYUI_HEALTH_CHECK_INTERVAL: int = Field(10, env="COMFYUI_HEALTH_CHECK_INTERVAL")
     COMFY_OUTPUT_FILENAME: str = Field("qwen_result.png", env="COMFY_OUTPUT_FILENAME")
@@ -75,7 +75,7 @@ settings = Settings()
 
 # Ensure directories exist
 def ensure_directories():
-   input_dir = Path(settings.COMFY_INPUT_DIR)
+   input_dir = Path(settings.COMFYUI_INPUT_DIR)
    if not input_dir.exists():
        input_dir.mkdir(parents=True, exist_ok=True)
    

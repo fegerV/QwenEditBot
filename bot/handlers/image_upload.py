@@ -2,6 +2,7 @@
 
 import logging
 import tempfile
+import os
 from pathlib import Path
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
@@ -100,18 +101,25 @@ async def confirm_processing(callback: types.CallbackQuery, state: FSMContext):
         # Download photo from Telegram
         await callback.message.edit_text("📥 Получаю фото...")
         
-        photo_data = await download_telegram_photo(callback.bot, photo_id)
+        try:
+            photo_data = await download_telegram_photo(callback.bot, photo_id)
+        except Exception as e:
+            logger.error(f"Failed to download photo {photo_id}: {e}")
+            await callback.message.answer("Ошибка при загрузке фото. Попробуйте еще раз.")
+            return
         
         if not photo_data:
             await callback.message.answer("Ошибка при загрузке фото. Попробуйте другое фото.")
             return
         
         # Create temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
-            temp_file.write(photo_data)
-            temp_file_path = temp_file.name
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.jpg')
+        temp_file_path = temp_file.name
         
         try:
+            temp_file.write(photo_data)
+            temp_file.close()
+            
             # Prepare file for upload
             filename = Path(temp_file_path).name
             with open(temp_file_path, 'rb') as f:
@@ -123,7 +131,7 @@ async def confirm_processing(callback: types.CallbackQuery, state: FSMContext):
             
             # Create job via API with prompt from preset
             job_data = await api_client.create_job(
-                user_id=callback.from_user.id,
+                telegram_id=callback.from_user.id,
                 image_file=file_tuple,
                 prompt=prompt  # ← ПРОМПТ ИЗ ПРЕСЕТА!
             )
@@ -149,7 +157,8 @@ async def confirm_processing(callback: types.CallbackQuery, state: FSMContext):
             
         finally:
             # Clean up temporary file
-            Path(temp_file_path).unlink(missing_ok=True)
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
         
         await callback.answer()
         

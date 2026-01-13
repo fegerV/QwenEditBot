@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 @router.post("/create", response_model=schemas.JobResponse, status_code=status.HTTP_201_CREATED)
 async def create_job(
-    user_id: int,
+    telegram_id: int,
     prompt: str,
     image_file: UploadFile = File(...),
     db: Session = Depends(get_db)
@@ -33,12 +33,14 @@ async def create_job(
     """Create a new job"""
     try:
         # Check if user exists
-        user = db.query(models.User).filter(models.User.user_id == user_id).first()
+        user = db.query(models.User).filter(models.User.telegram_id == telegram_id).first()
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
             )
+        
+        user_id = user.user_id
         
         # Check balance
         if not check_balance(user_id, settings.EDIT_COST, db):
@@ -48,7 +50,7 @@ async def create_job(
             )
         
         # Save uploaded image
-        input_dir = Path(settings.COMFY_INPUT_DIR)
+        input_dir = Path(settings.COMFYUI_INPUT_DIR)
         input_dir.mkdir(parents=True, exist_ok=True)
         
         file_ext = image_file.filename.split('.')[-1]
