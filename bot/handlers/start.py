@@ -67,7 +67,8 @@ async def cmd_help(message: types.Message):
         "/start - Запустить бота\n"
         "/menu - Главное меню\n"
         "/help - Справка\n"
-        "/balance - Показать баланс\n\n"
+        "/balance - Показать баланс\n"
+        "/cancel - Отменить действие\n\n"
         "*Вопросы?* Обратитесь в поддержку"
     )
     
@@ -110,3 +111,22 @@ async def cmd_balance(message: types.Message):
     except Exception as e:
         logger.error(f"Error in /balance command: {e}")
         await message.answer("Произошла ошибка при получении баланса.")
+
+
+@router.message(Command("cancel"))
+async def cmd_cancel(message: types.Message, state: FSMContext):
+    """Handle /cancel command - clear state and return to menu"""
+    try:
+        await state.clear()
+        await state.set_state(UserState.main_menu)
+        
+        await message.answer(
+            "Действие отменено. Вернулись в главное меню:",
+            reply_markup=main_menu_keyboard()
+        )
+        
+        logger.info(f"User {message.from_user.id} cancelled action")
+        
+    except Exception as e:
+        logger.error(f"Error in /cancel command: {e}")
+        await message.answer("Произошла ошибка. Попробуйте позже.")
