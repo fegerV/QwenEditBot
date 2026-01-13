@@ -47,12 +47,13 @@ async def create_payment(
         Payment object with confirmation_url for user to complete payment
     """
     try:
-        logger.info(f"Payment creation request from {get_remote_address(request)}: user_id={payment_data.user_id}, amount={payment_data.amount} rubles")
+        logger.info(f"Payment creation request from {get_remote_address(request)}: user_id={payment_data.user_id}, amount={payment_data.amount} rubles, method={payment_data.payment_method}")
         
         payment_service = PaymentService(db)
         payment = await payment_service.create_payment(
             user_id=payment_data.user_id,
-            amount=payment_data.amount
+            amount=payment_data.amount,
+            payment_method=payment_data.payment_method
         )
         
         logger.info(f"Payment creation successful for user {payment_data.user_id}: payment_id={payment.id}")

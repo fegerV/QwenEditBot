@@ -31,7 +31,8 @@ class YuKassaClient:
         amount: int,
         currency: str = "RUB",
         description: str = "QwenEditBot - пополнение баланса",
-        return_url: str = None
+        return_url: str = None,
+        payment_method: str = "card"
     ) -> Dict[str, Any]:
         """
         Create a payment in YuKassa
@@ -41,6 +42,7 @@ class YuKassaClient:
             currency: currency code (default: RUB)
             description: payment description
             return_url: URL to redirect after payment
+            payment_method: card or sbp
             
         Returns:
             Dictionary with payment details including confirmation_url
@@ -54,10 +56,18 @@ class YuKassaClient:
         # YuKassa expects amount in fractional units (100.00 for 100 rubles)
         amount_rubles = amount / 100.0
         
+        # Map our payment methods to YuKassa types
+        yukassa_payment_method = "bank_card"
+        if payment_method == "sbp":
+            yukassa_payment_method = "sbp"
+        
         payload = {
             "amount": {
                 "value": f"{amount_rubles:.2f}",
                 "currency": currency
+            },
+            "payment_method_data": {
+                "type": yukassa_payment_method
             },
             "confirmation": {
                 "type": "redirect",
@@ -66,6 +76,9 @@ class YuKassaClient:
             "capture": True,
             "description": description
         }
+        
+        # For SBP, we might need different confirmation type depending on YuKassa setup
+        # but redirect is generally supported for choosing bank in mobile app
         
         headers = {
             "Content-Type": "application/json",

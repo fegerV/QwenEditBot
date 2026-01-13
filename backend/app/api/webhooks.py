@@ -72,19 +72,22 @@ async def yukassa_webhook(
 
         # Parse webhook data
         data = json.loads(body_str)
-        webhook = YuKassaWebhook(**data)
+        # webhook = YuKassaWebhook(**data) # We'll use raw data to get payment_method
         
         # Extract payment info
-        yukassa_payment_id = webhook.object.id
-        payment_status = webhook.object.status
+        object_data = data.get("object", {})
+        yukassa_payment_id = object_data.get("id")
+        payment_status = object_data.get("status")
+        payment_method_data = object_data.get("payment_method", {})
         
-        logger.info(f"YuKassa webhook: {yukassa_payment_id}, status: {payment_status}")
+        logger.info(f"YuKassa webhook: {yukassa_payment_id}, status: {payment_status}, method: {payment_method_data.get('type')}")
         
         # Process webhook
         payment_service = PaymentService(db)
         success = await payment_service.handle_webhook(
             yukassa_payment_id=yukassa_payment_id,
-            status=payment_status
+            status=payment_status,
+            payment_method_details=payment_method_data
         )
         
         if not success:

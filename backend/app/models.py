@@ -89,6 +89,10 @@ class Payment(Base):
     status = Column(Enum(PaymentStatus), default=PaymentStatus.pending)
     payment_type = Column(Enum(PaymentType), default=PaymentType.payment)
     
+    # New payment method info
+    payment_method = Column(String(50), default="card")  # card, sbp, etc.
+    payment_method_details = Column(Text, nullable=True)  # JSON with details
+    
     # Metadata
     description = Column(Text, nullable=True)
     confirmation_url = Column(String(500), nullable=True)

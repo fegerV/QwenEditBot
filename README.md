@@ -380,13 +380,14 @@ WEEKLY_BONUS_TIME="20:00"     # HH:MM UTC
 
 1. User selects "➕ Пополнить" in bot
 2. Chooses amount (100₽, 250₽, 500₽, 1000₽, or custom)
-3. Backend creates payment in YuKassa
-4. Bot sends payment link to user
-5. User pays via SBP/card
-6. YuKassa sends webhook to backend
-7. Backend verifies signature and updates payment status
-8. Balance is credited automatically
-9. User receives Telegram notification
+3. User selects payment method (Card or SBP)
+4. Backend creates payment in YuKassa with the selected method
+5. Bot sends payment link to user
+6. User pays via SBP/card
+7. YuKassa sends webhook to backend
+8. Backend verifies signature and updates payment status
+9. Balance is credited automatically
+10. User receives Telegram notification
 
 ### Weekly Bonus
 
@@ -414,7 +415,7 @@ Use the Swagger UI at `http://localhost:8000/docs` to test all endpoints.
 ```bash
 curl -X POST "http://localhost:8000/api/payments/create" \
   -H "Content-Type: application/json" \
-  -d '{"user_id": 1, "amount": 100}'
+  -d '{"user_id": 1, "amount": 100, "payment_method": "sbp"}'
 ```
 
 **Get payment status:**

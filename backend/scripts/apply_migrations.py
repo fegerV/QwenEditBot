@@ -12,7 +12,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 try:
     result = subprocess.run([
-        "alembic", "upgrade", "head"
+        sys.executable, "-m", "alembic", "upgrade", "head"
     ], cwd="..", capture_output=True, text=True)
     
     if result.returncode == 0:

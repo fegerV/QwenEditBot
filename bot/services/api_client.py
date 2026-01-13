@@ -153,7 +153,7 @@ class BackendAPIClient:
             logger.error(f"Failed to get jobs for user {user_id}: {e}")
             return []
     
-    async def create_payment(self, user_id: int, amount: int) -> Dict[str, Any]:
+    async def create_payment(self, user_id: int, amount: int, payment_method: str = "card") -> Dict[str, Any]:
         """Create a payment"""
         try:
             response = await self._request(
@@ -161,10 +161,11 @@ class BackendAPIClient:
                 "/api/payments/create",
                 data={
                     "user_id": user_id,
-                    "amount": amount
+                    "amount": amount,
+                    "payment_method": payment_method
                 }
             )
-            logger.info(f"Payment created for user {user_id}: amount {amount}")
+            logger.info(f"Payment created for user {user_id}: amount {amount}, method {payment_method}")
             return response
         except Exception as e:
             logger.error(f"Failed to create payment for user {user_id}: {e}")

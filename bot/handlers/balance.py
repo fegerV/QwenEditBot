@@ -97,8 +97,14 @@ async def callback_payment_history(callback: types.CallbackQuery):
                     "refund": "Возврат"
                 }.get(payment["payment_type"], "Платёж")
                 
+                method_label = ""
+                if payment.get("payment_method") == "sbp":
+                    method_label = " (СБП)"
+                elif payment.get("payment_method") == "card":
+                    method_label = " (Карта)"
+                
                 text += (
-                    f"{status_emoji} *{type_label}*\n"
+                    f"{status_emoji} *{type_label}{method_label}*\n"
                     f"💰 {amount_rubles:.0f} ₽\n"
                     f"📅 {payment['created_at'][:10]}\n\n"
                 )

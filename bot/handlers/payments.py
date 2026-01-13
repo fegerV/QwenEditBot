@@ -27,7 +27,7 @@ async def handle_top_up(callback_query: CallbackQuery, state: FSMContext):
 • 500 ₽
 • 1000 ₽
 
-Или введите свою сумму (1-10000 ₽)"""
+Or enter your own amount (1-10000 ₽)"""
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
@@ -78,7 +78,8 @@ async def handle_payment_amount(callback_query: CallbackQuery, state: FSMContext
     
     try:
         amount = int(data[1])
-        await _create_payment(callback_query, state, amount)
+        await state.update_data(payment_amount=amount)
+        await show_payment_method_selection(callback_query.message, state)
     except ValueError:
         await callback_query.answer("❌ Неверная сумма", show_alert=True)
 
@@ -95,33 +96,90 @@ async def handle_custom_amount(message: Message, state: FSMContext):
             )
             return
         
-        # Create payment using callback query from state
-        await _create_payment_from_message(message, state, amount)
+        await state.update_data(payment_amount=amount)
+        await show_payment_method_selection_message(message, state)
         
     except ValueError:
         await message.answer("❌ Пожалуйста, введите корректное число (например: 500)")
 
 
-async def _create_payment(callback_query: CallbackQuery, state: FSMContext, amount: int):
+async def show_payment_method_selection(message: Message, state: FSMContext):
+    """Show payment method selection (Card or SBP)"""
+    data = await state.get_data()
+    amount = data.get("payment_amount")
+    
+    text = f"""💳 Выберите способ оплаты для суммы {amount} ₽:"""
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="💳 Карта", callback_data="method_card"),
+            InlineKeyboardButton(text="📲 СБП", callback_data="method_sbp")
+        ],
+        [
+            InlineKeyboardButton(text="🔙 Назад", callback_data="top_up")
+        ]
+    ])
+    
+    await message.edit_text(text, reply_markup=keyboard)
+    await state.set_state(UserState.selecting_payment_method)
+
+
+async def show_payment_method_selection_message(message: Message, state: FSMContext):
+    """Show payment method selection after custom amount message"""
+    data = await state.get_data()
+    amount = data.get("payment_amount")
+    
+    text = f"""💳 Выберите способ оплаты для суммы {amount} ₽:"""
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="💳 Карта", callback_data="method_card"),
+            InlineKeyboardButton(text="📲 СБП", callback_data="method_sbp")
+        ],
+        [
+            InlineKeyboardButton(text="🔙 Отмена", callback_data="top_up")
+        ]
+    ])
+    
+    await message.answer(text, reply_markup=keyboard)
+    await state.set_state(UserState.selecting_payment_method)
+
+
+@router.callback_query(F.data.startswith("method_"), StateFilter(UserState.selecting_payment_method))
+async def handle_payment_method(callback_query: CallbackQuery, state: FSMContext):
+    """Handle payment method selection"""
+    method = callback_query.data.split("_")[1]
+    data = await state.get_data()
+    amount = data.get("payment_amount")
+    
+    if not amount:
+        await callback_query.answer("❌ Ошибка: сумма не выбрана", show_alert=True)
+        return
+        
+    await _create_payment(callback_query, state, amount, method)
+
+
+async def _create_payment(callback_query: CallbackQuery, state: FSMContext, amount: int, method: str = "card"):
     """Create payment and show payment link"""
     user_id = callback_query.from_user.id
     
     try:
         # Create payment via backend API
         api_client = BackendAPIClient()
-        payment = await api_client.create_payment(user_id, amount)
+        payment = await api_client.create_payment(user_id, amount, method)
         
         # Show payment link
-        text = f"""💳 Оплата {amount} ₽
+        method_name = "Карту" if method == "card" else "СБП"
+        text = f"""💳 Оплата {amount} ₽ через {method_name}
 
-Нажмите кнопку ниже для оплаты через СБП или карту
+Нажмите кнопку ниже для оплаты через ЮКасса ({method_name})
 
 💎 {amount * 100} баллов будет зачислено на ваш баланс"""
         
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="💳 Оплатить", url=payment["confirmation_url"])],
             [
-                InlineKeyboardButton(text="🔄 Проверить статус", callback_data=f"check_payment_{payment['payment_id']}"),
+                InlineKeyboardButton(text="🔄 Проверить статус", callback_data=f"check_payment_{payment['id']}"),
                 InlineKeyboardButton(text="🔙 Отмена", callback_data="back_to_menu")
             ]
         ])
@@ -130,60 +188,18 @@ async def _create_payment(callback_query: CallbackQuery, state: FSMContext, amou
         
         # Store payment info for status checking
         await state.update_data(
-            payment_id=payment["payment_id"],
+            payment_id=payment["id"],
             amount=amount
         )
         
         # Start checking payment status in background
         asyncio.create_task(
-            _check_payment_status(user_id, payment["payment_id"], amount, state)
+            _check_payment_status(user_id, payment["id"], amount, state)
         )
         
     except Exception as e:
         logger.error(f"Error creating payment: {e}")
         await callback_query.answer("❌ Ошибка создания платежа", show_alert=True)
-
-
-async def _create_payment_from_message(message: Message, state: FSMContext, amount: int):
-    """Create payment from message input"""
-    user_id = message.from_user.id
-    
-    try:
-        # Create payment via backend API
-        api_client = BackendAPIClient()
-        payment = await api_client.create_payment(user_id, amount)
-        
-        # Show payment link
-        text = f"""💳 Оплата {amount} ₽
-
-Нажмите кнопку ниже для оплаты через СБП или карту
-
-💎 {amount * 100} баллов будет зачислено на ваш баланс"""
-        
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="💳 Оплатить", url=payment["confirmation_url"])],
-            [
-                InlineKeyboardButton(text="🔄 Проверить статус", callback_data=f"check_payment_{payment['payment_id']}"),
-                InlineKeyboardButton(text="🔙 Отмена", callback_data="back_to_menu")
-            ]
-        ])
-        
-        await message.answer(text, reply_markup=keyboard)
-        
-        # Store payment info for status checking
-        await state.update_data(
-            payment_id=payment["payment_id"],
-            amount=amount
-        )
-        
-        # Start checking payment status in background
-        asyncio.create_task(
-            _check_payment_status(user_id, payment["payment_id"], amount, state)
-        )
-        
-    except Exception as e:
-        logger.error(f"Error creating payment: {e}")
-        await message.answer("❌ Ошибка создания платежа. Попробуйте позже.")
 
 
 @router.callback_query(F.data.startswith("check_payment_"))
@@ -199,6 +215,8 @@ async def handle_check_payment(callback_query: CallbackQuery, state: FSMContext)
             await callback_query.answer("✅ Платёж уже успешен!", show_alert=True)
         elif payment["status"] == "failed":
             await callback_query.answer("❌ Платёж отклонён", show_alert=True)
+        elif payment["status"] == "cancelled":
+            await callback_query.answer("🚫 Платёж отменён", show_alert=True)
         else:
             await callback_query.answer(f"⏳ Статус: {payment['status']}", show_alert=True)
     except Exception as e:
@@ -223,7 +241,7 @@ async def _check_payment_status(user_id: int, payment_id: int, amount: int, stat
                 try:
                     await bot.send_message(
                         user_id,
-                        f"✅ Платёж успешен! Баллы добавлены 🎉\n\n💰 Пополнено: {amount * 100} баллов\n💳 Новый баланс: {payment.get('new_balance', 'нажмите /balance')} баллов",
+                        f"✅ Платёж успешен! Баллы добавлены 🎉\n\n💰 Пополнено: {amount * 100} баллов\n💳 Статус: Успешно",
                         reply_markup=main_menu_keyboard()
                     )
                 except Exception as e:
