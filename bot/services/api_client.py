@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 
 class BackendAPIClient:
     """HTTP client for backend API communication"""
-    
+
     def __init__(self):
-        self.base_url = settings.BACKEND_API_URL
+        self.base_url = settings.BACKEND_URL
         self.timeout = aiohttp.ClientTimeout(total=settings.BACKEND_API_TIMEOUT)
     
     async def _request(

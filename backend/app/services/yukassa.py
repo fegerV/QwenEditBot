@@ -138,33 +138,29 @@ class YuKassaClient:
             logger.error(f"YuKassa API error: {e}")
             raise Exception(f"Failed to get YuKassa payment: {str(e)}")
     
-    def verify_signature(self, request_body: str, signature: str) -> bool:
-        """
-        Verify YuKassa webhook signature
-        
-        YuKassa sends HMAC-SHA256 signature.
-        
-        Args:
-            request_body: Raw request body as string
-            signature: Signature from request header
-            
-        Returns:
-            True if signature is valid, False otherwise
-        """
+    def verify_signature(self, signature: str, request_body: str) -> bool:
+        """Verify YuKassa webhook signature (HMAC-SHA256)."""
         if not settings.YUKASSA_WEBHOOK_SECRET:
-            logger.warning("YuKassa webhook secret not configured, skipping signature verification")
-            return True
-        
+            logger.error("YuKassa webhook secret not configured - rejecting webhook")
+            return False
+
+        if not signature:
+            return False
+
+        signature = signature.strip()
+        if signature.lower().startswith("sha256="):
+            signature = signature.split("=", 1)[1]
+
         try:
             expected_signature = hmac.new(
                 settings.YUKASSA_WEBHOOK_SECRET.encode(),
                 request_body.encode(),
-                hashlib.sha256
+                hashlib.sha256,
             ).hexdigest()
-            
+
             # Use constant-time comparison to prevent timing attacks
-            return hmac.compare_digest(signature, expected_signature)
-            
+            return hmac.compare_digest(signature.lower(), expected_signature.lower())
+
         except Exception as e:
             logger.error(f"Error verifying YuKassa signature: {e}")
             return False
