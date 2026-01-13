@@ -8,6 +8,7 @@ from worker.processors.image_editor import ImageEditorProcessor
 from worker.processors.result_handler import ResultHandler
 from worker.retry.strategy import RetryStrategy
 from worker.config import settings
+from worker.services.comfyui_client import ComfyUIClient
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ class QwenEditWorker:
         self.processor = ImageEditorProcessor()
         self.result_handler = ResultHandler()
         self.retry = RetryStrategy()
+        self.comfyui_client = ComfyUIClient()
 
     async def process_jobs(self):
         """Main worker loop"""
@@ -44,13 +46,22 @@ class QwenEditWorker:
                     continue
 
                 try:
-                    # 3. Update job status to processing
+                    # 3. Check ComfyUI health before processing
+                    logger.info(f"Checking ComfyUI health before processing job {job.id}")
+                    comfyui_healthy = await self.comfyui_client.check_health()
+                    
+                    if not comfyui_healthy:
+                        logger.warning(f"ComfyUI health check failed for job {job.id}, returning to queue")
+                        await asyncio.sleep(settings.WORKER_POLLING_INTERVAL)
+                        continue
+                    
+                    # 4. Update job status to processing
                     await self.queue.update_job_status(
                         job.id, 
                         "processing"
                     )
 
-                    # 4. Process the job
+                    # 5. Process the job
                     result_path = await self.processor.process(job)
 
                     # 5. Update job status to completed

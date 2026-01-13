@@ -23,6 +23,22 @@ def create_tables():
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")
 
+# Run database migrations
+def run_migrations():
+    logger.info("Running database migrations...")
+    try:
+        import subprocess
+        result = subprocess.run([
+            "alembic", "upgrade", "head"
+        ], cwd="/home/engine/project/backend", capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            logger.info("Database migrations applied successfully")
+        else:
+            logger.error(f"Failed to apply migrations: {result.stderr}")
+    except Exception as e:
+        logger.error(f"Error running migrations: {e}")
+
 # Create FastAPI app
 app = FastAPI(
     title="QwenEditBot Backend",
@@ -55,6 +71,10 @@ scheduler: WeeklyBonusScheduler = None
 
 @app.on_event("startup")
 async def on_startup():
+    # Run migrations first
+    run_migrations()
+    
+    # Create tables (for development, migrations should handle this)
     create_tables()
     
     # Start weekly bonus scheduler

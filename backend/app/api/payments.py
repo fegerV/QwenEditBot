@@ -1,20 +1,37 @@
 """Payment API endpoints"""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 from ..database import get_db
 from ..schemas import PaymentCreate, PaymentResponse, PaymentHistoryResponse
 from ..services.payment_service import PaymentService
+from ..config import settings
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import logging
 
 logger = logging.getLogger(__name__)
 
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter()
+
+# Add rate limit exceeded handler
+@router.exception_handler(RateLimitExceeded)
+async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+    logger.warning(f"Rate limit exceeded for {get_remote_address(request)}: {exc.detail}")
+    return HTTPException(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        detail=f"Too many requests. Please try again in {exc.detail['X-RateLimit-Reset']} seconds."
+    )
 
 
 @router.post("/create", response_model=PaymentResponse)
+@limiter.limit(settings.PAYMENT_RATE_LIMIT if settings.RATE_LIMIT_ENABLED else "unlimited")
 async def create_payment(
+    request: Request,
     payment_data: PaymentCreate,
     db: Session = Depends(get_db)
 ):
@@ -30,21 +47,26 @@ async def create_payment(
         Payment object with confirmation_url for user to complete payment
     """
     try:
+        logger.info(f"Payment creation request from {get_remote_address(request)}: user_id={payment_data.user_id}, amount={payment_data.amount} rubles")
+        
         payment_service = PaymentService(db)
         payment = await payment_service.create_payment(
             user_id=payment_data.user_id,
             amount=payment_data.amount
         )
         
+        logger.info(f"Payment creation successful for user {payment_data.user_id}: payment_id={payment.id}")
+        
         return PaymentResponse.model_validate(payment)
         
     except ValueError as e:
+        logger.warning(f"Payment creation failed for user {payment_data.user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
-        logger.error(f"Error creating payment: {e}")
+        logger.error(f"Error creating payment for user {payment_data.user_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create payment: {str(e)}"

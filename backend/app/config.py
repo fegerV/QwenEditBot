@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     PAYMENT_RETURN_URL: str = Field("https://t.me/YourBotUsername", env="PAYMENT_RETURN_URL")
     POINTS_PER_RUBLE: int = Field(100, env="POINTS_PER_RUBLE")
     
+    # Rate limiting configuration
+    RATE_LIMIT_ENABLED: bool = Field(True, env="RATE_LIMIT_ENABLED")
+    PAYMENT_RATE_LIMIT: str = Field("5/minute", env="PAYMENT_RATE_LIMIT")  # 5 payments per minute per user
+    
     # Weekly bonus configuration
     WEEKLY_BONUS_ENABLED: bool = Field(True, env="WEEKLY_BONUS_ENABLED")
     WEEKLY_BONUS_AMOUNT: int = Field(10, env="WEEKLY_BONUS_AMOUNT")  # points
