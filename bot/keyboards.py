@@ -91,6 +91,39 @@ def top_up_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+# Top Up Selection Keyboard (Inline)
+def top_up_amount_keyboard() -> InlineKeyboardMarkup:
+    """Create top up amount selection keyboard"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="100 ₽", callback_data="top_up_100"))
+    builder.add(InlineKeyboardButton(text="250 ₽", callback_data="top_up_250"))
+    builder.row(InlineKeyboardButton(text="500 ₽", callback_data="top_up_500"))
+    builder.add(InlineKeyboardButton(text="1000 ₽", callback_data="top_up_1000"))
+    builder.row(InlineKeyboardButton(text="💳 Своя сумма", callback_data="top_up_custom"))
+    builder.add(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_balance"))
+    
+    return builder.as_markup()
+
+
+# Custom Amount Input Keyboard (Inline)
+def custom_amount_keyboard() -> InlineKeyboardMarkup:
+    """Create custom amount input keyboard"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_custom_amount"))
+    
+    return builder.as_markup()
+
+
+# Payment Confirmation Keyboard (Inline)
+def payment_confirmation_keyboard() -> InlineKeyboardMarkup:
+    """Create payment confirmation keyboard"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="✅ Подтвердить", callback_data="confirm_payment"))
+    builder.add(InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_payment"))
+    
+    return builder.as_markup()
+
+
 # Cancel Keyboard (Inline)
 def cancel_keyboard() -> InlineKeyboardMarkup:
     """Create cancel keyboard"""
