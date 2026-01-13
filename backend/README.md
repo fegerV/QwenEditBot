@@ -64,8 +64,17 @@ The backend will start on `http://localhost:8000`
 - `GET /api/jobs/user/{user_id}` - List user jobs
 - `PUT /api/jobs/{job_id}` - Update job status (worker)
 
+### Payments
+- `POST /api/payments/create` - Create payment (rate limited)
+- `GET /api/payments/{payment_id}` - Get payment status
+- `GET /api/payments/user/{user_id}` - Get payment history
+
 ### Telegram
 - `POST /api/telegram/webhook` - Telegram webhook
+
+### Webhooks
+- `POST /api/webhooks/yukassa` - YuKassa payment webhook
+- `GET /api/webhooks/test` - Test webhook accessibility
 
 ## 🧪 Testing with cURL
 
@@ -109,6 +118,13 @@ backend/
 │   ├── api/                  # API endpoints
 │   ├── services/              # Business logic
 │   └── utils/                 # Utilities
+├── migrations/               # Database migrations (Alembic)
+│   ├── versions/              # Migration scripts
+│   ├── env.py                 # Alembic environment
+│   └── script.py.mako         # Migration template
+├── scripts/                  # Helper scripts
+│   ├── create_migration.py    # Create new migration
+│   └── apply_migrations.py    # Apply migrations
 ├── .env.example
 ├── requirements.txt
 └── run.py
@@ -122,6 +138,28 @@ Edit `.env` file to configure:
 - Telegram bot token
 - Payment gateways
 - Balance settings
+- Rate limiting settings
+
+### Rate Limiting
+
+The payment endpoint has rate limiting to prevent spam:
+- `RATE_LIMIT_ENABLED`: Enable/disable rate limiting (default: True)
+- `PAYMENT_RATE_LIMIT`: Rate limit string (default: "5/minute")
+
+### ComfyUI Health Check
+
+The worker now checks ComfyUI health before processing jobs:
+- Uses `GET /system_stats` endpoint
+- If ComfyUI is unhealthy, jobs are returned to queue
+
+### Enhanced Payment Logging
+
+All payment events are now logged with detailed information:
+- Payment creation (success/failure)
+- Webhook processing
+- Refunds
+- Weekly bonuses
+- Includes payment_id, user_id, amount, status, and timestamps
 
 ## 🐳 Docker (Future)
 
@@ -133,6 +171,7 @@ The backend integrates with ComfyUI for image processing:
 - Uploads images to ComfyUI input directory
 - Sends prompts to ComfyUI API
 - Retrieves processed results
+- Health checks before processing jobs
 
 ## 💰 Balance System
 
@@ -140,6 +179,33 @@ The backend integrates with ComfyUI for image processing:
 - Each edit costs 30 points
 - Weekly bonus of 10 points
 - Admin can add/refund points
+- All transactions are logged
+
+## 📦 Database Migrations
+
+The project now uses Alembic for database migrations:
+
+### Create a new migration
+```bash
+python scripts/create_migration.py "Your migration message"
+```
+
+### Apply migrations
+```bash
+python scripts/apply_migrations.py
+```
+
+### Manual migration commands
+```bash
+# Create migration
+alembic revision --autogenerate -m "Your message"
+
+# Apply migrations
+alembic upgrade head
+
+# Downgrade
+alembic downgrade -1
+```
 
 ## 📝 Notes
 
@@ -147,3 +213,6 @@ The backend integrates with ComfyUI for image processing:
 - SQLite database is used by default
 - All API endpoints are documented with Swagger
 - Error handling with proper HTTP status codes
+- Rate limiting on payment endpoints to prevent abuse
+- Comprehensive logging for all payment operations
+- ComfyUI health checks before job processing

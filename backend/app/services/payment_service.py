@@ -35,12 +35,15 @@ class PaymentService:
         ).first()
         
         if not user:
+            logger.warning(f"Payment creation failed: User {user_id} not found")
             raise ValueError(f"User {user_id} not found")
         
         # Validate amount
         if amount < settings.PAYMENT_MIN_AMOUNT:
+            logger.warning(f"Payment creation failed: Amount {amount} rubles below minimum {settings.PAYMENT_MIN_AMOUNT} rubles for user {user_id}")
             raise ValueError(f"Minimum amount is {settings.PAYMENT_MIN_AMOUNT} rubles")
         if amount > settings.PAYMENT_MAX_AMOUNT:
+            logger.warning(f"Payment creation failed: Amount {amount} rubles above maximum {settings.PAYMENT_MAX_AMOUNT} rubles for user {user_id}")
             raise ValueError(f"Maximum amount is {settings.PAYMENT_MAX_AMOUNT} rubles")
         
         # Convert to kopeks for storage
@@ -48,7 +51,10 @@ class PaymentService:
         
         # Create payment in YuKassa
         if not self.yukassa_client:
+            logger.error(f"Payment creation failed: YuKassa integration not configured for user {user_id}")
             raise Exception("YuKassa integration not configured")
+        
+        logger.info(f"Creating payment for user {user_id}: {amount} rubles ({amount_kopeks} kopeks)")
         
         yukassa_payment = await self.yukassa_client.create_payment(
             amount=amount_kopeks,
@@ -71,7 +77,7 @@ class PaymentService:
         self.db.commit()
         self.db.refresh(payment)
         
-        logger.info(f"Payment created: {payment.id} for user {user_id}, amount: {amount} rubles")
+        logger.info(f"Payment created successfully: payment_id={payment.id}, user_id={user_id}, yukassa_payment_id={payment.yukassa_payment_id}, amount={amount} rubles, status=pending")
         
         return payment
     
@@ -86,14 +92,18 @@ class PaymentService:
         Returns:
             True if webhook was processed successfully
         """
+        logger.info(f"Processing YuKassa webhook: yukassa_payment_id={yukassa_payment_id}, status={status}")
+        
         # Find payment in database
         payment = self.db.query(models.Payment).filter(
             models.Payment.yukassa_payment_id == yukassa_payment_id
         ).first()
         
         if not payment:
-            logger.warning(f"Payment not found for YuKassa ID: {yukassa_payment_id}")
+            logger.warning(f"Webhook processing failed: Payment not found for YuKassa ID: {yukassa_payment_id}")
             return False
+        
+        logger.info(f"Found payment: payment_id={payment.id}, user_id={payment.user_id}, current_status={payment.status}")
         
         # Update status
         if status == "succeeded":
@@ -119,17 +129,19 @@ class PaymentService:
                 )
                 self.db.add(payment_log)
                 
-                logger.info(f"Payment succeeded: {payment.id}, credited {points} points to user {payment.user_id}")
+                logger.info(f"Payment succeeded: payment_id={payment.id}, user_id={payment.user_id}, amount={payment.amount} kopeks, credited {points} points, new_balance={user.balance}")
                 
         elif status == "failed":
             payment.status = models.PaymentStatus.failed
-            logger.info(f"Payment failed: {payment.id}")
+            logger.info(f"Payment failed: payment_id={payment.id}, user_id={payment.user_id}, yukassa_payment_id={yukassa_payment_id}")
         elif status == "cancelled":
             payment.status = models.PaymentStatus.cancelled
-            logger.info(f"Payment cancelled: {payment.id}")
+            logger.info(f"Payment cancelled: payment_id={payment.id}, user_id={payment.user_id}, yukassa_payment_id={yukassa_payment_id}")
         
         payment.updated_at = datetime.now()
         self.db.commit()
+        
+        logger.info(f"Webhook processed successfully: payment_id={payment.id}, new_status={payment.status}")
         
         return True
     
@@ -145,12 +157,15 @@ class PaymentService:
         Returns:
             Payment object
         """
+        logger.info(f"Creating refund for user {user_id}: amount={amount} points, reason={reason}")
+        
         # Validate user exists
         user = self.db.query(models.User).filter(
             models.User.user_id == user_id
         ).first()
         
         if not user:
+            logger.warning(f"Refund failed: User {user_id} not found")
             raise ValueError(f"User {user_id} not found")
         
         # Create refund payment
@@ -180,7 +195,7 @@ class PaymentService:
         self.db.commit()
         self.db.refresh(payment)
         
-        logger.info(f"Refund created: {payment.id} for user {user_id}, amount: {amount} points, reason: {reason}")
+        logger.info(f"Refund created successfully: payment_id={payment.id}, user_id={user_id}, amount={amount} points, reason={reason}, new_balance={user.balance}")
         
         return payment
     
@@ -253,12 +268,15 @@ class PaymentService:
         if amount is None:
             amount = settings.WEEKLY_BONUS_AMOUNT
         
+        logger.info(f"Issuing weekly bonus to user {user_id}: amount={amount} points")
+        
         # Validate user exists
         user = self.db.query(models.User).filter(
             models.User.user_id == user_id
         ).first()
         
         if not user:
+            logger.warning(f"Weekly bonus failed: User {user_id} not found")
             raise ValueError(f"User {user_id} not found")
         
         # Create weekly bonus payment
@@ -288,6 +306,6 @@ class PaymentService:
         self.db.commit()
         self.db.refresh(payment)
         
-        logger.info(f"Weekly bonus issued: {amount} points to user {user_id}")
+        logger.info(f"Weekly bonus issued successfully: payment_id={payment.id}, user_id={user_id}, amount={amount} points, new_balance={user.balance}")
         
         return payment

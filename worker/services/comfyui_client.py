@@ -72,3 +72,22 @@ class ComfyUIClient:
         except Exception as e:
             logger.error(f"Error downloading ComfyUI result: {str(e)}")
             return None
+
+    async def check_health(self) -> bool:
+        """Check ComfyUI health status"""
+        url = f"{self.base_url}/system_stats"
+        
+        try:
+            async with aiohttp.ClientSession(timeout=self.timeout) as session:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        logger.info(f"ComfyUI health check successful: {data}")
+                        return True
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"ComfyUI health check failed: {response.status} - {error_text}")
+                        return False
+        except Exception as e:
+            logger.error(f"Error checking ComfyUI health: {str(e)}")
+            return False
