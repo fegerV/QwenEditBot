@@ -35,6 +35,14 @@ class Settings(BaseSettings):
     # Results configuration
     RESULTS_DIR: str = Field("./results", env="RESULTS_DIR")
 
+    # QwenEdit 2511 configuration
+    QWEN_EDIT_VAE_NAME: str = Field("qwen_image_vae.safetensors", env="QWEN_EDIT_VAE_NAME")
+    QWEN_EDIT_UNET_NAME: str = Field("qwen_image_edit_2511_fp8mixed.safetensors", env="QWEN_EDIT_UNET_NAME")
+    QWEN_EDIT_CLIP_NAME: str = Field("qwen_2.5_vl_7b_fp8_scaled.safetensors", env="QWEN_EDIT_CLIP_NAME")
+    QWEN_EDIT_LORA_NAME: str = Field("Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors", env="QWEN_EDIT_LORA_NAME")
+    QWEN_EDIT_SCALE_MEGAPIXELS: int = Field(2, env="QWEN_EDIT_SCALE_MEGAPIXELS")
+    QWEN_EDIT_STEPS: int = Field(4, env="QWEN_EDIT_STEPS")
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

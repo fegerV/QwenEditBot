@@ -48,8 +48,8 @@ class ImageEditorProcessor:
             
             logger.debug(f"Image saved to {input_path}")
 
-            # Step 3: Prepare workflow
-            workflow = await self._prepare_workflow(job, input_filename)
+            # Step 3: Prepare workflow using factory
+            workflow = get_workflow(job.workflow_type, job)
 
             # Step 4: Send to ComfyUI
             comfyui_job_id = await self.comfyui_client.send_workflow(workflow)
@@ -64,76 +64,6 @@ class ImageEditorProcessor:
         except Exception as e:
             logger.error(f"Error processing job {job.id}: {str(e)}")
             raise
-
-    async def _prepare_workflow(self, job: Job, input_filename: str) -> dict:
-        """Prepare workflow JSON with parameter substitution"""
-        # Basic workflow structure for ComfyUI
-        workflow = {
-            "prompt": {
-                "3": {
-                    "inputs": {
-                        "text": job.prompt,
-                        "clip": ["4", 0]
-                    },
-                    "class_type": "CLIPTextEncode"
-                },
-                "4": {
-                    "inputs": {
-                        "ckpt_name": "sd_xl_base_1.0.safetensors"
-                    },
-                    "class_type": "CheckpointLoaderSimple"
-                },
-                "5": {
-                    "inputs": {
-                        "image": f"{input_filename}",
-                        "resize_mode": "0",
-                        "crop_w": 1024,
-                        "crop_h": 1024
-                    },
-                    "class_type": "LoadImage"
-                },
-                "6": {
-                    "inputs": {
-                        "samples": ["7", 0],
-                        "vae": ["4", 2]
-                    },
-                    "class_type": "VAEEncode"
-                },
-                "7": {
-                    "inputs": {
-                        "positive": ["3", 0],
-                        "negative": ["8", 0],
-                        "empty_latent_image": ["5", 0],
-                        "model": ["4", 0]
-                    },
-                    "class_type": "KSampler"
-                },
-                "8": {
-                    "inputs": {
-                        "text": "bad quality, low quality",
-                        "clip": ["4", 0]
-                    },
-                    "class_type": "CLIPTextEncode"
-                },
-                "9": {
-                    "inputs": {
-                        "samples": ["7", 0],
-                        "vae": ["4", 2]
-                    },
-                    "class_type": "VAEDecode"
-                },
-                "10": {
-                    "inputs": {
-                        "filename_prefix": f"job_{job.id}_result",
-                        "images": ["9", 0]
-                    },
-                    "class_type": "SaveImage"
-                }
-            },
-            "output": ["10", 0]
-        }
-        
-        return workflow
 
     async def _wait_and_download(self, comfyui_job_id: str, job_id: int) -> Path:
         """Wait for result and download"""

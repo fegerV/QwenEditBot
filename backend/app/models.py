@@ -45,6 +45,7 @@ class Preset(Base):
     icon = Column(String(255))
     price = Column(Float, default=30.0)
     order = Column(Integer, default=0)
+    workflow_type = Column(String(50), default="standard")
 
 class Job(Base):
     __tablename__ = "jobs"
@@ -57,6 +58,8 @@ class Job(Base):
     result_path = Column(String(255))
     error = Column(Text)
     retry_count = Column(Integer, default=0)
+    workflow_type = Column(String(50), default="standard")
+    workflow_config = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
