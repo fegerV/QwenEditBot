@@ -57,7 +57,7 @@ Create `.env` files in both backend and worker directories:
 ```
 BOT_TOKEN=your_bot_token_here
 COMFYUI_URL=http://127.0.0.1:8188
-COMFY_INPUT_DIR=C:/ComfyUI/input
+COMFYUI_INPUT_DIR=C:/ComfyUI/input
 DATABASE_URL=sqlite:///./qwen.db
 REDIS_HOST=localhost
 REDIS_PORT=6379

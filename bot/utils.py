@@ -39,20 +39,24 @@ async def download_telegram_photo(
     bot: Bot,
     file_id: str
 ) -> Optional[bytes]:
-    """Download photo from Telegram servers"""
+    """Download photo from Telegram and return as bytes"""
     try:
         file = await bot.get_file(file_id)
-        file_path = file.file_path
+        downloaded = await bot.download_file(file.file_path)
         
-        # Download file
-        downloaded_file = await bot.download_file(file_path)
+        # Protect against different return types (bytes or stream)
+        if isinstance(downloaded, (bytes, bytearray)):
+            return bytes(downloaded)
         
-        if downloaded_file:
-            return downloaded_file.read()
-        return None
+        # If it's a stream (BytesIO or similar)
+        if hasattr(downloaded, 'read'):
+            return downloaded.read()
+        
+        # Fallback: try to convert to bytes
+        return bytes(downloaded)
         
     except Exception as e:
-        logger.error(f"Error downloading photo: {e}")
+        logger.error(f"Failed to download photo {file_id}: {e}")
         return None
 
 

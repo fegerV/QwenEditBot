@@ -48,7 +48,7 @@ class ImageEditorProcessor:
             import shutil
             shutil.copy2(source_path, input_path)
             
-            logger.debug(f"Image copied from {source_path} to {input_path}")
+            logger.info(f"Job {job.id}: input_path={input_path}, exists={os.path.exists(input_path)}")
 
             # Step 3: Prepare workflow using build_workflow
             workflow = build_workflow(job)

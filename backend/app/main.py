@@ -133,7 +133,7 @@ async def download_file(file_path: str):
         
         # Security check - only allow files within certain directories
         allowed_dirs = [
-            settings.COMFY_INPUT_DIR,
+            settings.COMFYUI_INPUT_DIR,
             settings.COMFY_OUTPUT_DIR,
             "./results"
         ]
