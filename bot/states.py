@@ -21,6 +21,7 @@ class UserState(StatesGroup):
     # Balance states
     checking_balance = State()
     awaiting_payment = State()
+    selecting_payment_method = State()
     
     # Job processing state
     processing_job = State()

@@ -117,6 +117,7 @@ class PaymentLogResponse(PaymentLogBase):
 class PaymentCreate(BaseModel):
     user_id: int
     amount: int  # in rubles
+    payment_method: Optional[str] = "card"
 
 class PaymentResponse(BaseModel):
     id: int
@@ -126,6 +127,8 @@ class PaymentResponse(BaseModel):
     currency: str
     status: PaymentStatus
     payment_type: PaymentType
+    payment_method: Optional[str] = "card"
+    payment_method_details: Optional[str] = None
     description: Optional[str] = None
     confirmation_url: Optional[str] = None
     created_at: datetime

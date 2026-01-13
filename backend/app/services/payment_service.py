@@ -18,13 +18,14 @@ class PaymentService:
         self.db = db
         self.yukassa_client = YuKassaClient() if settings.YUKASSA_SHOP_ID else None
     
-    async def create_payment(self, user_id: int, amount: int) -> models.Payment:
+    async def create_payment(self, user_id: int, amount: int, payment_method: str = "card") -> models.Payment:
         """
         Create a new payment through YuKassa
         
         Args:
             user_id: User ID
             amount: Amount in rubles
+            payment_method: card or sbp
             
         Returns:
             Payment object with confirmation_url
@@ -54,11 +55,12 @@ class PaymentService:
             logger.error(f"Payment creation failed: YuKassa integration not configured for user {user_id}")
             raise Exception("YuKassa integration not configured")
         
-        logger.info(f"Creating payment for user {user_id}: {amount} rubles ({amount_kopeks} kopeks)")
+        logger.info(f"Creating payment for user {user_id}: {amount} rubles ({amount_kopeks} kopeks), method={payment_method}")
         
         yukassa_payment = await self.yukassa_client.create_payment(
             amount=amount_kopeks,
-            description=f"QwenEditBot - пополнение баланса, пользователь {user_id}"
+            description=f"QwenEditBot - пополнение баланса, пользователь {user_id}",
+            payment_method=payment_method
         )
         
         # Save to database
@@ -69,7 +71,8 @@ class PaymentService:
             currency="RUB",
             status=models.PaymentStatus.pending,
             payment_type=models.PaymentType.payment,
-            description=f"Пополнение баланса",
+            payment_method=payment_method,
+            description=f"Пополнение баланса ({payment_method})",
             confirmation_url=yukassa_payment["confirmation_url"]
         )
         
@@ -81,13 +84,14 @@ class PaymentService:
         
         return payment
     
-    async def handle_webhook(self, yukassa_payment_id: str, status: str) -> bool:
+    async def handle_webhook(self, yukassa_payment_id: str, status: str, payment_method_details: Optional[dict] = None) -> bool:
         """
         Handle webhook from YuKassa
         
         Args:
             yukassa_payment_id: YuKassa payment ID
             status: Payment status from YuKassa
+            payment_method_details: Optional details about payment method (e.g. SBP ID)
             
         Returns:
             True if webhook was processed successfully
@@ -104,6 +108,17 @@ class PaymentService:
             return False
         
         logger.info(f"Found payment: payment_id={payment.id}, user_id={payment.user_id}, current_status={payment.status}")
+        
+        # Save payment method details if provided
+        if payment_method_details:
+            import json
+            payment.payment_method_details = json.dumps(payment_method_details)
+            # Update payment method if it was unknown
+            if "type" in payment_method_details:
+                if payment_method_details["type"] == "sbp":
+                    payment.payment_method = "sbp"
+                elif payment_method_details["type"] == "bank_card":
+                    payment.payment_method = "card"
         
         # Update status
         if status == "succeeded":

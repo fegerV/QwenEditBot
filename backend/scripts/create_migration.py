@@ -18,7 +18,7 @@ message = sys.argv[1]
 
 try:
     result = subprocess.run([
-        "alembic", "revision", "--autogenerate", "-m", message
+        sys.executable, "-m", "alembic", "revision", "--autogenerate", "-m", message
     ], cwd="..", capture_output=True, text=True)
     
     if result.returncode == 0:
