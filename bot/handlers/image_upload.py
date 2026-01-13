@@ -6,7 +6,7 @@ from pathlib import Path
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from ..states import UserState
-from ..keyboards import main_menu_keyboard
+from ..keyboards import main_menu_keyboard, cancel_keyboard
 from ..services import BackendAPIClient
 from ..utils import download_telegram_photo, send_error_message, format_balance
 from ..config import settings
@@ -16,55 +16,93 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 
-@router.message(UserState.awaiting_image_for_preset, F.photo)
-async def handle_preset_image(message: types.Message, state: FSMContext):
-    """Handle image upload for preset editing"""
+@router.message(UserState.waiting_for_image, F.photo)
+async def handle_image_upload(message: types.Message, state: FSMContext):
+    """Handle image upload for preset processing"""
     try:
         # Import api_client from main module
         from ..main import api_client
         
-        # Get state data
-        state_data = await state.get_data()
-        preset_id = state_data.get('preset_id')
-        preset_name = state_data.get('preset_name')
+        # Get data from state
+        data = await state.get_data()
+        selected_preset = data.get("selected_preset")
+        prompt = data.get("prompt")
         
-        if not preset_id:
-            await message.answer("Ошибка: не выбран пресет. Попробуйте заново.")
-            await state.clear()
-            await message.answer("Главное меню:", reply_markup=main_menu_keyboard())
+        if not prompt:
+            await message.answer("❌ Промпт не найден. Попробуйте снова.")
             return
         
-        # Check balance
-        has_balance = await api_client.check_balance(message.from_user.id, settings.EDIT_COST)
+        # Get balance
+        balance = await api_client.get_balance(message.from_user.id)
+        cost = 30  # settings.EDIT_COST
         
-        if not has_balance:
-            balance = await api_client.get_balance(message.from_user.id)
-            text = (
-                f"❌ Недостаточно баллов!\n\n"
-                f"Стоимость: {settings.EDIT_COST} баллов\n"
-                f"Ваш баланс: {format_balance(balance)}\n\n"
-                f"Пополните баланс и попробуйте снова."
+        if balance < cost:
+            await message.answer(
+                f"❌ Недостаточно баллов!\n"
+                f"Баланс: {balance} баллов\n"
+                f"Требуется: {cost} баллов\n\n"
+                f"➕ Пополнить баланс?",
+                reply_markup=main_menu_keyboard()
             )
-            await message.answer(text, reply_markup=main_menu_keyboard())
-            await state.clear()
             return
         
-        # Get preset prompt
-        preset_prompt = await api_client.get_preset_prompt(preset_id)
-        if not preset_prompt:
-            await message.answer("Ошибка: пресет не найден. Попробуйте заново.")
-            await state.clear()
-            await message.answer("Главное меню:", reply_markup=main_menu_keyboard())
+        # Show confirmation
+        preset_name = selected_preset.get("name", "Обработка")
+        await message.answer(
+            f"✅ Фото загружено!\n\n"
+            f"Обработка: {preset_name}\n"
+            f"Баланс: {balance} баллов\n"
+            f"Стоимость: {cost} баллов\n\n"
+            f"Подтверждаете обработку?",
+            reply_markup=confirmation_keyboard()
+        )
+        
+        # Save photo in state for confirmation
+        await state.update_data(photo_id=message.photo[-1].file_id)
+        
+    except Exception as e:
+        logger.error(f"Error uploading image: {e}")
+        await send_error_message(message)
+
+
+@router.callback_query(F.data == "confirm_processing")
+async def confirm_processing(callback: types.CallbackQuery, state: FSMContext):
+    """Confirm image processing"""
+    try:
+        # Import api_client from main module
+        from ..main import api_client
+        
+        # Get data from state
+        data = await state.get_data()
+        selected_preset = data.get("selected_preset")
+        prompt = data.get("prompt")
+        photo_id = data.get("photo_id")
+        
+        if not photo_id or not prompt:
+            await callback.answer("Ошибка данных. Попробуйте заново.", show_alert=True)
+            return
+        
+        # Check balance again
+        balance = await api_client.get_balance(callback.from_user.id)
+        cost = 30
+        
+        if balance < cost:
+            await callback.message.edit_text(
+                f"❌ Недостаточно баллов!\n"
+                f"Баланс: {balance} баллов\n"
+                f"Требуется: {cost} баллов\n\n"
+                f"➕ Пополнить баланс?",
+                reply_markup=main_menu_keyboard()
+            )
             return
         
         # Download photo from Telegram
-        await message.answer("📥 Получаю фото...")
+        await callback.message.edit_text("📥 Получаю фото...")
         
-        photo = message.photo[-1]  # Get highest resolution photo
-        photo_data = await download_telegram_photo(message.bot, photo.file_id)
+        photo_data = await download_telegram_photo(callback.bot, photo_id)
         
         if not photo_data:
-            await message.answer("Ошибка при загрузке фото. Попробуйте другое фото.")
+            await callback.message.answer("Ошибка при загрузке фото. Попробуйте другое фото.")
             return
         
         # Create temporary file
@@ -80,13 +118,13 @@ async def handle_preset_image(message: types.Message, state: FSMContext):
             
             file_tuple = (filename, file_content, 'image/jpeg')
             
-            await message.answer("📤 Отправляю фото на обработку...")
+            await callback.message.edit_text("📤 Отправляю фото на обработку...")
             
-            # Create job via API with preset prompt
+            # Create job via API with prompt from preset
             job_data = await api_client.create_job(
-                user_id=message.from_user.id,
+                user_id=callback.from_user.id,
                 image_file=file_tuple,
-                prompt=preset_prompt
+                prompt=prompt  # ← ПРОМПТ ИЗ ПРЕСЕТА!
             )
             
             job_id = job_data.get('id')
@@ -95,7 +133,9 @@ async def handle_preset_image(message: types.Message, state: FSMContext):
             await state.set_state(UserState.processing_job)
             await state.update_data(job_id=job_id)
             
-            await message.answer(
+            preset_name = selected_preset.get("name", "Обработка")
+            
+            await callback.message.edit_text(
                 f"✅ Фото отправлено на обработку!\n\n"
                 f"Пресет: {preset_name}\n"
                 f"ID задачи: {job_id}\n"
@@ -104,127 +144,55 @@ async def handle_preset_image(message: types.Message, state: FSMContext):
                 reply_markup=main_menu_keyboard()
             )
             
-            logger.info(f"Job {job_id} created for user {message.from_user.id} with preset {preset_name}")
+            logger.info(f"Job {job_id} created for user {callback.from_user.id} with preset {preset_name}")
             
         finally:
             # Clean up temporary file
             Path(temp_file_path).unlink(missing_ok=True)
         
+        await callback.answer()
+        
     except Exception as e:
-        logger.error(f"Error handling preset image: {e}")
-        await message.answer(
-            "Произошла ошибка при обработке фото. Попробуйте позже.",
-            reply_markup=main_menu_keyboard()
-        )
-        await state.clear()
+        logger.error(f"Error confirming processing: {e}")
+        await callback.answer("Ошибка при подтверждении обработки", show_alert=True)
 
 
-@router.message(UserState.awaiting_image_for_custom, F.photo)
-async def handle_custom_image(message: types.Message, state: FSMContext):
-    """Handle image upload for custom prompt editing"""
+@router.callback_query(F.data == "cancel_processing")
+async def cancel_processing(callback: types.CallbackQuery, state: FSMContext):
+    """Cancel image processing"""
     try:
-        # Import api_client from main module
-        from ..main import api_client
+        await state.clear()
+        await state.set_state(UserState.main_menu)
         
-        # Get state data
-        state_data = await state.get_data()
-        custom_prompt = state_data.get('custom_prompt')
-        
-        if not custom_prompt:
-            await message.answer("Ошибка: не указан промпт. Попробуйте заново.")
-            await state.clear()
-            await message.answer("Главное меню:", reply_markup=main_menu_keyboard())
-            return
-        
-        # Check balance
-        has_balance = await api_client.check_balance(message.from_user.id, settings.EDIT_COST)
-        
-        if not has_balance:
-            balance = await api_client.get_balance(message.from_user.id)
-            text = (
-                f"❌ Недостаточно баллов!\n\n"
-                f"Стоимость: {settings.EDIT_COST} баллов\n"
-                f"Ваш баланс: {format_balance(balance)}\n\n"
-                f"Пополните баланс и попробуйте снова."
-            )
-            await message.answer(text, reply_markup=main_menu_keyboard())
-            await state.clear()
-            return
-        
-        # Download photo from Telegram
-        await message.answer("📥 Получаю фото...")
-        
-        photo = message.photo[-1]  # Get highest resolution photo
-        photo_data = await download_telegram_photo(message.bot, photo.file_id)
-        
-        if not photo_data:
-            await message.answer("Ошибка при загрузке фото. Попробуйте другое фото.")
-            return
-        
-        # Create temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
-            temp_file.write(photo_data)
-            temp_file_path = temp_file.name
-        
-        try:
-            # Prepare file for upload
-            filename = Path(temp_file_path).name
-            with open(temp_file_path, 'rb') as f:
-                file_content = f.read()
-            
-            file_tuple = (filename, file_content, 'image/jpeg')
-            
-            await message.answer("📤 Отправляю фото на обработку...")
-            
-            # Create job via API
-            job_data = await api_client.create_job(
-                user_id=message.from_user.id,
-                image_file=file_tuple,
-                prompt=custom_prompt
-            )
-            
-            job_id = job_data.get('id')
-            
-            # Update state
-            await state.set_state(UserState.processing_job)
-            await state.update_data(job_id=job_id)
-            
-            await message.answer(
-                f"✅ Фото отправлено на обработку!\n\n"
-                f"Ваш промпт: {custom_prompt}\n\n"
-                f"ID задачи: {job_id}\n"
-                f"Статус: ⏳ В очереди\n\n"
-                f"Когда результат будет готов, вы получите уведомление.",
-                reply_markup=main_menu_keyboard()
-            )
-            
-            logger.info(f"Job {job_id} created for user {message.from_user.id} with custom prompt")
-            
-        finally:
-            # Clean up temporary file
-            Path(temp_file_path).unlink(missing_ok=True)
-        
-    except Exception as e:
-        logger.error(f"Error handling custom image: {e}")
-        await message.answer(
-            "Произошла ошибка при обработке фото. Попробуйте позже.",
+        await callback.message.edit_text(
+            "Операция отменена. Вы в главном меню.",
             reply_markup=main_menu_keyboard()
         )
-        await state.clear()
+        
+        await callback.answer()
+        
+    except Exception as e:
+        logger.error(f"Error canceling processing: {e}")
+        await callback.answer("Произошла ошибка", show_alert=True)
 
 
-# Handle text messages when expecting photo
-@router.message(UserState.awaiting_image_for_preset)
-async def handle_preset_wrong_input(message: types.Message):
-    """Handle wrong input when expecting photo for preset"""
+@router.message(UserState.waiting_for_image)
+async def handle_wrong_input(message: types.Message):
+    """Handle wrong input when expecting photo"""
     await message.answer(
-        "Пожалуйста, отправьте фото (не документ)."
+        "Пожалуйста, отправьте фото (не документ).",
+        reply_markup=cancel_keyboard()
     )
 
 
-@router.message(UserState.awaiting_image_for_custom)
-async def handle_custom_wrong_input(message: types.Message):
-    """Handle wrong input when expecting photo for custom prompt"""
-    await message.answer(
-        "Пожалуйста, отправьте фото (не документ)."
-    )
+# Confirmation keyboard
+def confirmation_keyboard():
+    """Create confirmation keyboard"""
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="✅ Подтвердить", callback_data="confirm_processing"))
+    builder.add(InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_processing"))
+    
+    return builder.as_markup()

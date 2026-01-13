@@ -37,9 +37,12 @@ def edit_photo_submenu_keyboard() -> InlineKeyboardMarkup:
 def category_keyboard() -> InlineKeyboardMarkup:
     """Create category selection keyboard"""
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="🧩 Стили", callback_data="category_styles"))
-    builder.add(InlineKeyboardButton(text="💡 Освещение", callback_data="category_lighting"))
-    builder.add(InlineKeyboardButton(text="🖼 Оформление", callback_data="category_design"))
+    builder.row(InlineKeyboardButton(text="🎨 Художественные стили", callback_data="category_styles"))
+    builder.row(InlineKeyboardButton(text="🧑 Портреты", callback_data="category_portrait"))
+    builder.row(InlineKeyboardButton(text="📦 Товары", callback_data="category_product"))
+    builder.row(InlineKeyboardButton(text="💡 Освещение", callback_data="category_lighting"))
+    builder.row(InlineKeyboardButton(text="🎬 Комиксы и анимация", callback_data="category_animation"))
+    builder.row(InlineKeyboardButton(text="✨ Улучшение", callback_data="category_enhancement"))
     builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
     
     return builder.as_markup()

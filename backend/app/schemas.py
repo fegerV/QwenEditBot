@@ -50,9 +50,20 @@ class PresetCreate(PresetBase):
 
 class PresetResponse(PresetBase):
     id: int
+    workflow_type: str = "qwen_edit_2511"
     
     class Config:
         from_attributes = True
+
+class PresetUpdate(BaseModel):
+    name: Optional[str] = None
+    prompt: Optional[str] = None
+    price: Optional[float] = None
+    order: Optional[int] = None
+
+class PresetListResponse(BaseModel):
+    presets: List[PresetResponse]
+    total: int
 
 # Job schemas
 class JobBase(BaseModel):

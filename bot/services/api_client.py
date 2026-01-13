@@ -97,6 +97,15 @@ class BackendAPIClient:
             logger.error(f"Failed to check balance for user {user_id}: {e}")
             return False
     
+    async def get_preset(self, preset_id: int) -> Optional[Dict[str, Any]]:
+        """Get preset by ID"""
+        try:
+            response = await self._request("GET", f"/api/presets/{preset_id}")
+            return response
+        except Exception as e:
+            logger.error(f"Failed to get preset {preset_id}: {e}")
+            return None
+    
     async def get_presets(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get presets, optionally filtered by category"""
         try:

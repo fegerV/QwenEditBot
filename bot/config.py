@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     """Bot configuration settings"""
 
     # Bot token
-    BOT_TOKEN: str = Field(..., env="BOT_TOKEN")
+    BOT_TOKEN: Optional[str] = Field(None, env="BOT_TOKEN")
 
     # Backend API configuration
     BACKEND_URL: str = Field(

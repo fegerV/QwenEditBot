@@ -58,9 +58,12 @@ async def show_presets_by_category(
         else:
             # Determine category title
             category_titles = {
-                "styles": "🧩 Стили",
+                "styles": "🎨 Художественные стили",
+                "portrait": "🧑 Портреты",
+                "product": "📦 Товары",
                 "lighting": "💡 Освещение",
-                "design": "🖼 Оформление"
+                "animation": "🎬 Комиксы и анимация",
+                "enhancement": "✨ Улучшение"
             }
             title = category_titles.get(category, f"Категория: {category}")
             
@@ -81,7 +84,7 @@ async def show_presets_by_category(
 
 # Preset selection handlers
 @router.callback_query(F.data.startswith("preset_"))
-async def callback_preset(callback: types.CallbackQuery, state: FSMContext):
+async def callback_preset_selected(callback: types.CallbackQuery, state: FSMContext):
     """Handle preset selection callback"""
     try:
         # Import api_client from main module
@@ -99,28 +102,32 @@ async def callback_preset(callback: types.CallbackQuery, state: FSMContext):
                 break
         
         if not selected_preset:
-            await callback.answer("Пресет не найден")
+            await callback.answer("Пресет не найден", show_alert=True)
             return
         
-        # Save preset ID to state
-        await state.update_data(preset_id=preset_id, preset_name=selected_preset.get('name'))
+        # Save preset data to state
+        await state.update_data(
+            selected_preset=selected_preset,
+            prompt=selected_preset.get("prompt")  # ← АВТОМАТИЧЕСКИ ПОДСТАВЛЯЕТСЯ ПРОМПТ!
+        )
         
         # Move to image upload state
-        await state.set_state(UserState.awaiting_image_for_preset)
+        await state.set_state(UserState.waiting_for_image)
         
         # Ask for image
         icon = selected_preset.get('icon', '📷')
         preset_name = selected_preset.get('name', 'Без названия')
+        cost = selected_preset.get('price', 30)
         
         text = (
-            f"{icon} *{preset_name}*\n\n"
-            f"Загрузите фото для обработки:"
+            f"✅ Выбран пресет: {icon} {preset_name}\n\n"
+            f"Стоимость: {cost} баллов\n\n"
+            f"📸 Теперь загрузите фото для обработки:"
         )
         
         from ..keyboards import cancel_keyboard
         await callback.message.edit_text(
             text,
-            parse_mode="Markdown",
             reply_markup=cancel_keyboard()
         )
         
@@ -128,7 +135,7 @@ async def callback_preset(callback: types.CallbackQuery, state: FSMContext):
         
     except Exception as e:
         logger.error(f"Error in preset callback: {e}")
-        await callback.answer("Произошла ошибка")
+        await callback.answer("Произошла ошибка при выборе пресета", show_alert=True)
 
 
 @router.callback_query(F.data == "back_to_edit")
@@ -151,7 +158,7 @@ async def callback_back_to_edit(callback: types.CallbackQuery, state: FSMContext
 
 
 # Cancel handler
-@router.callback_query(F.data == "cancel", state=UserState.awaiting_image_for_preset)
+@router.callback_query(F.data == "cancel", state=UserState.waiting_for_image)
 async def callback_cancel_preset(callback: types.CallbackQuery, state: FSMContext):
     """Handle cancel when waiting for image"""
     try:
