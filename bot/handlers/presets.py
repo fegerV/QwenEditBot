@@ -4,10 +4,10 @@ import logging
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
-from states import UserState
-from keyboards import category_keyboard, presets_keyboard
-from services import BackendAPIClient
-from utils import send_error_message
+from ..states import UserState
+from ..keyboards import category_keyboard, presets_keyboard
+from ..utils import send_error_message
+from ..services import BackendAPIClient
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ async def callback_category(callback: types.CallbackQuery, state: FSMContext):
     """Handle category selection callback"""
     try:
         # Import api_client from main module
-        from main import api_client
+        from ..main import api_client
         
         category = callback.data.split("_")[1]
         
@@ -49,7 +49,7 @@ async def show_presets_by_category(
     try:
         # Get presets from backend
         if api_client is None:
-            from main import api_client as global_api_client
+            from ..main import api_client as global_api_client
             api_client = global_api_client
         
         presets = await api_client.get_presets(category=category)
@@ -89,7 +89,7 @@ async def callback_preset_selected(callback: types.CallbackQuery, state: FSMCont
     """Handle preset selection callback"""
     try:
         # Import api_client from main module
-        from main import api_client
+        from ..main import api_client
         
         preset_id = int(callback.data.split("_")[1])
         
@@ -165,17 +165,15 @@ async def callback_cancel_preset(callback: types.CallbackQuery, state: FSMContex
     try:
         await state.clear()
         await state.set_state(UserState.main_menu)
-        
-        from ..keyboards import main_menu_keyboard
-        await callback.message.delete()
-        
-        await callback.message.answer(
+         
+        from ..keyboards import main_menu_inline_keyboard
+        await callback.message.edit_text(
             "Операция отменена. Вы в главном меню.",
-            reply_markup=main_menu_keyboard()
+            reply_markup=main_menu_inline_keyboard()
         )
-        
+         
         await callback.answer()
-        
+         
     except Exception as e:
         logger.error(f"Error in cancel callback: {e}")
         await callback.answer("Произошла ошибка")

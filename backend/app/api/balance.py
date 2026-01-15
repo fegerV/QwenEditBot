@@ -59,13 +59,39 @@ def deduct_user_balance(
 ):
     """Deduct points from user balance"""
     try:
-        updated_balance = deduct_balance(
-            user_id, 
-            balance_operation.points, 
-            balance_operation.reason, 
-            db
-        )
-        return {"user_id": user_id, "balance": updated_balance}
+        # TEMPORARILY DISABLED: Skip all balance deductions for testing
+        user = db.query(models.User).filter(models.User.user_id == user_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        logger.info(f"Balance deduction skipped for user {user_id} (testing mode): {balance_operation.points} points, reason: {balance_operation.reason}")
+        return {"user_id": user_id, "balance": user.balance}
+        
+        # Original code (commented out for testing):
+        # # Check if user is admin (admins don't pay for processing)
+        # from ..config import settings
+        # user = db.query(models.User).filter(models.User.user_id == user_id).first()
+        # if not user:
+        #     raise HTTPException(
+        #         status_code=status.HTTP_404_NOT_FOUND,
+        #         detail="User not found"
+        #     )
+        #
+        # is_admin = user.telegram_id in getattr(settings, 'ADMIN_IDS', [])
+        # if is_admin:
+        #     # Admins don't pay, return current balance
+        #     return {"user_id": user_id, "balance": user.balance}
+        #
+        # updated_balance = deduct_balance(
+        #     user_id,
+        #     balance_operation.points,
+        #     balance_operation.reason,
+        #     db
+        # )
+        # return {"user_id": user_id, "balance": updated_balance}
     except Exception as e:
         db.rollback()
         logger.error(f"Error deducting balance: {e}")

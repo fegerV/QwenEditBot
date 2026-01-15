@@ -10,6 +10,5 @@ python-multipart==0.0.20
 httpx==0.28.1
 pydantic-extra-types==2.10.0
 slowapi==0.1.9
-python-multipart==0.0.20
 redis==5.2.0
-aioredis==2.0.1
+# aioredis removed; using redis.asyncio from redis package

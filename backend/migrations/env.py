@@ -14,22 +14,34 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Import our models
+# Ensure project package is on sys.path so we can import app
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
+# Prefer DATABASE_URL from application settings or environment
+try:
+    from app.config import settings
+    db_url = str(settings.DATABASE_URL)
+except Exception:
+    db_url = os.getenv("DATABASE_URL", None)
+
+if db_url:
+    # Override the sqlalchemy.url in alembic config so alembic uses the same DB
+    config.set_main_option("sqlalchemy.url", db_url)
+    # Log the resolved DB URL for troubleshooting
+    try:
+        import logging
+        logging.getLogger('alembic.env').info(f'Using DATABASE_URL for migrations: {db_url}')
+    except Exception:
+        print(f'Using DATABASE_URL for migrations: {db_url}')
+
+# Import our models' metadata for autogenerate support
 from app.models import Base
-from app.database import engine
 
 # add your model's MetaData object here
 # for 'autogenerate' support
 target_metadata = Base.metadata
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
 
 
 def run_migrations_offline() -> None:

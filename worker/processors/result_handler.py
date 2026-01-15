@@ -37,12 +37,13 @@ class ResultHandler:
             if not user:
                 raise Exception(f"User {job.user_id} not found")
             
-            telegram_id = user.get("telegram_id")
+            # The field might be named telegram_id or telegramId depending on the API response
+            telegram_id = user.get("telegram_id") or user.get("telegramId")
             if not telegram_id:
                 raise Exception(f"User {job.user_id} has no telegram_id")
             
             # Send photo to user
-            caption = "✅ Your photo is ready! 🎨\n\nProcessing time: 30 sec"
+            caption = "✅ Ваше фото готово! 🎨\n\nThank you for using our service!"
             success = await self.telegram_client.send_photo(telegram_id, image_data, caption)
             
             if success:
@@ -67,11 +68,14 @@ class ResultHandler:
             # Get user's telegram ID
             user = await self.telegram_client.get_user(job.user_id)
             if not user:
-                raise Exception(f"User {job.user_id} not found")
+                logger.error(f"User {job.user_id} not found when sending error notification")
+                return False  # Return False since we couldn't notify the user
             
-            telegram_id = user.get("telegram_id")
+            # The field might be named telegram_id or telegramId depending on the API response
+            telegram_id = user.get("telegram_id") or user.get("telegramId")
             if not telegram_id:
-                raise Exception(f"User {job.user_id} has no telegram_id")
+                logger.error(f"User {job.user_id} has no telegram_id when sending error notification")
+                return False  # Return False since we couldn't notify the user
             
             # Send error message
             message = f"❌ Error processing photo\n\nMessage: {error}\n\nPoints refunded ✅"
@@ -94,11 +98,14 @@ class ResultHandler:
             # Get user's telegram ID
             user = await self.telegram_client.get_user(user_id)
             if not user:
-                raise Exception(f"User {user_id} not found")
+                logger.error(f"User {user_id} not found when sending status notification")
+                return False  # Return False since we couldn't notify the user
             
-            telegram_id = user.get("telegram_id")
+            # The field might be named telegram_id or telegramId depending on the API response
+            telegram_id = user.get("telegram_id") or user.get("telegramId")
             if not telegram_id:
-                raise Exception(f"User {user_id} has no telegram_id")
+                logger.error(f"User {user_id} has no telegram_id when sending status notification")
+                return False  # Return False since we couldn't notify the user
             
             # Send status message
             success = await self.telegram_client.send_message(telegram_id, message)

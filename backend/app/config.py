@@ -17,15 +17,17 @@ class Settings(BaseSettings):
     REDIS_RESULT_TTL: int = Field(3600, env="REDIS_RESULT_TTL")  # 1 hour
     
     # ComfyUI configuration
-    COMFYUI_URL: str = Field("http://127.0.0.1:8500", env="COMFYUI_URL")
-    UPLOADS_DIR: str = Field("C:/QwenEditBot/data/uploads", env="UPLOADS_DIR")
-    COMFY_INPUT_DIR: str = Field("C:/ComfyUI/input", env="COMFY_INPUT_DIR")
+    COMFYUI_URL: str = Field("http://localhost:8188", env="COMFYUI_URL")
+    UPLOADS_DIR: Path = Field(Path("./data/uploads"), env="UPLOADS_DIR")
+    COMFY_INPUT_DIR: Path = Field(Path("C:/ComfyUI/ComfyUI/input/bot"), env="COMFY_INPUT_DIR")
+    COMFY_OUTPUT_DIR: Path = Field(Path("C:/ComfyUI/ComfyUI/output/bot"), env="COMFY_OUTPUT_DIR")
     COMFYUI_TIMEOUT: int = Field(300, env="COMFYUI_TIMEOUT")
     COMFYUI_HEALTH_CHECK_INTERVAL: int = Field(10, env="COMFYUI_HEALTH_CHECK_INTERVAL")
     COMFY_OUTPUT_FILENAME: str = Field("qwen_result.png", env="COMFY_OUTPUT_FILENAME")
     
     # Database configuration
-    DATABASE_URL: str = Field("sqlite:///./backend/qwen.db", env="DATABASE_URL")
+    # Use path relative to backend working dir: sqlite:///./qwen.db
+    DATABASE_URL: str = Field("sqlite:///./qwen.db", env="DATABASE_URL")
     
     # Backend configuration
     BACKEND_URL: str = Field("http://localhost:8000", env="BACKEND_URL")
@@ -58,7 +60,7 @@ class Settings(BaseSettings):
     QWEN_EDIT_VAE_NAME: str = Field("qwen_image_vae.safetensors", env="QWEN_EDIT_VAE_NAME")
     QWEN_EDIT_UNET_NAME: str = Field("qwen_image_edit_2511_fp8mixed.safetensors", env="QWEN_EDIT_UNET_NAME")
     QWEN_EDIT_CLIP_NAME: str = Field("qwen_2.5_vl_7b_fp8_scaled.safetensors", env="QWEN_EDIT_CLIP_NAME")
-    QWEN_EDIT_LORA_NAME: str = Field("Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors", env="QWEN_EDIT_LORA_NAME")
+    QWEN_EDIT_LORA_NAME: str = Field("Qwen-Image-Edit-Lightning-4steps-V1.0-bf16.safetensors", env="QWEN_EDIT_LORA_NAME")
     QWEN_EDIT_SCALE_MEGAPIXELS: int = Field(2, env="QWEN_EDIT_SCALE_MEGAPIXELS")
     QWEN_EDIT_STEPS: int = Field(4, env="QWEN_EDIT_STEPS")
     
@@ -73,6 +75,12 @@ class Settings(BaseSettings):
 # Create settings instance
 settings = Settings()
 
+# Define admin IDs (add your admin Telegram ID here)
+ADMIN_IDS = [455847500]  # Replace with actual admin Telegram IDs
+
+# Unlimited processing flag
+UNLIMITED_PROCESSING = True  # Set to True to enable unlimited processing for all users
+
 # Ensure directories exist
 def ensure_directories():
    input_dir = Path(settings.COMFY_INPUT_DIR)
@@ -83,5 +91,5 @@ def ensure_directories():
    if not uploads_dir.exists():
        uploads_dir.mkdir(parents=True, exist_ok=True)
 
-# Initialize directories
-ensure_directories()
+# Note: directory creation is no longer performed on import. Call ensure_directories()
+# from application startup (app.on_startup) to avoid side effects during imports.

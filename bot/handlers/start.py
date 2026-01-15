@@ -4,10 +4,11 @@ import logging
 from aiogram import Router, F, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from states import UserState
-from keyboards import main_menu_keyboard
-from utils import register_or_get_user
-from config import settings
+# Package-relative imports (work when running as module: python -m bot.run)
+from ..states import UserState
+from ..keyboards import main_menu_keyboard
+from ..utils import register_or_get_user
+from ..config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +19,8 @@ router = Router()
 async def cmd_start(message: types.Message, state: FSMContext):
     """Handle /start command"""
     try:
-        # Import api_client from main module
-        from main import api_client
+        # Import api_client from main module (parent package)
+        from ..main import api_client
         
         # Register or get user
         user_data = await register_or_get_user(message.from_user, api_client)
@@ -34,6 +35,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
         welcome_text = (
             f"Добро пожаловать в QwenEditBot 🎨\n\n"
             f"Вам начислено {settings.INITIAL_BALANCE} баллов!\n\n"
+            f"Ваш ID: {message.from_user.id}\n\n"
             f"Выберите действие в меню ниже:"
         )
         
@@ -63,6 +65,7 @@ async def cmd_help(message: types.Message):
         "4. Когда будет готово, получите результат\n\n"
         "*Стоимость:* 30 баллов за одно редактирование\n"
         "*Приветственный бонус:* 60 баллов\n\n"
+        "⚠️ *Внимание:* Пополнение баланса временно отключено для тестирования\n\n"
         "*Команды:*\n"
         "/start - Запустить бота\n"
         "/menu - Главное меню\n"
@@ -98,8 +101,8 @@ async def cmd_menu(message: types.Message, state: FSMContext):
 async def cmd_balance(message: types.Message):
     """Handle /balance command"""
     try:
-        # Import api_client from main module
-        from main import api_client
+        # Import api_client from main module (parent package)
+        from ..main import api_client
         
         balance = await api_client.get_balance(message.from_user.id)
         

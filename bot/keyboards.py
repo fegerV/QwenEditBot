@@ -22,6 +22,22 @@ def main_menu_keyboard() -> ReplyKeyboardMarkup:
     return builder.as_markup(resize_keyboard=True)
 
 
+# Main Menu Inline Keyboard (for use in callbacks)
+def main_menu_inline_keyboard() -> InlineKeyboardMarkup:
+    """Create main menu keyboard for inline use"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="🎨 Редактировать фото", callback_data="edit_photo"))
+    builder.row(InlineKeyboardButton(text="🧩 Стили", callback_data="category_styles"),
+                InlineKeyboardButton(text="💡 Освещение", callback_data="category_lighting"),
+                InlineKeyboardButton(text="🖼 Оформление", callback_data="category_enhancement"))
+    builder.add(InlineKeyboardButton(text="✍️ Свой промпт", callback_data="custom_prompt"))
+    builder.row(InlineKeyboardButton(text="💰 Баланс", callback_data="balance"),
+                InlineKeyboardButton(text="➕ Пополнить", callback_data="top_up"))
+    builder.add(InlineKeyboardButton(text="ℹ️ Помощь", callback_data="help"))
+    
+    return builder.as_markup()
+
+
 # Edit Photo Submenu Keyboard (Inline)
 def edit_photo_submenu_keyboard() -> InlineKeyboardMarkup:
     """Create edit photo submenu keyboard"""
@@ -76,7 +92,7 @@ def presets_keyboard(presets: list) -> InlineKeyboardMarkup:
 def balance_menu_keyboard() -> InlineKeyboardMarkup:
     """Create balance menu keyboard"""
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="➕ Пополнить", callback_data="top_up"))
+    builder.row(InlineKeyboardButton(text="🔒 Пополнение отключено", callback_data="disabled"))
     builder.add(InlineKeyboardButton(text="📜 История", callback_data="payment_history"))
     builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
     
@@ -87,9 +103,8 @@ def balance_menu_keyboard() -> InlineKeyboardMarkup:
 def top_up_keyboard() -> InlineKeyboardMarkup:
     """Create top up keyboard (deprecated - use payments handler)"""
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="💳 СБП", callback_data="top_up"))
-    builder.add(InlineKeyboardButton(text="💳 Карта", callback_data="top_up"))
-    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
+    builder.row(InlineKeyboardButton(text="🔒 Пополнение отключено", callback_data="disabled"))
+    builder.add(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
     
     return builder.as_markup()
 
@@ -98,11 +113,7 @@ def top_up_keyboard() -> InlineKeyboardMarkup:
 def top_up_amount_keyboard() -> InlineKeyboardMarkup:
     """Create top up amount selection keyboard"""
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="100 ₽", callback_data="top_up_100"))
-    builder.add(InlineKeyboardButton(text="250 ₽", callback_data="top_up_250"))
-    builder.row(InlineKeyboardButton(text="500 ₽", callback_data="top_up_500"))
-    builder.add(InlineKeyboardButton(text="1000 ₽", callback_data="top_up_1000"))
-    builder.row(InlineKeyboardButton(text="💳 Своя сумма", callback_data="top_up_custom"))
+    builder.row(InlineKeyboardButton(text="🔒 Пополнение отключено", callback_data="disabled"))
     builder.add(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_balance"))
     
     return builder.as_markup()

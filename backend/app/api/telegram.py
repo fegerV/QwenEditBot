@@ -73,14 +73,17 @@ async def handle_photo_message(message, user_id, db):
         from io import BytesIO
         import aiohttp
         
-        # Check balance
-        if not check_balance(user_id, settings.EDIT_COST, db):
-            # Send error message to user
-            await send_telegram_message(
-                user_id,
-                f"❌ Недостаточно средств. Требуется {settings.EDIT_COST} баллов, доступно: {check_balance(user_id, 0, db)}"
-            )
-            return {"status": "insufficient_funds"}
+        # Check if unlimited processing is enabled
+        unlimited_processing = getattr(settings, 'UNLIMITED_PROCESSING', False)
+        
+        # Check if user is admin
+        is_admin = user_id in getattr(settings, 'ADMIN_IDS', [])
+        
+        # Determine cost based on admin status and unlimited processing
+        cost = 0 if (is_admin or unlimited_processing) else settings.EDIT_COST
+        
+        # Skip balance checks completely during testing
+        logger.info(f"Balance check skipped for user {user_id} during testing")
         
         # Get the highest resolution photo
         photos = message['photo']  # Array of photo sizes
@@ -115,16 +118,17 @@ async def handle_photo_message(message, user_id, db):
         if not prompt:
             # Try to get the last message from this user as the prompt
             # In a real implementation, you'd want to store user sessions
-            prompt = "Edit image with default settings"
+            prompt = "Convert to in the comic style, while preserving composition and character identity. remove the progress bar and watermarks"
         
         # Create uploads directory if it doesn't exist
-        uploads_dir = Path(settings.UPLOADS_DIR)
+        uploads_dir = Path(settings.COMFY_INPUT_DIR)  # Use COMFY_INPUT_DIR instead of UPLOADS_DIR
         uploads_dir.mkdir(parents=True, exist_ok=True)
         
-        # Save uploaded image to C:/QwenEditBot/data/uploads/
+        # Save uploaded image to ComfyUI input directory
         file_ext = "jpg"  # Telegram photos are usually jpg
         task_id = str(uuid.uuid4().hex)[:8]  # Generate short unique task ID
-        image_filename = f"task_{task_id}.{file_ext}"
+        # Use the format expected by the workflow
+        image_filename = f"input_{task_id}.{file_ext}"
         image_path = uploads_dir / image_filename
         
         # Save the file
@@ -134,7 +138,7 @@ async def handle_photo_message(message, user_id, db):
         # Create job in database
         new_job = models.Job(
             user_id=user_id,
-            image_path=str(image_path),
+            image_path=str(image_path),  # Store the path to the image in the ComfyUI input directory
             prompt=prompt,
             status=models.JobStatus.queued
         )
@@ -143,8 +147,8 @@ async def handle_photo_message(message, user_id, db):
         db.commit()
         db.refresh(new_job)
         
-        # Deduct balance
-        deduct_balance(user_id, settings.EDIT_COST, f"Job creation: {new_job.id}", db)
+        # Skip balance deduction during testing
+        logger.info(f"Balance deduction skipped for user {user_id} during testing")
         
         # Add job to Redis queue with task_id and image_path
         try:
@@ -175,7 +179,8 @@ async def handle_photo_message(message, user_id, db):
                 "❌ Произошла ошибка при обработке изображения. Повторите попытку позже."
             )
             # Refund the deducted amount
-            deduct_balance(user_id, -settings.EDIT_COST, f"Refund for failed job: {new_job.id}", db)
+            # Skip refund during testing
+            logger.info(f"Refund skipped for user {user_id} during testing")
         
         return {"status": "received", "task_id": task_id, "job_id": new_job.id}
     

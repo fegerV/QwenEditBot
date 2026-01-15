@@ -3,9 +3,10 @@
 import logging
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from config import settings
-from services import BackendAPIClient
-from handlers import (
+
+from bot.config import settings
+from bot.services import BackendAPIClient
+from bot.handlers import (
     start_router,
     menu_router,
     presets_router,
@@ -31,7 +32,7 @@ api_client = BackendAPIClient()
 # Make sure all handlers modules are imported properly
 def import_handlers():
     """Ensure all handler modules are imported to register routes"""
-    from handlers import start, menu, presets, custom_prompt, image_upload, balance, help, payments
+    from bot.handlers import start, menu, presets, custom_prompt, image_upload, balance, help, payments
     return [start, menu, presets, custom_prompt, image_upload, balance, help, payments]
 
 

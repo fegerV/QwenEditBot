@@ -3,9 +3,9 @@
 import logging
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
-from states import UserState
-from keyboards import balance_menu_keyboard, top_up_keyboard, main_menu_keyboard
-from utils import send_error_message, format_balance
+from ..states import UserState
+from ..keyboards import balance_menu_keyboard, top_up_keyboard, main_menu_keyboard
+from ..utils import send_error_message, format_balance
 
 logger = logging.getLogger(__name__)
 
@@ -16,15 +16,26 @@ async def show_balance(message: types.Message):
     """Show user balance"""
     try:
         # Import api_client from main module
-        from main import api_client
+        from ..main import api_client
         
         balance = await api_client.get_balance(message.from_user.id)
         
+        # Check if user is admin to provide special messaging
+        from backend.app.config import settings as backend_settings
+        user_is_admin = message.from_user.id in getattr(backend_settings, 'ADMIN_IDS', [])
+        
         if balance is not None:
-            text = (
-                f"💰 *Ваш баланс: {format_balance(balance)}*\n\n"
-                f"Стоимость редактирования: 30 баллов"
-            )
+            if user_is_admin:
+                text = (
+                    f"💰 *Ваш баланс: {format_balance(balance)}*\n\n"
+                    f"✅ *Администратор: Неограниченное количество обработок*\n"
+                    f"Стоимость редактирования: 30 баллов (для обычных пользователей)"
+                )
+            else:
+                text = (
+                    f"💰 *Ваш баланс: {format_balance(balance)}*\n\n"
+                    f"Стоимость редактирования: 30 баллов"
+                )
             
             await message.answer(text, parse_mode="Markdown", reply_markup=balance_menu_keyboard())
         else:
@@ -40,7 +51,7 @@ async def callback_balance(callback: types.CallbackQuery):
     """Handle balance callback"""
     try:
         # Import api_client from main module
-        from main import api_client
+        from ..main import api_client
         
         balance = await api_client.get_balance(callback.from_user.id)
         
@@ -69,7 +80,7 @@ async def callback_balance(callback: types.CallbackQuery):
 async def callback_payment_history(callback: types.CallbackQuery):
     """Handle payment history callback"""
     try:
-        from main import api_client
+        from ..main import api_client
         
         result = await api_client.get_user_payments(callback.from_user.id, limit=10)
         

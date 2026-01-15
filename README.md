@@ -135,7 +135,7 @@ BOT_TOKEN = "your_telegram_bot_token_here"
 
 # ComfyUI configuration
 COMFYUI_URL = "http://127.0.0.1:8188"
-COMFY_INPUT_DIR = "C:/ComfyUI/input"
+COMFY_INPUT_DIR = "C:/ComfyUI/ComfyUI/input/bot"
 COMFYUI_TIMEOUT = 300
 
 # Database configuration
@@ -181,8 +181,8 @@ BACKEND_API_TIMEOUT=60
 COMFYUI_URL=http://127.0.0.1:8188
 COMFYUI_TIMEOUT=300
 COMFYUI_POLL_INTERVAL=0.5
-COMFYUI_INPUT_DIR=C:/ComfyUI/input
-COMFYUI_OUTPUT_DIR=C:/ComfyUI/output
+COMFYUI_INPUT_DIR=C:/ComfyUI/ComfyUI/input/bot
+COMFYUI_OUTPUT_DIR=C:/ComfyUI/ComfyUI/output/bot
 
 # Telegram
 BOT_TOKEN=your_bot_token_here

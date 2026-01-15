@@ -4,9 +4,9 @@ import logging
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
-from states import UserState
-from keyboards import cancel_keyboard, main_menu_keyboard
-from utils import send_error_message
+from ..states import UserState
+from ..keyboards import cancel_keyboard, main_menu_keyboard, main_menu_inline_keyboard
+from ..utils import send_error_message
 
 logger = logging.getLogger(__name__)
 
@@ -89,16 +89,14 @@ async def callback_cancel_custom_prompt(callback: types.CallbackQuery, state: FS
     try:
         await state.clear()
         await state.set_state(UserState.main_menu)
-        
-        await callback.message.delete()
-        
-        await callback.message.answer(
+         
+        await callback.message.edit_text(
             "Операция отменена. Вы в главном меню.",
-            reply_markup=main_menu_keyboard()
+            reply_markup=main_menu_inline_keyboard()
         )
-        
+         
         await callback.answer()
-        
+         
     except Exception as e:
         logger.error(f"Error in cancel callback: {e}")
         await callback.answer("Произошла ошибка")
@@ -110,16 +108,14 @@ async def callback_cancel_custom_image(callback: types.CallbackQuery, state: FSM
     try:
         await state.clear()
         await state.set_state(UserState.main_menu)
-        
-        await callback.message.delete()
-        
-        await callback.message.answer(
+         
+        await callback.message.edit_text(
             "Операция отменена. Вы в главном меню.",
-            reply_markup=main_menu_keyboard()
+            reply_markup=main_menu_inline_keyboard()
         )
-        
+         
         await callback.answer()
-        
+         
     except Exception as e:
         logger.error(f"Error in cancel callback: {e}")
         await callback.answer("Произошла ошибка")

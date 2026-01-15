@@ -22,7 +22,7 @@ class RedisQueueClient:
                 port=settings.REDIS_PORT,
                 password=settings.REDIS_PASSWORD,
                 db=settings.REDIS_DB,
-                decode_responses=True
+                decode_responses=False
             )
             # Test connection
             await self.redis.ping()
@@ -70,7 +70,7 @@ class RedisQueueClient:
         result = await self.redis.brpop(settings.REDIS_JOB_QUEUE_KEY, timeout=1)
         if result:
             _, job_json = result
-            job_data = json.loads(job_json)
+            job_data = json.loads(job_json.decode('utf-8'))
             logger.info(f"Job {job_data['id']} dequeued from Redis")
             return job_data
         
@@ -86,7 +86,7 @@ class RedisQueueClient:
         jobs = []
         
         for job_json in job_jsons:
-            job_data = json.loads(job_json)
+            job_data = json.loads(job_json.decode('utf-8'))
             jobs.append(job_data)
         
         return jobs

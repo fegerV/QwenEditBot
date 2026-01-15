@@ -1,6 +1,7 @@
 import logging
 import asyncio
 import os
+import aiohttp
 from pathlib import Path
 from typing import Optional
 
@@ -35,31 +36,40 @@ class ImageEditorProcessor:
         logger.info(f"Processing job {job.id}")
 
         try:
-            # Step 1: Copy image from upload location to ComfyUI input directory
+            # Step 1: Verify the image exists at the expected location
             source_path = Path(job.image_path)
             if not source_path.exists():
                 raise Exception(f"Source image does not exist: {source_path}")
-
-            # Extract filename and create destination path in ComfyUI input directory
-            input_filename = f"input_{job.id}_{source_path.name}"
-            input_path = Path(settings.COMFYUI_INPUT_DIR) / input_filename
             
-            # Copy file to ComfyUI input directory
-            import shutil
-            shutil.copy2(source_path, input_path)
+            # Step 1: Verify the image exists at the expected location
+            source_path = Path(job.image_path)
+            if not source_path.exists():
+                raise Exception(f"Source image does not exist: {source_path}")
             
-            logger.debug(f"Image copied from {source_path} to {input_path}")
+            # The image should already be in the ComfyUI input directory as saved by the Telegram handler
+            # So we don't need to copy it again, just use the existing path
+            logger.debug(f"Using image at path: {source_path}")
 
-            # Step 3: Prepare workflow using build_workflow
+            # Step 2: Prepare workflow using build_workflow
             workflow = build_workflow(job)
 
-            # Step 4: Send to ComfyUI
+            # Log workflow for debugging
+            logger.debug(f"Workflow prepared for job {job.id}")
+
+            # Step 3: Send to ComfyUI
             comfyui_job_id = await self.comfyui_client.send_workflow(workflow)
             logger.info(f"ComfyUI job {comfyui_job_id} created for job {job.id}")
 
-            # Step 5: Wait and download result
+            # Step 4: Wait and download result
             result_path = await self._wait_and_download(comfyui_job_id, job.id)
             logger.info(f"Result saved to {result_path}")
+
+            # Step 5: Clean up input file after processing
+            try:
+                source_path.unlink()  # Clean up the original file that was saved by Telegram handler
+                logger.debug(f"Cleaned up input file: {source_path}")
+            except Exception as e:
+                logger.warning(f"Failed to clean up input file {source_path}: {str(e)}")
 
             return str(result_path)
 
@@ -69,30 +79,72 @@ class ImageEditorProcessor:
 
     async def _wait_and_download(self, comfyui_job_id: str, job_id: int) -> Path:
         """Wait for result and download"""
-        max_attempts = 100  # 50 seconds max (0.5s * 100)
+        max_attempts = 600 # Increased attempts to allow more time for processing (600 * 0.5s = 300s = 5 minutes)
         
         for attempt in range(max_attempts):
-            # Check job status
-            history = await self.comfyui_client.get_history(comfyui_job_id)
-            
-            if history and history.get("status") == "completed":
-                # Job completed, download result
-                result_filename = f"job_{job_id}_result.png"
-                result_data = await self.comfyui_client.download_result(comfyui_job_id, result_filename)
+            try:
+                # Check job status via history endpoint
+                history = await self.comfyui_client.get_history(comfyui_job_id)
                 
-                if result_data:
-                    # Save to output directory
-                    results_dir = Path(settings.RESULTS_DIR)
-                    result_path = results_dir / result_filename
+                if history and isinstance(history, dict) and comfyui_job_id in history:
+                    job_result = history[comfyui_job_id]
                     
-                    with open(result_path, "wb") as f:
-                        f.write(result_data)
-                    
-                    return result_path
+                    # Check if the job has outputs (meaning it's completed)
+                    if job_result and 'outputs' in job_result:
+                        # Look for the output image in the workflow nodes
+                        output_image_info = None
+                        
+                        # Search for output image info in all nodes
+                        if 'outputs' in job_result:
+                            for node_id, node_output in job_result['outputs'].items():
+                                if 'images' in node_output and len(node_output['images']) > 0:
+                                    output_image_info = node_output['images'][0]  # Take first image
+                                    break
+                        
+                        if output_image_info:
+                            # Download the result image
+                            filename = output_image_info['filename']
+                            subfolder = output_image_info.get('subfolder', '')
+                            image_type = output_image_info.get('type', 'output')
+                            
+                            # Construct the download URL according to ComfyUI API
+                            download_url = f"{self.comfyui_client.base_url}/view?filename={filename}&subfolder={subfolder}&type={image_type}"
+                            
+                            try:
+                                async with aiohttp.ClientSession(timeout=self.comfyui_client.timeout) as session:
+                                    async with session.get(download_url) as img_response:
+                                        if img_response.status == 200:
+                                            result_data = await img_response.read()
+                                            
+                                            # Save to output directory
+                                            results_dir = Path(settings.RESULTS_DIR)
+                                            result_filename = f"job_{job_id}_result.png"
+                                            result_path = results_dir / result_filename
+                                            
+                                            with open(result_path, "wb") as f:
+                                                f.write(result_data)
+                                            
+                                            logger.info(f"Successfully downloaded and saved result for job {job_id}")
+                                            return result_path
+                                        else:
+                                            error_text = await img_response.text()
+                                            logger.error(f"Failed to download result image: {img_response.status} - {error_text}")
+                                            raise Exception(f"Failed to download result image: {img_response.status}")
+                            except Exception as e:
+                                logger.error(f"Error downloading result for job {job_id}: {str(e)}")
+                                raise
+                        else:
+                            logger.error(f"No output images found in job result for {comfyui_job_id}")
+                            # Continue waiting as the job might still be processing
+                    else:
+                        # Outputs not ready yet, continue waiting
+                        pass
                 else:
-                    raise Exception("Failed to download result from ComfyUI")
-            elif history and history.get("status") == "failed":
-                raise Exception(f"ComfyUI job failed: {history.get('error', 'Unknown error')}")
+                    # Job not in history yet, continue waiting
+                    pass
+            except Exception as e:
+                logger.error(f"Error checking ComfyUI job status for {comfyui_job_id}: {str(e)}")
+                # Continue waiting as this might be a temporary issue
             
             # Wait before checking again
             await asyncio.sleep(settings.COMFYUI_POLL_INTERVAL)

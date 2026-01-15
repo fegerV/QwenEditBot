@@ -21,11 +21,11 @@ class Settings(BaseSettings):
     REDIS_RESULT_TTL: int = Field(3600, env="REDIS_RESULT_TTL")  # 1 hour
 
     # ComfyUI configuration
-    COMFYUI_URL: str = Field("http://127.0.0.1:8500", env="COMFYUI_URL")
-    COMFYUI_TIMEOUT: int = Field(300, env="COMFYUI_TIMEOUT")
+    COMFYUI_URL: str = Field("http://localhost:8188", env="COMFYUI_URL")
+    COMFYUI_TIMEOUT: int = Field(600, env="COMFYUI_TIMEOUT")  # Increased timeout to 10 minutes
     COMFYUI_POLL_INTERVAL: float = Field(0.5, env="COMFYUI_POLL_INTERVAL")
-    COMFYUI_INPUT_DIR: str = Field("C:/ComfyUI/input", env="COMFYUI_INPUT_DIR")
-    COMFYUI_OUTPUT_DIR: str = Field("C:/ComfyUI/output", env="COMFYUI_OUTPUT_DIR")
+    COMFYUI_INPUT_DIR: str = Field("C:/ComfyUI/ComfyUI/input", env="COMFYUI_INPUT_DIR")
+    COMFYUI_OUTPUT_DIR: str = Field("C:/ComfyUI/ComfyUI/output", env="COMFYUI_OUTPUT_DIR")
 
     # Telegram configuration
     BOT_TOKEN: str = Field(..., env="BOT_TOKEN")
@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     # Results configuration
     RESULTS_DIR: str = Field("C:/QwenEditBot/data/outputs", env="RESULTS_DIR")
 
+    # File monitoring configuration
+    MONITOR_INPUT_DIR: bool = Field(False, env="MONITOR_INPUT_DIR")
+
     # QwenEdit 2511 configuration
     QWEN_EDIT_VAE_NAME: str = Field("qwen_image_vae.safetensors", env="QWEN_EDIT_VAE_NAME")
     QWEN_EDIT_UNET_NAME: str = Field("qwen_image_edit_2511_fp8mixed.safetensors", env="QWEN_EDIT_UNET_NAME")
@@ -58,7 +61,22 @@ class Settings(BaseSettings):
 
 
 # Create settings instance
-settings = Settings()
+def _load_settings():
+    """Load settings ensuring the worker-specific .env file is used"""
+    from pathlib import Path
+    
+    # Get the directory where this config.py file is located
+    worker_dir = Path(__file__).parent if '__file__' in globals() else Path('.').resolve()
+    env_file_path = worker_dir / '.env'
+    
+    # Create settings with the specific .env file
+    if env_file_path.exists():
+        return Settings(_env_file=str(env_file_path))
+    else:
+        # Fallback to default behavior
+        return Settings()
+
+settings = _load_settings()
 
 # Ensure directories exist
 def ensure_directories():

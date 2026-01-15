@@ -27,7 +27,13 @@ def main():
         raise
     finally:
         # Close Redis connection on exit
-        asyncio.run(cleanup())
+        try:
+            loop = asyncio.get_running_loop()
+            # If there's already a running loop, create a task to clean up
+            loop.create_task(cleanup())
+        except RuntimeError:
+            # If there's no running loop, run cleanup directly
+            asyncio.run(cleanup())
 
 if __name__ == "__main__":
     main()

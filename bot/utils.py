@@ -4,7 +4,7 @@ import logging
 from typing import Optional
 from aiogram import Bot
 from aiogram.types import Message, User
-from services import BackendAPIClient
+from .services import BackendAPIClient
 
 logger = logging.getLogger(__name__)
 
@@ -47,9 +47,16 @@ async def download_telegram_photo(
         # Download file
         downloaded_file = await bot.download_file(file_path)
         
-        if downloaded_file:
+        # bot.download_file may return bytes or a file-like object
+        if downloaded_file is None:
+            return None
+        if isinstance(downloaded_file, (bytes, bytearray)):
+            return bytes(downloaded_file)
+        # file-like
+        try:
             return downloaded_file.read()
-        return None
+        except Exception:
+            return None
         
     except Exception as e:
         logger.error(f"Error downloading photo: {e}")

@@ -7,11 +7,10 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import asyncio
 from app.database import SessionLocal
 from app.database import seed_presets_if_empty as sync_seed_presets
 
-async def seed():
+def seed():
     """Seed database with default presets"""
     print("Seeding database with presets...")
     
@@ -19,7 +18,7 @@ async def seed():
     
     try:
         # Seed presets
-        await sync_seed_presets(db)
+        sync_seed_presets(db)
         print("Presets seeded successfully!")
         
     except Exception as e:
@@ -31,7 +30,7 @@ async def seed():
 
 def main():
     """Run the seeding function"""
-    asyncio.run(seed())
+    seed()
 
 if __name__ == "__main__":
     main()

@@ -12,13 +12,21 @@ class TelegramClient:
     def __init__(self):
         self.base_url = f"{settings.TELEGRAM_API_URL}/bot{settings.BOT_TOKEN}"
         self.timeout = aiohttp.ClientTimeout(total=30)
+        
+        # Create SSL context that allows self-signed certificates
+        import ssl
+        self.ssl_context = ssl.create_default_context()
+        self.ssl_context.check_hostname = False
+        self.ssl_context.verify_mode = ssl.CERT_NONE
 
     async def send_photo(self, chat_id: int, photo: bytes, caption: str) -> bool:
         """Send photo to user"""
         url = f"{self.base_url}/sendPhoto"
         
         try:
-            async with aiohttp.ClientSession(timeout=self.timeout) as session:
+            connector = aiohttp.TCPConnector(ssl=self.ssl_context)
+            
+            async with aiohttp.ClientSession(timeout=self.timeout, connector=connector) as session:
                 form_data = aiohttp.FormData()
                 form_data.add_field('chat_id', str(chat_id))
                 form_data.add_field('photo', photo, filename='result.png', content_type='image/png')
@@ -47,7 +55,9 @@ class TelegramClient:
                 'parse_mode': 'Markdown'
             }
             
-            async with aiohttp.ClientSession(timeout=self.timeout) as session:
+            connector = aiohttp.TCPConnector(ssl=self.ssl_context)
+            
+            async with aiohttp.ClientSession(timeout=self.timeout, connector=connector) as session:
                 async with session.post(url, json=payload) as response:
                     if response.status == 200:
                         data = await response.json()

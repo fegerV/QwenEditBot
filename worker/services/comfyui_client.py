@@ -11,6 +11,7 @@ class ComfyUIClient:
 
     def __init__(self):
         self.base_url = settings.COMFYUI_URL.rstrip('/')
+        logger.info(f"ComfyUI Client initialized with URL: {self.base_url}")
         self.timeout = aiohttp.ClientTimeout(total=settings.COMFYUI_TIMEOUT)
 
     async def send_workflow(self, workflow: Dict) -> str:
@@ -18,8 +19,11 @@ class ComfyUIClient:
         url = f"{self.base_url}/prompt"
         
         try:
+            # The workflow needs to be sent as the 'prompt' key in the JSON payload
+            payload = {"prompt": workflow}
+            
             async with aiohttp.ClientSession(timeout=self.timeout) as session:
-                async with session.post(url, json=workflow) as response:
+                async with session.post(url, json=payload) as response:
                     if response.status == 200:
                         data = await response.json()
                         prompt_id = data.get("prompt_id")
@@ -45,9 +49,15 @@ class ComfyUIClient:
                 async with session.get(url) as response:
                     if response.status == 200:
                         data = await response.json()
-                        return data
+                        # The response contains a mapping of prompt_id to job data
+                        # Return the specific job data if prompt_id exists in the response
+                        if prompt_id in data:
+                            return data  # Return the whole data as expected by the processor
+                        else:
+                            # Job might not be in history yet, return empty dict to indicate not ready
+                            return {}
                     elif response.status == 404:
-                        return None  # Job not found yet
+                        return {}  # Job not found yet
                     else:
                         error_text = await response.text()
                         logger.error(f"Failed to get history: {response.status} - {error_text}")
@@ -57,21 +67,11 @@ class ComfyUIClient:
             return None
 
     async def download_result(self, prompt_id: str, filename: str) -> Optional[bytes]:
-        """Download result image"""
-        url = f"{self.base_url}/view?filename={filename}"
-        
-        try:
-            async with aiohttp.ClientSession(timeout=self.timeout) as session:
-                async with session.get(url) as response:
-                    if response.status == 200:
-                        return await response.read()
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to download result: {response.status} - {error_text}")
-                        return None
-        except Exception as e:
-            logger.error(f"Error downloading ComfyUI result: {str(e)}")
-            return None
+        """Download result image - This method is now deprecated as we get the URL from history"""
+        # This method is not used anymore since we get the image info directly from history
+        # and construct the download URL in the processor
+        logger.warning("download_result method is deprecated, use image info from history instead")
+        return None
 
     async def check_health(self) -> bool:
         """Check ComfyUI health status"""

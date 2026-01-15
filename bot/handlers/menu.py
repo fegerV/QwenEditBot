@@ -3,9 +3,9 @@
 import logging
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
-from states import UserState
-from keyboards import edit_photo_submenu_keyboard, category_keyboard, main_menu_keyboard
-from utils import send_error_message
+from ..states import UserState
+from ..keyboards import edit_photo_submenu_keyboard, category_keyboard, main_menu_keyboard, main_menu_inline_keyboard
+from ..utils import send_error_message
 
 logger = logging.getLogger(__name__)
 
@@ -105,9 +105,11 @@ async def btn_balance(message: types.Message):
 async def btn_top_up(message: types.Message, state: FSMContext):
     """Handle 'Пополнить' button"""
     try:
-        from .balance import show_top_up_menu
-        await show_top_up_menu(message, state)
-        
+        # Payment functionality is disabled
+        text = """💳 Пополнение баланса
+
+Функция временно отключена для тестирования."""
+        await message.answer(text, reply_markup=main_menu_keyboard())
     except Exception as e:
         logger.error(f"Error in top_up button: {e}")
         await send_error_message(message)
@@ -135,12 +137,7 @@ async def callback_back_to_menu(callback: types.CallbackQuery, state: FSMContext
         
         await callback.message.edit_text(
             "Главное меню:",
-            reply_markup=None
-        )
-        
-        await callback.message.answer(
-            "Главное меню:",
-            reply_markup=main_menu_keyboard()
+            reply_markup=main_menu_inline_keyboard()
         )
         
         await callback.answer()
@@ -190,4 +187,14 @@ async def callback_edit_custom(callback: types.CallbackQuery, state: FSMContext)
         
     except Exception as e:
         logger.error(f"Error in edit_custom callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "disabled")
+async def callback_disabled_feature(callback: types.CallbackQuery):
+    """Handle disabled feature callback"""
+    try:
+        await callback.answer("🔒 Эта функция временно отключена для тестирования", show_alert=True)
+    except Exception as e:
+        logger.error(f"Error handling disabled feature: {e}")
         await callback.answer("Произошла ошибка")

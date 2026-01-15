@@ -2,14 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi import HTTPException, status
-from .config import settings
+from .config import settings, ensure_directories
 from .database import engine, Base, SessionLocal, seed_presets_if_empty
 from .api import users, presets, jobs, balance, telegram, payments, webhooks
 from . import models
 from .services.scheduler import WeeklyBonusScheduler
 from redis_client import redis_client
 import logging
+import os
 from pathlib import Path
+import asyncio
 
 # Configure logging
 logging.basicConfig(
@@ -32,13 +34,13 @@ def run_migrations():
         result = subprocess.run([
             "alembic", "upgrade", "head"
         ], cwd=".", capture_output=True, text=True)
-        
+
         if result.returncode == 0:
             logger.info("Database migrations applied successfully")
         else:
             logger.error(f"Failed to apply migrations: {result.stderr}")
     except Exception as e:
-        logger.error(f"Error running migrations: {e}")
+        logger.exception(f"Error running migrations: {e}")
 
 # Create FastAPI app
 app = FastAPI(
@@ -73,32 +75,55 @@ scheduler: WeeklyBonusScheduler = None
 @app.on_event("startup")
 async def on_startup():
     # Run migrations first
-    run_migrations()
-    
-    # Create tables (for development, migrations should handle this)
-    create_tables()
-    
+    try:
+        run_migrations()
+    except Exception as e:
+        logger.exception("Error during migrations on startup")
+
+    # Ensure required directories exist (create at startup to avoid import side-effects)
+    try:
+        ensure_directories()
+        logger.info("Ensured required directories exist")
+    except Exception:
+        logger.exception("Failed to ensure directories")
+
+    # Create tables only in development to avoid masking migration problems
+    try:
+        if os.getenv('APP_ENV', 'production').lower() == 'development':
+            create_tables()
+        else:
+            logger.info('Skipping Base.metadata.create_all() in non-development environment')
+    except Exception:
+        logger.exception("Failed to create tables via metadata.create_all")
+
     # Connect to Redis
     try:
         await redis_client.connect()
         logger.info("Connected to Redis successfully")
-    except Exception as e:
-        logger.error(f"Failed to connect to Redis: {e}")
-        # Continue startup even if Redis fails
-    
-    # Seed presets if database is empty
+    except Exception:
+        logger.exception("Failed to connect to Redis - continuing startup without Redis")
+        # don't re-raise; allow app to start without Redis
+
+    # Seed presets if database is empty - run in thread to avoid blocking event loop
     db = SessionLocal()
     try:
-        await seed_presets_if_empty(db)
-        logger.info("Presets initialization completed")
+        try:
+            await asyncio.to_thread(seed_presets_if_empty, db)
+            logger.info("Presets initialization completed")
+        except Exception:
+            logger.exception("Failed to seed presets")
     finally:
         db.close()
-    
+
     # Start weekly bonus scheduler
     global scheduler
-    scheduler = WeeklyBonusScheduler(SessionLocal)
-    await scheduler.start()
-    
+    try:
+        scheduler = WeeklyBonusScheduler(SessionLocal)
+        await scheduler.start()
+    except Exception:
+        logger.exception("Failed to start WeeklyBonusScheduler")
+        scheduler = None
+
     logger.info("QwenEditBot Backend started successfully")
 
 @app.on_event("shutdown")
@@ -106,15 +131,18 @@ async def on_shutdown():
     # Stop weekly bonus scheduler
     global scheduler
     if scheduler:
-        await scheduler.stop()
-    
+        try:
+            await scheduler.stop()
+        except Exception:
+            logger.exception("Error stopping scheduler")
+
     # Close Redis connection
     try:
         await redis_client.close()
         logger.info("Redis connection closed")
-    except Exception as e:
-        logger.error(f"Error closing Redis connection: {e}")
-    
+    except Exception:
+        logger.exception("Error closing Redis connection")
+
     logger.info("QwenEditBot Backend shutdown complete")
 
 @app.get("/")
@@ -130,38 +158,59 @@ async def download_file(file_path: str):
     """Download file from server"""
     try:
         file_path_obj = Path(file_path)
-        
-        # Security check - only allow files within certain directories
-        allowed_dirs = [
-            settings.COMFY_INPUT_DIR,
-            settings.COMFY_OUTPUT_DIR,
-            "./results"
-        ]
-        
-        # Check if file is in allowed directory
+
+        # Resolve to absolute path
+        if not file_path_obj.is_absolute():
+            file_path_obj = (Path.cwd() / file_path_obj).resolve()
+        else:
+            file_path_obj = file_path_obj.resolve()
+
+        # Build list of allowed directories (resolve them)
+        allowed_dirs = []
+        for allowed_dir in (
+            getattr(settings, 'COMFY_INPUT_DIR', None),
+            getattr(settings, 'COMFY_OUTPUT_DIR', None),
+            getattr(settings, 'UPLOADS_DIR', None),
+            './results'
+        ):
+            if not allowed_dir:
+                continue
+            allowed_dirs.append(Path(allowed_dir).resolve())
+
+        # Security check - ensure requested file is inside one of the allowed directories
         is_allowed = False
-        for allowed_dir in allowed_dirs:
-            allowed_dir_path = Path(allowed_dir)
-            if allowed_dir_path in file_path_obj.parents or str(file_path_obj).startswith(str(allowed_dir_path)):
-                is_allowed = True
-                break
-        
+        for d in allowed_dirs:
+            try:
+                if file_path_obj.is_relative_to(d):
+                    is_allowed = True
+                    break
+            except Exception:
+                # For Python versions without is_relative_to, fallback to manual check
+                try:
+                    if str(d) == str(file_path_obj) or str(file_path_obj).startswith(str(d) + os.sep):
+                        is_allowed = True
+                        break
+                except Exception:
+                    continue
+
         if not is_allowed:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access to this file is not allowed"
             )
-        
+
         if not file_path_obj.exists():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="File not found"
             )
-        
-        return FileResponse(file_path)
-        
+
+        return FileResponse(str(file_path_obj))
+
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error downloading file: {e}")
+        logger.exception(f"Error downloading file: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error downloading file: {str(e)}"

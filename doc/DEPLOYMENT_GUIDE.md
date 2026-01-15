@@ -57,7 +57,7 @@ Create `.env` files in both backend and worker directories:
 ```
 BOT_TOKEN=your_bot_token_here
 COMFYUI_URL=http://127.0.0.1:8188
-COMFY_INPUT_DIR=C:/ComfyUI/input
+COMFY_INPUT_DIR=C:/ComfyUI/ComfyUI/input/bot
 DATABASE_URL=sqlite:///./qwen.db
 REDIS_HOST=localhost
 REDIS_PORT=6379
@@ -72,8 +72,8 @@ REDIS_RESULT_TTL=3600
 BOT_TOKEN=your_bot_token_here
 BACKEND_API_URL=http://localhost:8000
 COMFYUI_URL=http://127.0.0.1:8188
-COMFYUI_INPUT_DIR=C:/ComfyUI/input
-COMFYUI_OUTPUT_DIR=C:/ComfyUI/output
+COMFYUI_INPUT_DIR=C:/ComfyUI/ComfyUI/input/bot
+COMFYUI_OUTPUT_DIR=C:/ComfyUI/ComfyUI/output/bot
 RESULTS_DIR=./results
 REDIS_HOST=localhost
 REDIS_PORT=6379
@@ -90,14 +90,20 @@ Start Redis server:
 redis-server
 ```
 
-### 4. Start Services
+### 4. Install Required ComfyUI Custom Nodes
+
+Before starting the services, ensure you have the necessary custom nodes installed in ComfyUI. Navigate to your ComfyUI custom nodes directory and install the required nodes for QwenEdit functionality.
+
+For QwenEdit 2511 workflow, you need to ensure the following custom node is installed in your ComfyUI instance. First, check if it's already installed by looking for the node in your ComfyUI custom_nodes directory. The workflow requires the following node types to be available in your ComfyUI installation: TextEncodeQwenImageEditPlus, FluxKontextMultiReferenceLatentMethod, ImageScaleToTotalPixels, CFGNorm, ModelSamplingAuraFlow, LoraLoaderModelOnly and other standard nodes. Make sure you have installed custom nodes that provide these functionalities according to your QwenEdit model requirements.
+
+### 5. Start Services
 
 Open separate terminals and start each service:
 
 #### Terminal 1: ComfyUI (already running)
 ```bash
 cd C:\ComfyUI
-python main.py --listen 0.0.0.0 --port 8188
+python main.py --listen 0.0.0 --port 8188
 ```
 
 #### Terminal 2: Backend
@@ -161,6 +167,7 @@ To verify the system is working:
 
 - **Redis Connection**: Ensure Redis server is running and credentials are correct
 - **ComfyUI Connection**: Verify ComfyUI is accessible at configured URL
+- **Missing Custom Nodes**: Ensure all required custom nodes for QwenEdit workflows are installed in ComfyUI
 - **File Permissions**: Ensure proper permissions for data directories
 
 ### Logs

@@ -22,7 +22,7 @@ class RedisQueueClient:
                 port=settings.REDIS_PORT,
                 password=settings.REDIS_PASSWORD,
                 db=settings.REDIS_DB,
-                decode_responses=True
+                decode_responses=False
             )
             # Test connection
             await self.redis.ping()
@@ -66,13 +66,25 @@ class RedisQueueClient:
         if not self.redis:
             raise RuntimeError("Redis client not connected")
         
-        # Blocking pop from queue
-        result = await self.redis.brpop(settings.REDIS_JOB_QUEUE_KEY, timeout=1)
-        if result:
-            _, job_json = result
-            job_data = json.loads(job_json)
-            logger.info(f"Job {job_data['id']} dequeued from Redis")
-            return job_data
+        try:
+            # Blocking pop from queue
+            result = await self.redis.brpop(settings.REDIS_JOB_QUEUE_KEY, timeout=1)
+            if result:
+                _, job_json = result
+                try:
+                    job_data = json.loads(job_json.decode('utf-8'))
+                    logger.info(f"Job {job_data['id']} dequeued from Redis")
+                    return job_data
+                except json.JSONDecodeError as e:
+                    logger.error(f"Error decoding JSON from Redis: {e}")
+                    logger.error(f"Raw data: {job_json}")
+                    return None
+                except Exception as e:
+                    logger.error(f"Unexpected error processing job from Redis: {e}")
+                    return None
+        except Exception as e:
+            logger.error(f"Error retrieving job from Redis queue: {e}")
+            return None
         
         return None
     
@@ -86,8 +98,17 @@ class RedisQueueClient:
         jobs = []
         
         for job_json in job_jsons:
-            job_data = json.loads(job_json)
-            jobs.append(job_data)
+            try:
+                job_data = json.loads(job_json.decode('utf-8'))
+                logger.debug(f"Retrieved job from Redis: {job_data}")
+                jobs.append(job_data)
+            except json.JSONDecodeError as e:
+                logger.error(f"Error decoding JSON from Redis: {e}")
+                logger.error(f"Raw data: {job_json}")
+                continue  # Skip invalid entries
+            except Exception as e:
+                logger.error(f"Unexpected error processing job from Redis: {e}")
+                continue  # Skip invalid entries
         
         return jobs
     

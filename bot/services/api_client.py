@@ -29,8 +29,14 @@ class BackendAPIClient:
         try:
             async with aiohttp.ClientSession(timeout=self.timeout) as session:
                 if files:
-                    # For file uploads
-                    async with session.post(url, data=files, params=params) as response:
+                    # For file uploads: build FormData
+                    form = aiohttp.FormData()
+                    for field_name, file_tuple in files.items():
+                        # file_tuple expected (filename, content, content_type)
+                        filename, content, content_type = file_tuple
+                        form.add_field(field_name, content, filename=filename, content_type=content_type)
+
+                    async with session.post(url, data=form, params=params) as response:
                         response.raise_for_status()
                         return await response.json()
                 elif data:
@@ -80,8 +86,22 @@ class BackendAPIClient:
     async def get_balance(self, telegram_id: int) -> Optional[int]:
         """Get user balance by telegram_id"""
         try:
+            # Check if user is admin
+            from backend.app.config import settings as backend_settings
+            user_is_admin = telegram_id in getattr(backend_settings, 'ADMIN_IDS', [])
+            if user_is_admin:
+                return 99999  # High balance for admin
+            
             response = await self._request("GET", f"/api/users/by-telegram-id/{telegram_id}")
-            return response.get("balance")
+            if response:
+                return response.get("balance")
+            else:
+                # User not found, register the user first
+                logger.info(f"User with telegram_id {telegram_id} not found during balance check, registering...")
+                await self.register_user(telegram_id, f"telegram_user_{telegram_id}")
+                # Then get the user again to return the balance
+                response = await self._request("GET", f"/api/users/by-telegram-id/{telegram_id}")
+                return response.get("balance") if response else 0
         except Exception as e:
             logger.error(f"Failed to get balance for user by telegram_id {telegram_id}: {e}")
             return None
@@ -133,10 +153,18 @@ class BackendAPIClient:
     ) -> Dict[str, Any]:
         """Create a new job with prompt by telegram_id"""
         try:
+            # Check if user is admin
+            from backend.app.config import settings as backend_settings
+            user_is_admin = telegram_id in getattr(backend_settings, 'ADMIN_IDS', [])
+            
             # Get user by telegram_id to retrieve internal user_id
             user_data = await self.get_user(telegram_id)
             if not user_data:
-                raise Exception(f"User with telegram_id {telegram_id} not found")
+                # User not found, register the user first
+                logger.info(f"User with telegram_id {telegram_id} not found, registering...")
+                # We need to get the username for registration, but we don't have access to the full user object here
+                # So we'll register with a placeholder username and return the created user data
+                user_data = await self.register_user(telegram_id, f"telegram_user_{telegram_id}")
             
             user_id = user_data['user_id']
             
@@ -149,6 +177,10 @@ class BackendAPIClient:
                 'user_id': user_id,
                 'prompt': prompt
             }
+            
+            # Don't add admin flag to params since we removed the parameter from backend endpoint
+            # The admin status is determined by checking the telegram_id in the backend
+            pass
             
             response = await self._request("POST", "/api/jobs/create", params=params, files=files)
             logger.info(f"Job created for user {telegram_id} (internal user_id {user_id}): {response.get('id')}")

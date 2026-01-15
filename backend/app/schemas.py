@@ -81,7 +81,7 @@ class JobResponse(JobBase):
     error: Optional[str] = None
     retry_count: int = 0
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
     
     class Config:
         from_attributes = True
@@ -143,7 +143,7 @@ class PaymentResponse(BaseModel):
     description: Optional[str] = None
     confirmation_url: Optional[str] = None
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
     paid_at: Optional[datetime] = None
     
     class Config:

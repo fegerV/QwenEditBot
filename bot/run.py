@@ -5,11 +5,13 @@ import logging
 import sys
 import os
 
-# Add the bot directory to the Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Ensure repo root is on sys.path so absolute package imports (bot.*) work when running
+# as a module or as a script started from different working dirs.
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if repo_root not in sys.path:
+    sys.path.insert(0, repo_root)
 
-# Now import the main module
-from main import start_bot
+from bot.main import start_bot
 
 # Configure logging
 logging.basicConfig(

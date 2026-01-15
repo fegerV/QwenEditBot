@@ -7,9 +7,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton
 import logging
 
-from services.api_client import BackendAPIClient
-from keyboards import main_menu_keyboard
-from states import UserState
+from ..services import BackendAPIClient
+from ..keyboards import main_menu_keyboard, main_menu_inline_keyboard
+from ..states import UserState
 
 logger = logging.getLogger(__name__)
 
@@ -21,26 +21,9 @@ async def handle_top_up(callback_query: CallbackQuery, state: FSMContext):
     """Show top-up options"""
     text = """💳 Пополнение баланса
 
-Выберите сумму (СБП, Карта):
-• 100 ₽
-• 250 ₽
-• 500 ₽
-• 1000 ₽
-
-Or enter your own amount (1-10000 ₽)"""
+Функция временно отключена для тестирования."""
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="100 ₽", callback_data="pay_100"),
-            InlineKeyboardButton(text="250 ₽", callback_data="pay_250")
-        ],
-        [
-            InlineKeyboardButton(text="500 ₽", callback_data="pay_500"),
-            InlineKeyboardButton(text="1000 ₽", callback_data="pay_1000")
-        ],
-        [
-            InlineKeyboardButton(text="✍️ Свою сумму", callback_data="pay_custom")
-        ],
         [
             InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu")
         ]
@@ -48,7 +31,7 @@ Or enter your own amount (1-10000 ₽)"""
     
     try:
         await callback_query.message.edit_text(text, reply_markup=keyboard)
-        await state.set_state(UserState.awaiting_payment)
+        # await state.set_state(UserState.awaiting_payment)
     except Exception as e:
         logger.error(f"Error showing top-up options: {e}")
 
@@ -56,51 +39,37 @@ Or enter your own amount (1-10000 ₽)"""
 @router.callback_query(F.data.startswith("pay_"), StateFilter(UserState.awaiting_payment))
 async def handle_payment_amount(callback_query: CallbackQuery, state: FSMContext):
     """Handle payment amount selection"""
-    data = callback_query.data.split("_")
-    
-    if data[1] == "custom":
-        # Prompt for custom amount
-        text = """💰 Введите сумму пополнения
+    # Payment functionality is disabled
+    text = """💳 Пополнение баланса
 
-Минимум: 1 ₽
-Максимум: 10000 ₽
-
-Отправьте число (например: 500)"""
-        
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="🔙 Отмена", callback_data="top_up")]
-        ])
-        
-        await callback_query.message.edit_text(text, reply_markup=keyboard)
-        # Reuse awaiting_custom_prompt state for custom amount input
-        await state.set_state(UserState.awaiting_custom_prompt)
-        return
+Функция временно отключена для тестирования."""
     
-    try:
-        amount = int(data[1])
-        await state.update_data(payment_amount=amount)
-        await show_payment_method_selection(callback_query.message, state)
-    except ValueError:
-        await callback_query.answer("❌ Неверная сумма", show_alert=True)
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu")
+        ]
+    ])
+    
+    await callback_query.message.edit_text(text, reply_markup=keyboard)
+    # await state.update_data(payment_amount=amount)
+    # await show_payment_method_selection(callback_query.message, state)
 
 
 @router.message(StateFilter(UserState.awaiting_custom_prompt))
 async def handle_custom_amount(message: Message, state: FSMContext):
     """Handle custom amount input"""
-    try:
-        amount = int(message.text)
-        
-        if amount < 1 or amount > 10000:
-            await message.answer(
-                "❌ Сумма должна быть от 1 до 10000 рублей. Попробуйте снова."
-            )
-            return
-        
-        await state.update_data(payment_amount=amount)
-        await show_payment_method_selection_message(message, state)
-        
-    except ValueError:
-        await message.answer("❌ Пожалуйста, введите корректное число (например: 500)")
+    # Payment functionality is disabled
+    text = """💳 Пополнение баланса
+
+Функция временно отключена для тестирования."""
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu")
+        ]
+    ])
+    
+    await message.answer(text, reply_markup=keyboard)
 
 
 async def show_payment_method_selection(message: Message, state: FSMContext):
@@ -148,15 +117,18 @@ async def show_payment_method_selection_message(message: Message, state: FSMCont
 @router.callback_query(F.data.startswith("method_"), StateFilter(UserState.selecting_payment_method))
 async def handle_payment_method(callback_query: CallbackQuery, state: FSMContext):
     """Handle payment method selection"""
-    method = callback_query.data.split("_")[1]
-    data = await state.get_data()
-    amount = data.get("payment_amount")
+    # Payment functionality is disabled
+    text = """💳 Пополнение баланса
+
+Функция временно отключена для тестирования."""
     
-    if not amount:
-        await callback_query.answer("❌ Ошибка: сумма не выбрана", show_alert=True)
-        return
-        
-    await _create_payment(callback_query, state, amount, method)
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu")
+        ]
+    ])
+    
+    await callback_query.message.edit_text(text, reply_markup=keyboard)
 
 
 async def _create_payment(callback_query: CallbackQuery, state: FSMContext, amount: int, method: str = "card"):
@@ -228,7 +200,7 @@ async def _check_payment_status(user_id: int, payment_id: int, amount: int, stat
     """Check payment status periodically"""
     from main import api_client
     from aiogram import Bot
-    from config import settings
+    from ..config import settings
     
     bot = Bot(token=settings.BOT_TOKEN)
     
@@ -242,7 +214,7 @@ async def _check_payment_status(user_id: int, payment_id: int, amount: int, stat
                     await bot.send_message(
                         user_id,
                         f"✅ Платёж успешен! Баллы добавлены 🎉\n\n💰 Пополнено: {amount * 100} баллов\n💳 Статус: Успешно",
-                        reply_markup=main_menu_keyboard()
+                        reply_markup=main_menu_inline_keyboard()
                     )
                 except Exception as e:
                     logger.error(f"Error sending success notification: {e}")
@@ -257,7 +229,7 @@ async def _check_payment_status(user_id: int, payment_id: int, amount: int, stat
                     await bot.send_message(
                         user_id,
                         "❌ Платёж отклонен. Попробуйте снова.",
-                        reply_markup=main_menu_keyboard()
+                        reply_markup=main_menu_inline_keyboard()
                     )
                 except Exception as e:
                     logger.error(f"Error sending failure notification: {e}")
@@ -271,7 +243,7 @@ async def _check_payment_status(user_id: int, payment_id: int, amount: int, stat
                     await bot.send_message(
                         user_id,
                         "❌ Платёж отменён.",
-                        reply_markup=main_menu_keyboard()
+                        reply_markup=main_menu_inline_keyboard()
                     )
                 except Exception as e:
                     logger.error(f"Error sending cancelled notification: {e}")

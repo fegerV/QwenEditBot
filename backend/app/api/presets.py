@@ -22,7 +22,7 @@ def get_presets(
         query = db.query(models.Preset)
         if category:
             query = query.filter(models.Preset.category == category)
-        presets = query.order_by(models.Preset.order).all()
+        presets = query.order_by(models.Preset.order_index).all()
         return presets
     except Exception as e:
         logger.error(f"Error getting presets: {e}")
