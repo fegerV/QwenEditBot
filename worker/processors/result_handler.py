@@ -43,7 +43,7 @@ class ResultHandler:
                 raise Exception(f"User {job.user_id} has no telegram_id")
             
             # Send photo to user
-            caption = "✅ Ваше фото готово! 🎨\n\nThank you for using our service!"
+            caption = "✅ Your photo is ready! 🎨\n\nThank you for using our service!"
             success = await self.telegram_client.send_photo(telegram_id, image_data, caption)
             
             if success:

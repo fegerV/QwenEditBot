@@ -132,7 +132,7 @@ async def confirm_processing(callback: types.CallbackQuery, state: FSMContext):
         # Skip balance checks completely during testing
         
         # Download photo from Telegram
-        await callback.message.edit_text("📥 Получаю фото...")
+        await callback.message.edit_text("📥 Загружаю фото...")
         
         photo_data = await download_telegram_photo(callback.bot, photo_id)
         
@@ -170,7 +170,7 @@ async def confirm_processing(callback: types.CallbackQuery, state: FSMContext):
             
             # Determine the name for display
             if custom_prompt:
-                operation_name = "Своя обработка"
+                operation_name = "Свой промпт"
             else:
                 operation_name = selected_preset.get("name", "Обработка") if selected_preset else "Обработка"
             
@@ -179,7 +179,7 @@ async def confirm_processing(callback: types.CallbackQuery, state: FSMContext):
                 f"Обработка: {operation_name}\n"
                 f"ID задачи: {job_id}\n"
                 f"Статус: ⏳ В очереди\n\n"
-                f"Когда результат будет готов, вы получите уведомление.",
+                f"Как результат будет готов, вы получите уведомление.",
                 reply_markup=main_menu_inline_keyboard()
             )
             
