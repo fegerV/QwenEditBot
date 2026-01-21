@@ -63,43 +63,49 @@ async def handle_image_upload(message: types.Message, state: FSMContext):
 
 @router.message(StateFilter(UserState.awaiting_image_for_custom), F.photo)
 async def handle_image_upload_for_custom(message: types.Message, state: FSMContext):
-    """Handle image upload for custom prompt processing"""
+    """Handle image upload for custom prompt - confirm photo first, then ask prompt."""
     try:
-        # Import api_client from main module
-        from ..main import api_client
-        
-        # Get data from state
-        data = await state.get_data()
-        custom_prompt = data.get("custom_prompt")
-        
-        if not custom_prompt:
-            await message.answer("❌ Промпт не найден. Попробуйте снова.")
-            return
-        
-        # Get balance and check if admin
-        # For testing purposes, disable balance check completely
-        from backend.app.config import settings as backend_settings
-        user_is_admin = message.from_user.id in getattr(backend_settings, 'ADMIN_IDS', [])
-        
-        # Set fixed values for testing
-        balance = 99999  # High balance for display
-        cost = 0  # No cost for testing
-        
-        # Skip balance checks completely during testing
-        
-        # Show confirmation
+        photo_id = message.photo[-1].file_id
+        await state.update_data(photo_id=photo_id)
+
         await message.answer(
-            f"✅ Фото загружено!\n\n"
-            f"Подтверждаете обработку по вашему промпту?",
-            reply_markup=confirmation_keyboard()
+            "✅ Фото загружено!\n\nПодтверждаете это фото?",
+            reply_markup=custom_photo_confirmation_keyboard(),
         )
-        
-        # Save photo in state for confirmation
-        await state.update_data(photo_id=message.photo[-1].file_id)
-        
+
+        logger.info(f"User {message.from_user.id} uploaded photo for custom prompt")
+
     except Exception as e:
         logger.error(f"Error uploading image for custom prompt: {e}")
         await send_error_message(message)
+
+
+@router.callback_query(F.data == "confirm_custom_photo", StateFilter(UserState.awaiting_image_for_custom))
+async def confirm_custom_photo(callback: types.CallbackQuery, state: FSMContext):
+    """Confirm uploaded photo for custom prompt and ask for the prompt."""
+    try:
+        data = await state.get_data()
+        photo_id = data.get("photo_id")
+
+        if not photo_id:
+            await callback.answer("Фото не найдено. Загрузите фото ещё раз.", show_alert=True)
+            return
+
+        await state.set_state(UserState.awaiting_custom_prompt)
+
+        await callback.message.edit_text(
+            "✅ Фото подтверждено!\n\n"
+            "✍️ Теперь напишите промпт (что нужно сделать с фото):\n"
+            "Например: \"Сделать фото чёрно-белым, добавить виньетку\"\n\n"
+            "Минимум 5 символов, максимум 500 символов.",
+            reply_markup=cancel_keyboard(),
+        )
+
+        await callback.answer()
+
+    except Exception as e:
+        logger.error(f"Error confirming custom photo: {e}")
+        await callback.answer("Произошла ошибка", show_alert=True)
 
 
 @router.callback_query(F.data == "confirm_processing")
@@ -197,6 +203,25 @@ async def confirm_processing(callback: types.CallbackQuery, state: FSMContext):
         await callback.answer("Ошибка при подтверждении обработки", show_alert=True)
 
 
+@router.callback_query(F.data == "cancel_custom_photo", StateFilter(UserState.awaiting_image_for_custom))
+async def cancel_custom_photo(callback: types.CallbackQuery, state: FSMContext):
+    """Cancel custom photo upload"""
+    try:
+        await state.clear()
+        await state.set_state(UserState.main_menu)
+
+        await callback.message.edit_text(
+            "Операция отменена. Вы в главном меню.",
+            reply_markup=main_menu_inline_keyboard(),
+        )
+
+        await callback.answer()
+
+    except Exception as e:
+        logger.error(f"Error canceling custom photo: {e}")
+        await callback.answer("Произошла ошибка", show_alert=True)
+
+
 @router.callback_query(F.data == "cancel_processing")
 async def cancel_processing(callback: types.CallbackQuery, state: FSMContext):
     """Cancel image processing"""
@@ -245,5 +270,18 @@ def confirmation_keyboard():
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="✅ Подтвердить", callback_data="confirm_processing"))
     builder.add(InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_processing"))
+    
+    return builder.as_markup()
+
+
+# Custom photo confirmation keyboard  
+def custom_photo_confirmation_keyboard():
+    """Create custom photo confirmation keyboard"""
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="✅ Подтвердить", callback_data="confirm_custom_photo"))
+    builder.add(InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_custom_photo"))
     
     return builder.as_markup()
