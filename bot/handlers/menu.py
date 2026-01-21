@@ -5,14 +5,18 @@ from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from ..states import UserState
 from ..keyboards import (
-    edit_photo_submenu_keyboard, 
-    category_keyboard, 
-    main_menu_keyboard, 
+    edit_photo_submenu_keyboard,
+    category_keyboard,
+    main_menu_keyboard,
     main_menu_inline_keyboard,
     back_and_main_menu_keyboard,
     fitting_room_instructions_keyboard,
     profile_menu_keyboard,
-    knowledge_base_keyboard
+    knowledge_base_keyboard,
+    artistic_styles_root_keyboard,
+    artistic_styles_artists_keyboard,
+    artistic_styles_digital_artists_keyboard,
+    artistic_styles_techniques_keyboard,
 )
 from ..utils import send_error_message
 
@@ -21,19 +25,320 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 
+ARTISTIC_STYLE_PRESETS: dict[str, dict[str, str]] = {
+    # Classic artists
+    "as_style_van_gogh": {
+        "name": "Vincent van Gogh",
+        "icon": "🎨",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply the artistic style of Vincent van Gogh,\n"
+            "oil painting, expressive swirling brushstrokes,\n"
+            "vibrant saturated colors,\n"
+            "visible canvas texture.\n"
+            "High quality, painterly result."
+        ),
+    },
+    "as_style_monet": {
+        "name": "Claude Monet",
+        "icon": "🎨",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply the artistic style of Claude Monet,\n"
+            "impressionist painting,\n"
+            "soft diffused light,\n"
+            "pastel color palette,\n"
+            "gentle brushstrokes.\n"
+            "High quality, atmospheric result."
+        ),
+    },
+    "as_style_picasso": {
+        "name": "Pablo Picasso",
+        "icon": "🎨",
+        "prompt": (
+            "Preserve the original composition of the image.\n"
+            "For portraits, loosely preserve facial features.\n"
+            "Apply a cubist style inspired by Pablo Picasso,\n"
+            "abstract geometric shapes,\n"
+            "bold color blocks,\n"
+            "fragmented forms.\n"
+            "Artistic interpretation, coherent structure."
+        ),
+    },
+    "as_style_dali": {
+        "name": "Salvador Dalí",
+        "icon": "🎨",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity.\n"
+            "Apply the surrealist style inspired by Salvador Dalí,\n"
+            "dreamlike atmosphere,\n"
+            "distorted reality elements,\n"
+            "smooth painterly technique.\n"
+            "High quality, surreal but coherent result."
+        ),
+    },
+
+    # Digital artists
+    "as_style_beeple": {
+        "name": "Beeple (Mike Winkelmann)",
+        "icon": "💻",
+        "prompt": (
+            "Preserve the original structure of the image.\n"
+            "Apply a digital art style inspired by Beeple,\n"
+            "futuristic and surreal elements,\n"
+            "high-contrast lighting,\n"
+            "detailed textures,\n"
+            "modern digital aesthetic.\n"
+            "High quality digital artwork"
+        ),
+    },
+    "as_style_artgerm": {
+        "name": "Artgerm (Stanley Lau)",
+        "icon": "💻",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions exactly.\n"
+            "Apply the semi-realistic digital art style of Artgerm,\n"
+            "smooth painterly shading,\n"
+            "clean detailed features,\n"
+            "professional illustration quality.\n"
+            "High quality, polished result."
+        ),
+    },
+    "as_style_loish": {
+        "name": "Loish",
+        "icon": "💻",
+        "prompt": (
+            "Preserve the original structure of the image.\n"
+            "For portraits, preserve facial identity.\n"
+            "Apply a soft colorful illustration style inspired by Loish,\n"
+            "smooth gradients,\n"
+            "gentle lighting,\n"
+            "expressive but simplified forms.\n"
+            "High quality illustration."
+        ),
+    },
+    "as_style_ross_tran": {
+        "name": "Ross Tran (RossDraws)",
+        "icon": "💻",
+        "prompt": (
+            "Preserve the original composition of the image.\n"
+            "For portraits, preserve facial identity.\n"
+            "Apply a vibrant stylized digital painting style inspired by Ross Tran (RossDraws),\n"
+            "dynamic lighting,\n"
+            "bold colors,\n"
+            "energetic brushwork.\n"
+            "High quality digital illustration."
+        ),
+    },
+
+    # Techniques
+    "as_style_tech_oil": {
+        "name": "Масляная живопись",
+        "icon": "🎨",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply oil painting technique,\n"
+            "rich thick brushstrokes,\n"
+            "deep saturated colors,\n"
+            "visible canvas texture.\n"
+            "High quality painterly result."
+        ),
+    },
+    "as_style_tech_watercolor": {
+        "name": "Акварель",
+        "icon": "💧",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply watercolor painting technique,\n"
+            "soft translucent washes,\n"
+            "gentle color bleeding,\n"
+            "visible paper texture.\n"
+            "Light, atmospheric result."
+        ),
+    },
+    "as_style_tech_pastel": {
+        "name": "Пастель",
+        "icon": "🖌",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity.\n"
+            "Apply pastel drawing technique,\n"
+            "soft chalk textures,\n"
+            "smooth color transitions,\n"
+            "matte finish.\n"
+            "High quality illustration."
+        ),
+    },
+    "as_style_tech_pencil": {
+        "name": "Карандаш",
+        "icon": "✏️",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity.\n"
+            "Apply pencil drawing technique,\n"
+            "graphite linework,\n"
+            "hand-drawn shading,\n"
+            "white paper background.\n"
+            "Clean sketch style."
+        ),
+    },
+    "as_style_tech_ink": {
+        "name": "Чернила / тушь",
+        "icon": "🖋",
+        "prompt": (
+            "Preserve the original structure of the image.\n"
+            "For portraits, preserve facial identity.\n"
+            "Apply ink drawing technique,\n"
+            "bold black lines,\n"
+            "high contrast,\n"
+            "hand-inked illustration style.\n"
+            "Crisp, graphic result."
+        ),
+    },
+    "as_style_tech_digital_painting": {
+        "name": "Цифровая живопись",
+        "icon": "💻",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply digital painting technique,\n"
+            "smooth brushwork,\n"
+            "detailed lighting,\n"
+            "high-resolution textures.\n"
+            "Professional digital artwork."
+        ),
+    },
+    "as_style_tech_concept_art": {
+        "name": "Концепт-арт",
+        "icon": "🧠",
+        "prompt": (
+            "Preserve the original composition of the image.\n"
+            "Apply concept art technique,\n"
+            "cinematic lighting,\n"
+            "dramatic atmosphere,\n"
+            "detailed forms and environments.\n"
+            "Professional illustration quality."
+        ),
+    },
+    "as_style_tech_3d_render": {
+        "name": "3D-рендер",
+        "icon": "🎮",
+        "prompt": (
+            "Preserve the original structure of the image.\n"
+            "Apply 3D render technique,\n"
+            "realistic materials,\n"
+            "studio lighting,\n"
+            "high detail,\n"
+            "photorealistic rendering.\n"
+            "Clean, modern 3D result."
+        ),
+    },
+    "as_style_tech_engraving": {
+        "name": "Гравюра / офорт",
+        "icon": "📰",
+        "prompt": (
+            "Preserve the original structure of the image.\n"
+            "Apply engraving technique,\n"
+            "fine linework,\n"
+            "cross-hatching,\n"
+            "vintage illustration style.\n"
+            "High detail monochrome result."
+        ),
+    },
+    "as_style_tech_charcoal": {
+        "name": "Уголь",
+        "icon": "🪵",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity.\n"
+            "Apply charcoal drawing technique,\n"
+            "rough expressive strokes,\n"
+            "deep shadows,\n"
+            "textured paper.\n"
+            "Dramatic monochrome result."
+        ),
+    },
+    "as_style_tech_markers": {
+        "name": "Маркеры",
+        "icon": "🖍",
+        "prompt": (
+            "Preserve the original structure of the image.\n"
+            "Apply marker illustration technique,\n"
+            "bold saturated colors,\n"
+            "visible strokes,\n"
+            "graphic illustration style.\n"
+            "Clean and vibrant result."
+        ),
+    },
+    "as_style_tech_line_art": {
+        "name": "Линейный арт",
+        "icon": "📐",
+        "prompt": (
+            "Preserve the original structure of the image.\n"
+            "Apply clean line art technique,\n"
+            "precise outlines,\n"
+            "minimal shading,\n"
+            "illustration style.\n"
+            "Sharp and minimal result."
+        ),
+    },
+}
+
+
+async def _start_art_style_flow(
+    callback: types.CallbackQuery,
+    state: FSMContext,
+    style_key: str,
+):
+    style = ARTISTIC_STYLE_PRESETS.get(style_key)
+    if not style:
+        await callback.answer("Стиль не найден", show_alert=True)
+        return
+
+    await state.update_data(
+        selected_preset={
+            "name": style["name"],
+            "icon": style.get("icon", "🎨"),
+            "price": 30,
+        },
+        prompt=style["prompt"],
+    )
+    await state.set_state(UserState.awaiting_image_for_preset)
+
+    from ..keyboards import cancel_keyboard
+
+    icon = style.get("icon", "")
+    name = style.get("name", "")
+    display_name = f"{icon} {name}".strip()
+
+    await callback.message.edit_text(
+        f"✅ Выбран стиль: {display_name}\n\n"
+        f"Стоимость: 30 баллов\n\n"
+        "📸 Теперь загрузите фото для обработки:",
+        reply_markup=cancel_keyboard(),
+    )
+
+    await callback.answer()
+
+
 # ===== NEW MENU STRUCTURE - 8 MAIN SECTIONS =====
 
 # 1. 🎨 Художественные стили
 @router.message(UserState.main_menu, F.text == "🎨 Художественные стили")
 async def btn_artistic_styles(message: types.Message, state: FSMContext):
-    """Handle 'Художественные стили' button - currently disabled"""
+    """Handle 'Художественные стили' button"""
     try:
         await message.answer(
             "🎨 Художественные стили\n\n"
-            "Данный раздел находится в разработке. Подразделы будут добавлены позже.\n\n"
-            "Стоимость генерации 1 фото: 30 баллов\n"
-            "Ваш баланс можно проверить в разделе 👩 Профиль",
-            reply_markup=back_and_main_menu_keyboard()
+            "Выберите подраздел:\n\n"
+            "Стоимость генерации 1 фото: 30 баллов",
+            reply_markup=artistic_styles_root_keyboard()
         )
     except Exception as e:
         logger.error(f"Error in artistic_styles button: {e}")
@@ -365,14 +670,108 @@ async def callback_artistic_styles(callback: types.CallbackQuery, state: FSMCont
     try:
         await callback.message.edit_text(
             "🎨 Художественные стили\n\n"
-            "Данный раздел находится в разработке. Подразделы будут добавлены позже.\n\n"
+            "Выберите подраздел:\n\n"
             "Стоимость генерации 1 фото: 30 баллов",
-            reply_markup=main_menu_inline_keyboard()
+            reply_markup=artistic_styles_root_keyboard()
         )
         await callback.answer()
     except Exception as e:
         logger.error(f"Error in artistic_styles callback: {e}")
         await callback.answer("Произошла ошибка")
+
+
+# Artistic styles section navigation
+
+@router.callback_query(F.data == "as_root")
+async def callback_artistic_styles_root(callback: types.CallbackQuery, state: FSMContext):
+    """Show artistic styles root menu"""
+    try:
+        await callback.message.edit_text(
+            "🎨 Художественные стили\n\n"
+            "Выберите подраздел:\n\n"
+            "Стоимость генерации 1 фото: 30 баллов",
+            reply_markup=artistic_styles_root_keyboard(),
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in artistic_styles_root callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "as_artists")
+async def callback_artistic_styles_artists(callback: types.CallbackQuery, state: FSMContext):
+    """Show artists submenu"""
+    try:
+        await callback.message.edit_text(
+            "🎨 Художники\n\nВыберите художника:",
+            reply_markup=artistic_styles_artists_keyboard(),
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in artistic_styles_artists callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "as_artists_digital")
+async def callback_artistic_styles_digital_artists(callback: types.CallbackQuery, state: FSMContext):
+    """Show digital artists submenu"""
+    try:
+        await callback.message.edit_text(
+            "💻 Цифровые художники\n\nВыберите художника:",
+            reply_markup=artistic_styles_digital_artists_keyboard(),
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in artistic_styles_digital_artists callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "as_technique")
+async def callback_artistic_styles_technique(callback: types.CallbackQuery, state: FSMContext):
+    """Show techniques submenu"""
+    try:
+        await callback.message.edit_text(
+            "✏️ Техника\n\nВыберите технику:",
+            reply_markup=artistic_styles_techniques_keyboard(),
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in artistic_styles_technique callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data.in_({"as_comics", "as_cartoons", "as_anime", "as_fantasy", "as_photographers"}))
+async def callback_artistic_styles_placeholder(callback: types.CallbackQuery, state: FSMContext):
+    """Show placeholder message for not-yet-implemented subsections"""
+    try:
+        titles = {
+            "as_comics": "⚡ Комиксы",
+            "as_cartoons": "🐰 Мультфильмы",
+            "as_anime": "🌸 Аниме",
+            "as_fantasy": "🧙 Фэнтези",
+            "as_photographers": "📸 Фотографы",
+        }
+        title = titles.get(callback.data, "Раздел")
+
+        await callback.message.edit_text(
+            f"{title}\n\n"
+            "Раздел в разработке. Подразделы будут добавлены позже.",
+            reply_markup=back_and_main_menu_keyboard("as_root"),
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in artistic_styles_placeholder callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data.startswith("as_style_"))
+async def callback_artistic_style_selected(callback: types.CallbackQuery, state: FSMContext):
+    """Select artistic style (artist/technique) and switch to photo upload"""
+    try:
+        await _start_art_style_flow(callback, state, callback.data)
+    except Exception as e:
+        logger.error(f"Error in artistic style selection: {e}")
+        await callback.answer("Произошла ошибка", show_alert=True)
 
 
 @router.callback_query(F.data == "change_appearance")
