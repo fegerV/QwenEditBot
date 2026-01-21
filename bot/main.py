@@ -14,7 +14,8 @@ from bot.handlers import (
     image_upload_router,
     balance_router,
     help_router,
-    payments_router
+    payments_router,
+    promocodes_router
 )
 
 # Configure logging
@@ -32,8 +33,8 @@ api_client = BackendAPIClient()
 # Make sure all handlers modules are imported properly
 def import_handlers():
     """Ensure all handler modules are imported to register routes"""
-    from bot.handlers import start, menu, presets, custom_prompt, image_upload, balance, help, payments
-    return [start, menu, presets, custom_prompt, image_upload, balance, help, payments]
+    from bot.handlers import start, menu, presets, custom_prompt, image_upload, balance, help, payments, promocodes
+    return [start, menu, presets, custom_prompt, image_upload, balance, help, payments, promocodes]
 
 
 async def create_bot():
@@ -53,6 +54,7 @@ async def create_bot():
     dp.include_router(balance_router)
     dp.include_router(help_router)
     dp.include_router(payments_router)
+    dp.include_router(promocodes_router)
     
     logger.info("Bot initialized successfully")
     

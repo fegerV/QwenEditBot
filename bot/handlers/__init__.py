@@ -8,6 +8,7 @@ from .image_upload import router as image_upload_router
 from .balance import router as balance_router
 from .help import router as help_router
 from .payments import router as payments_router
+from .promocodes import router as promocodes_router
 
 __all__ = [
     "start_router",
@@ -17,5 +18,6 @@ __all__ = [
     "image_upload_router",
     "balance_router",
     "help_router",
-    "payments_router"
+    "payments_router",
+    "promocodes_router"
 ]

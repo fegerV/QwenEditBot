@@ -4,7 +4,7 @@ from fastapi.responses import FileResponse
 from fastapi import HTTPException, status
 from .config import settings, ensure_directories
 from .database import engine, Base, SessionLocal, seed_presets_if_empty
-from .api import users, presets, jobs, balance, telegram, payments, webhooks
+from .api import users, presets, jobs, balance, telegram, payments, webhooks, promocodes
 from . import models
 from .services.scheduler import WeeklyBonusScheduler
 from redis_client import redis_client
@@ -68,6 +68,7 @@ app.include_router(balance.router, prefix="/api/balance", tags=["balance"])
 app.include_router(telegram.router, prefix="/api/telegram", tags=["telegram"])
 app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
 app.include_router(webhooks.router, prefix="/api/webhooks", tags=["webhooks"])
+app.include_router(promocodes.router, prefix="/api/promocodes", tags=["promocodes"])
 
 # Global scheduler instance
 scheduler: WeeklyBonusScheduler = None

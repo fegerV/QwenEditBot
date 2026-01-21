@@ -19,6 +19,7 @@ class PaymentType(str, Enum):
     payment = "payment"
     weekly_bonus = "weekly_bonus"
     refund = "refund"
+    promocode = "promocode"
 
 # User schemas
 class UserBase(BaseModel):
@@ -174,3 +175,29 @@ class TelegramWebhook(BaseModel):
     update_id: int
     message: Optional[dict] = None
     callback_query: Optional[dict] = None
+
+# Promocode schemas
+class PromocodeCreate(BaseModel):
+    code: str
+    amount: int  # in points
+
+class PromocodeResponse(BaseModel):
+    id: int
+    code: str
+    amount: int
+    is_used: bool
+    used_at: Optional[datetime] = None
+    used_by_user_id: Optional[int] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class PromocodeUse(BaseModel):
+    code: str
+
+class PromocodeUseResponse(BaseModel):
+    success: bool
+    message: str
+    amount: Optional[int] = None
+    new_balance: Optional[float] = None
