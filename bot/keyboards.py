@@ -222,6 +222,103 @@ def artistic_styles_techniques_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+def artistic_styles_comics_keyboard() -> InlineKeyboardMarkup:
+    """Create comics submenu keyboard"""
+    builder = InlineKeyboardBuilder()
+
+    builder.row(InlineKeyboardButton(text="💥 Jack Kirby (Classic Marvel)", callback_data="as_style_jack_kirby"))
+    builder.row(InlineKeyboardButton(text="🌑 Frank Miller (Noir / Sin City)", callback_data="as_style_frank_miller"))
+    builder.row(InlineKeyboardButton(text="🌌 Moebius (Jean Giraud)", callback_data="as_style_moebius"))
+    builder.row(InlineKeyboardButton(text="⚡ Jim Lee (Modern DC / Marvel)", callback_data="as_style_jim_lee"))
+    builder.row(InlineKeyboardButton(text="🎨 Alex Ross (Painterly Realism)", callback_data="as_style_alex_ross"))
+
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="as_root"),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
+
+    return builder.as_markup()
+
+
+def artistic_styles_cartoons_keyboard() -> InlineKeyboardMarkup:
+    """Create cartoons submenu keyboard"""
+    builder = InlineKeyboardBuilder()
+
+    builder.row(InlineKeyboardButton(text="🏰 Disney Renaissance Style", callback_data="as_style_disney_renaissance"))
+    builder.row(InlineKeyboardButton(text="🤖 Pixar Style", callback_data="as_style_pixar"))
+    builder.row(InlineKeyboardButton(text="🐲 DreamWorks Style", callback_data="as_style_dreamworks"))
+    builder.row(InlineKeyboardButton(text="⚔️ Genndy Tartakovsky", callback_data="as_style_genndy_tartakovsky"))
+    builder.row(InlineKeyboardButton(text="🐰 Looney Tunes / Chuck Jones", callback_data="as_style_looney_tunes"))
+
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="as_root"),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
+
+    return builder.as_markup()
+
+
+def artistic_styles_anime_keyboard() -> InlineKeyboardMarkup:
+    """Create anime submenu keyboard"""
+    builder = InlineKeyboardBuilder()
+
+    builder.row(InlineKeyboardButton(text="🌸 Makoto Shinkai Style", callback_data="as_style_makoto_shinkai"))
+    builder.row(InlineKeyboardButton(text="🪽 Yoshitaka Amano Style", callback_data="as_style_yoshitaka_amano"))
+    builder.row(InlineKeyboardButton(text="⚔️ Akihiko Yoshida Style", callback_data="as_style_akihiko_yoshida"))
+    builder.row(InlineKeyboardButton(text="🌙 CLAMP Style", callback_data="as_style_clamp"))
+    builder.row(InlineKeyboardButton(text="🍃 Studio Ghibli Style (Hayao Miyazaki)", callback_data="as_style_studio_ghibli"))
+
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="as_root"),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
+
+    return builder.as_markup()
+
+
+def artistic_styles_fantasy_keyboard() -> InlineKeyboardMarkup:
+    """Create fantasy submenu keyboard"""
+    builder = InlineKeyboardBuilder()
+
+    builder.row(InlineKeyboardButton(text="⚔️ Frank Frazetta", callback_data="as_style_frank_frazetta"))
+    builder.row(InlineKeyboardButton(text="🚀 Ralph McQuarrie", callback_data="as_style_ralph_mcquarrie"))
+    builder.row(InlineKeyboardButton(text="🧙 Greg Rutkowski", callback_data="as_style_greg_rutkowski"))
+    builder.row(InlineKeyboardButton(text="🪄 Magali Villeneuve", callback_data="as_style_magali_villeneuve"))
+    builder.row(InlineKeyboardButton(text="🐉 Brom", callback_data="as_style_brom"))
+    builder.row(InlineKeyboardButton(text="🔥 Wayne Barlowe", callback_data="as_style_wayne_barlowe"))
+    builder.row(InlineKeyboardButton(text="🏰 John Blanche", callback_data="as_style_john_blanche"))
+
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="as_root"),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
+
+    return builder.as_markup()
+
+
+def artistic_styles_photographers_keyboard() -> InlineKeyboardMarkup:
+    """Create photographers submenu keyboard"""
+    builder = InlineKeyboardBuilder()
+
+    builder.row(InlineKeyboardButton(text="📸 Annie Leibovitz", callback_data="as_style_annie_leibovitz"))
+    builder.row(InlineKeyboardButton(text="🌍 Steve McCurry", callback_data="as_style_steve_mccurry"))
+    builder.row(InlineKeyboardButton(text="🖤 Peter Lindbergh", callback_data="as_style_peter_lindbergh"))
+    builder.row(InlineKeyboardButton(text="⚡ Helmut Newton", callback_data="as_style_helmut_newton"))
+    builder.row(InlineKeyboardButton(text="✨ Richard Avedon", callback_data="as_style_richard_avedon"))
+    builder.row(InlineKeyboardButton(text="📸 Mario Testino", callback_data="as_style_mario_testino"))
+    builder.row(InlineKeyboardButton(text="🌍 Sebastião Salgado", callback_data="as_style_sebastiao_salgado"))
+    builder.row(InlineKeyboardButton(text="🕊 Dorothea Lange", callback_data="as_style_dorothea_lange"))
+    builder.row(InlineKeyboardButton(text="🎭 Tim Walker", callback_data="as_style_tim_walker"))
+    builder.row(InlineKeyboardButton(text="🏔 Ansel Adams", callback_data="as_style_ansel_adams"))
+
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="as_root"),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
+
+    return builder.as_markup()
+
+
 # Category Selection Keyboard (Inline)
 def category_keyboard() -> InlineKeyboardMarkup:
     """Create category selection keyboard"""
