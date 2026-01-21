@@ -139,6 +139,89 @@ def knowledge_base_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+# Artistic Styles Section Keyboards (Inline)
+
+def artistic_styles_root_keyboard() -> InlineKeyboardMarkup:
+    """Create artistic styles section keyboard with subsections"""
+    builder = InlineKeyboardBuilder()
+
+    builder.row(InlineKeyboardButton(text="🎨 Художники", callback_data="as_artists"))
+    builder.row(InlineKeyboardButton(text="✏️ Техника", callback_data="as_technique"))
+    builder.row(InlineKeyboardButton(text="⚡ Комиксы", callback_data="as_comics"))
+    builder.row(InlineKeyboardButton(text="🐰 Мультфильмы", callback_data="as_cartoons"))
+    builder.row(InlineKeyboardButton(text="🌸 Аниме", callback_data="as_anime"))
+    builder.row(InlineKeyboardButton(text="🧙 Фэнтези", callback_data="as_fantasy"))
+    builder.row(InlineKeyboardButton(text="📸 Фотографы", callback_data="as_photographers"))
+
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
+
+    return builder.as_markup()
+
+
+def artistic_styles_artists_keyboard() -> InlineKeyboardMarkup:
+    """Create artists submenu keyboard"""
+    builder = InlineKeyboardBuilder()
+
+    builder.row(InlineKeyboardButton(text="Vincent van Gogh", callback_data="as_style_van_gogh"))
+    builder.row(InlineKeyboardButton(text="Claude Monet", callback_data="as_style_monet"))
+    builder.row(InlineKeyboardButton(text="Pablo Picasso", callback_data="as_style_picasso"))
+    builder.row(InlineKeyboardButton(text="Salvador Dalí", callback_data="as_style_dali"))
+
+    builder.row(InlineKeyboardButton(text="💻 Цифровые художники", callback_data="as_artists_digital"))
+
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="as_root"),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
+
+    return builder.as_markup()
+
+
+def artistic_styles_digital_artists_keyboard() -> InlineKeyboardMarkup:
+    """Create digital artists submenu keyboard"""
+    builder = InlineKeyboardBuilder()
+
+    builder.row(InlineKeyboardButton(text="Beeple (Mike Winkelmann)", callback_data="as_style_beeple"))
+    builder.row(InlineKeyboardButton(text="Artgerm (Stanley Lau)", callback_data="as_style_artgerm"))
+    builder.row(InlineKeyboardButton(text="Loish", callback_data="as_style_loish"))
+    builder.row(InlineKeyboardButton(text="Ross Tran (RossDraws)", callback_data="as_style_ross_tran"))
+
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="as_artists"),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
+
+    return builder.as_markup()
+
+
+def artistic_styles_techniques_keyboard() -> InlineKeyboardMarkup:
+    """Create techniques submenu keyboard"""
+    builder = InlineKeyboardBuilder()
+
+    builder.row(InlineKeyboardButton(text="🎨 Масляная живопись", callback_data="as_style_tech_oil"))
+    builder.row(InlineKeyboardButton(text="💧 Акварель", callback_data="as_style_tech_watercolor"))
+    builder.row(InlineKeyboardButton(text="🖌 Пастель", callback_data="as_style_tech_pastel"))
+    builder.row(InlineKeyboardButton(text="✏️ Карандаш", callback_data="as_style_tech_pencil"))
+    builder.row(InlineKeyboardButton(text="🖋 Чернила / тушь", callback_data="as_style_tech_ink"))
+    builder.row(InlineKeyboardButton(text="💻 Цифровая живопись", callback_data="as_style_tech_digital_painting"))
+    builder.row(InlineKeyboardButton(text="🧠 Концепт-арт", callback_data="as_style_tech_concept_art"))
+    builder.row(InlineKeyboardButton(text="🎮 3D-рендер", callback_data="as_style_tech_3d_render"))
+    builder.row(InlineKeyboardButton(text="📰 Гравюра / офорт", callback_data="as_style_tech_engraving"))
+    builder.row(InlineKeyboardButton(text="🪵 Уголь", callback_data="as_style_tech_charcoal"))
+    builder.row(InlineKeyboardButton(text="🖍 Маркеры", callback_data="as_style_tech_markers"))
+    builder.row(InlineKeyboardButton(text="📐 Линейный арт", callback_data="as_style_tech_line_art"))
+
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="as_root"),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
+
+    return builder.as_markup()
+
+
 # Category Selection Keyboard (Inline)
 def category_keyboard() -> InlineKeyboardMarkup:
     """Create category selection keyboard"""
