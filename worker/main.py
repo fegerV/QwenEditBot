@@ -148,10 +148,12 @@ class QwenEditWorker:
                     id=job_data['id'],
                     user_id=job_data['user_id'],
                     image_path=job_data['image_path'],
+                    second_image_path=job_data.get('second_image_path'),
                     prompt=job_data['prompt'],
                     status=job_data['status'],
+                    retry_count=job_data.get('retry_count', 0),
                     created_at=parsed_created_at,
-                    updated_at=parsed_updated_at
+                    updated_at=parsed_updated_at,
                 )
                 
                 logger.info(f"Processing job {job.id} from queue (user: {job.user_id})")
