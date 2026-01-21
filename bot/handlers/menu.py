@@ -17,6 +17,11 @@ from ..keyboards import (
     artistic_styles_artists_keyboard,
     artistic_styles_digital_artists_keyboard,
     artistic_styles_techniques_keyboard,
+    artistic_styles_comics_keyboard,
+    artistic_styles_cartoons_keyboard,
+    artistic_styles_anime_keyboard,
+    artistic_styles_fantasy_keyboard,
+    artistic_styles_photographers_keyboard,
 )
 from ..utils import send_error_message
 
@@ -286,6 +291,454 @@ ARTISTIC_STYLE_PRESETS: dict[str, dict[str, str]] = {
             "minimal shading,\n"
             "illustration style.\n"
             "Sharp and minimal result."
+        ),
+    },
+
+    # Comics styles
+    "as_style_jack_kirby": {
+        "name": "💥 Jack Kirby (Classic Marvel)",
+        "icon": "💥",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply comic art style inspired by Jack Kirby,\n"
+            "bold dynamic lines,\n"
+            "powerful anatomy,\n"
+            "bright saturated colors,\n"
+            "classic Marvel aesthetic.\n"
+            "High quality comic illustration."
+        ),
+    },
+    "as_style_frank_miller": {
+        "name": "🌑 Frank Miller (Noir / Sin City)",
+        "icon": "🌑",
+        "prompt": (
+            "Preserve the original structure of the image.\n"
+            "For portraits, preserve facial identity.\n"
+            "Apply noir comic style inspired by Frank Miller,\n"
+            "high contrast black and white,\n"
+            "sharp shadows,\n"
+            "minimal color accents.\n"
+            "Dramatic graphic illustration."
+        ),
+    },
+    "as_style_moebius": {
+        "name": "🌌 Moebius (Jean Giraud)",
+        "icon": "🌌",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity.\n"
+            "Apply comic art style inspired by Moebius (Jean Giraud),\n"
+            "clean precise linework,\n"
+            "soft pastel colors,\n"
+            "surreal and detailed environments.\n"
+            "High quality comic illustration."
+        ),
+    },
+    "as_style_jim_lee": {
+        "name": "⚡ Jim Lee (Modern DC / Marvel)",
+        "icon": "⚡",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply modern comic art style inspired by Jim Lee,\n"
+            "sharp detailed linework,\n"
+            "dynamic poses,\n"
+            "dramatic lighting.\n"
+            "High quality comic book illustration."
+        ),
+    },
+    "as_style_alex_ross": {
+        "name": "🎨 Alex Ross (Painterly Realism)",
+        "icon": "🎨",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions exactly.\n"
+            "Apply painterly comic style inspired by Alex Ross,\n"
+            "realistic anatomy,\n"
+            "soft dramatic lighting,\n"
+            "traditional painted texture.\n"
+            "High quality realistic comic artwork."
+        ),
+    },
+
+    # Cartoons styles
+    "as_style_disney_renaissance": {
+        "name": "🏰 Disney Renaissance Style",
+        "icon": "🏰",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply Disney Renaissance animation style,\n"
+            "clean expressive linework,\n"
+            "warm vibrant colors,\n"
+            "classic hand-drawn animation look.\n"
+            "High quality cartoon illustration."
+        ),
+    },
+    "as_style_pixar": {
+        "name": "🤖 Pixar Style",
+        "icon": "🤖",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply Pixar-style 3D animation look,\n"
+            "soft lighting,\n"
+            "rounded shapes,\n"
+            "detailed textures,\n"
+            "friendly expressive character design.\n"
+            "High quality stylized 3D render."
+        ),
+    },
+    "as_style_dreamworks": {
+        "name": "🐲 DreamWorks Style",
+        "icon": "🐲",
+        "prompt": (
+            "Preserve the original structure of the image.\n"
+            "For portraits, preserve facial identity.\n"
+            "Apply DreamWorks animation style,\n"
+            "expressive facial features,\n"
+            "dynamic poses,\n"
+            "cinematic lighting,\n"
+            "stylized proportions.\n"
+            "High quality cartoon illustration."
+        ),
+    },
+    "as_style_genndy_tartakovsky": {
+        "name": "⚔️ Genndy Tartakovsky",
+        "icon": "⚔️",
+        "prompt": (
+            "Preserve the original composition of the image.\n"
+            "Apply animation style inspired by Genndy Tartakovsky,\n"
+            "strong silhouettes,\n"
+            "minimalistic shapes,\n"
+            "flat colors,\n"
+            "dramatic contrast.\n"
+            "Stylized animated illustration."
+        ),
+    },
+    "as_style_looney_tunes": {
+        "name": "🐰 Looney Tunes / Chuck Jones",
+        "icon": "🐰",
+        "prompt": (
+            "Preserve the original structure of the image.\n"
+            "Apply classic Looney Tunes cartoon style inspired by Chuck Jones,\n"
+            "exaggerated expressions,\n"
+            "bold outlines,\n"
+            "bright flat colors,\n"
+            "playful cartoon proportions.\n"
+            "High quality cartoon illustration."
+        ),
+    },
+
+    # Anime styles
+    "as_style_makoto_shinkai": {
+        "name": "🌸 Makoto Shinkai Style",
+        "icon": "🌸",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity, facial features and proportions.\n"
+            "Do not change the pose or expression.\n"
+            "Apply anime style inspired by Makoto Shinkai,\n"
+            "highly detailed background,\n"
+            "cinematic lighting,\n"
+            "soft glowing light,\n"
+            "realistic anime proportions,\n"
+            "vivid colors and atmospheric depth.\n"
+            "High quality anime illustration."
+        ),
+    },
+    "as_style_yoshitaka_amano": {
+        "name": "🪽 Yoshitaka Amano Style",
+        "icon": "🪽",
+        "prompt": (
+            "Preserve the original composition of the image.\n"
+            "For portraits, preserve facial identity in artistic and stylized form.\n"
+            "Apply anime illustration style inspired by Yoshitaka Amano,\n"
+            "delicate elegant linework,\n"
+            "elongated forms,\n"
+            "pastel and watercolor tones,\n"
+            "ornamental fantasy aesthetics.\n"
+            "High quality artistic anime illustration."
+        ),
+    },
+    "as_style_akihiko_yoshida": {
+        "name": "⚔️ Akihiko Yoshida Style",
+        "icon": "⚔️",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply anime character design style inspired by Akihiko Yoshida,\n"
+            "clean expressive lineart,\n"
+            "balanced anime proportions,\n"
+            "soft shading,\n"
+            "fantasy RPG character aesthetics.\n"
+            "High quality anime character illustration."
+        ),
+    },
+    "as_style_clamp": {
+        "name": "🌙 CLAMP Style",
+        "icon": "🌙",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity in stylized anime form.\n"
+            "Apply anime style inspired by CLAMP,\n"
+            "long slender proportions,\n"
+            "large expressive eyes,\n"
+            "decorative details,\n"
+            "elegant and dramatic anime aesthetics.\n"
+            "High quality stylized anime illustration."
+        ),
+    },
+    "as_style_studio_ghibli": {
+        "name": "🍃 Studio Ghibli Style (Hayao Miyazaki)",
+        "icon": "🍃",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and natural proportions.\n"
+            "Do not exaggerate facial features.\n"
+            "Apply Studio Ghibli animation style inspired by Hayao Miyazaki,\n"
+            "soft hand-drawn look,\n"
+            "warm natural colors,\n"
+            "gentle lighting,\n"
+            "simple expressive character design.\n"
+            "High quality anime-style illustration."
+        ),
+    },
+
+    # Fantasy styles
+    "as_style_frank_frazetta": {
+        "name": "⚔️ Frank Frazetta",
+        "icon": "⚔️",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply epic fantasy painting style inspired by Frank Frazetta,\n"
+            "powerful heroic anatomy,\n"
+            "dramatic dynamic poses,\n"
+            "rich earthy colors,\n"
+            "bold expressive brushstrokes,\n"
+            "classic heroic fantasy atmosphere.\n"
+            "High quality fantasy illustration."
+        ),
+    },
+    "as_style_ralph_mcquarrie": {
+        "name": "🚀 Ralph McQuarrie",
+        "icon": "🚀",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply fantasy concept art style inspired by Ralph McQuarrie,\n"
+            "cinematic lighting,\n"
+            "soft painterly brushwork,\n"
+            "atmospheric sci-fi fantasy environments,\n"
+            "concept art aesthetics.\n"
+            "High quality cinematic fantasy artwork."
+        ),
+    },
+    "as_style_greg_rutkowski": {
+        "name": "🧙 Greg Rutkowski",
+        "icon": "🧙",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply high-fantasy digital painting style inspired by Greg Rutkowski,\n"
+            "detailed character design,\n"
+            "dramatic lighting,\n"
+            "epic fantasy atmosphere,\n"
+            "highly detailed textures.\n"
+            "High quality fantasy illustration."
+        ),
+    },
+    "as_style_magali_villeneuve": {
+        "name": "🪄 Magali Villeneuve",
+        "icon": "🪄",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply fantasy illustration style inspired by Magali Villeneuve,\n"
+            "elegant character design,\n"
+            "soft cinematic lighting,\n"
+            "refined painterly details,\n"
+            "magical fantasy atmosphere.\n"
+            "High quality fantasy artwork."
+        ),
+    },
+    "as_style_brom": {
+        "name": "🐉 Brom",
+        "icon": "🐉",
+        "prompt": (
+            "Apply dark fantasy art style inspired by Brom,\n"
+            "moody lighting,\n"
+            "gothic atmosphere,\n"
+            "dark painterly textures."
+        ),
+    },
+    "as_style_wayne_barlowe": {
+        "name": "🔥 Wayne Barlowe",
+        "icon": "🔥",
+        "prompt": (
+            "Apply dark fantasy illustration style inspired by Wayne Barlowe,\n"
+            "alien demonic forms,\n"
+            "otherworldly environments,\n"
+            "high detail."
+        ),
+    },
+    "as_style_john_blanche": {
+        "name": "🏰 John Blanche",
+        "icon": "🏰",
+        "prompt": (
+            "Apply grimdark fantasy art style inspired by John Blanche,\n"
+            "chaotic composition,\n"
+            "raw sketchy textures,\n"
+            "dark medieval atmosphere."
+        ),
+    },
+
+    # Photography styles
+    "as_style_annie_leibovitz": {
+        "name": "📸 Annie Leibovitz",
+        "icon": "📸",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply photographic style inspired by Annie Leibovitz,\n"
+            "dramatic lighting,\n"
+            "carefully composed portrait,\n"
+            "moody background,\n"
+            "professional studio or location setting.\n"
+            "High quality cinematic photograph."
+        ),
+    },
+    "as_style_steve_mccurry": {
+        "name": "🌍 Steve McCurry",
+        "icon": "🌍",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply photographic style inspired by Steve McCurry,\n"
+            "vivid saturated colors,\n"
+            "documentary realism,\n"
+            "natural lighting,\n"
+            "authentic and expressive subjects.\n"
+            "High quality realistic photograph."
+        ),
+    },
+    "as_style_peter_lindbergh": {
+        "name": "🖤 Peter Lindbergh",
+        "icon": "🖤",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply photographic style inspired by Peter Lindbergh,\n"
+            "black and white portrait,\n"
+            "soft natural lighting,\n"
+            "minimalistic background,\n"
+            "timeless fashion photography aesthetic.\n"
+            "High quality artistic photograph."
+        ),
+    },
+    "as_style_helmut_newton": {
+        "name": "⚡ Helmut Newton",
+        "icon": "⚡",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply photographic style inspired by Helmut Newton,\n"
+            "high contrast black and white,\n"
+            "provocative fashion poses,\n"
+            "dramatic lighting,\n"
+            "strong geometric composition.\n"
+            "High quality stylized photograph."
+        ),
+    },
+    "as_style_richard_avedon": {
+        "name": "✨ Richard Avedon",
+        "icon": "✨",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply photographic style inspired by Richard Avedon,\n"
+            "clean white background,\n"
+            "studio lighting,\n"
+            "minimalist composition,\n"
+            "sharp detailed facial features.\n"
+            "High quality professional portrait."
+        ),
+    },
+    "as_style_mario_testino": {
+        "name": "📸 Mario Testino",
+        "icon": "📸",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply photographic style inspired by Mario Testino,\n"
+            "fashion editorial photography,\n"
+            "clean elegant composition,\n"
+            "soft professional studio lighting,\n"
+            "natural yet polished look,\n"
+            "vibrant but balanced colors.\n"
+            "High quality fashion photograph."
+        ),
+    },
+    "as_style_sebastiao_salgado": {
+        "name": "🌍 Sebastião Salgado",
+        "icon": "🌍",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply photographic style inspired by Sebastião Salgado,\n"
+            "dramatic black and white photography,\n"
+            "high contrast,\n"
+            "strong emphasis on texture and emotion,\n"
+            "documentary realism,\n"
+            "natural lighting.\n"
+            "High quality fine art photograph."
+        ),
+    },
+    "as_style_dorothea_lange": {
+        "name": "🕊 Dorothea Lange",
+        "icon": "🕊",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply photographic style inspired by Dorothea Lange,\n"
+            "documentary photography,\n"
+            "emotional and human-centered composition,\n"
+            "natural lighting,\n"
+            "authentic realistic atmosphere,\n"
+            "soft tonal contrast.\n"
+            "High quality documentary photograph."
+        ),
+    },
+    "as_style_tim_walker": {
+        "name": "🎭 Tim Walker",
+        "icon": "🎭",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply photographic style inspired by Tim Walker,\n"
+            "fantastical fashion photography,\n"
+            "surreal and imaginative atmosphere,\n"
+            "bold colors,\n"
+            "creative set design,\n"
+            "cinematic lighting.\n"
+            "High quality artistic photograph."
+        ),
+    },
+    "as_style_ansel_adams": {
+        "name": "🏔 Ansel Adams",
+        "icon": "🏔",
+        "prompt": (
+            "Preserve the original content and structure of the image.\n"
+            "For portraits, preserve facial identity and proportions.\n"
+            "Apply photographic style inspired by Ansel Adams,\n"
+            "black and white photography,\n"
+            "high sharpness and clarity,\n"
+            "strong tonal range,\n"
+            "emphasis on light, shadow and depth,\n"
+            "fine art landscape aesthetic.\n"
+            "High quality fine art photograph."
         ),
     },
 }
@@ -740,27 +1193,73 @@ async def callback_artistic_styles_technique(callback: types.CallbackQuery, stat
         await callback.answer("Произошла ошибка")
 
 
-@router.callback_query(F.data.in_({"as_comics", "as_cartoons", "as_anime", "as_fantasy", "as_photographers"}))
-async def callback_artistic_styles_placeholder(callback: types.CallbackQuery, state: FSMContext):
-    """Show placeholder message for not-yet-implemented subsections"""
+@router.callback_query(F.data == "as_comics")
+async def callback_artistic_styles_comics(callback: types.CallbackQuery, state: FSMContext):
+    """Show comics submenu"""
     try:
-        titles = {
-            "as_comics": "⚡ Комиксы",
-            "as_cartoons": "🐰 Мультфильмы",
-            "as_anime": "🌸 Аниме",
-            "as_fantasy": "🧙 Фэнтези",
-            "as_photographers": "📸 Фотографы",
-        }
-        title = titles.get(callback.data, "Раздел")
-
         await callback.message.edit_text(
-            f"{title}\n\n"
-            "Раздел в разработке. Подразделы будут добавлены позже.",
-            reply_markup=back_and_main_menu_keyboard("as_root"),
+            "⚡ Комиксы\n\nВыберите стиль комиксов:",
+            reply_markup=artistic_styles_comics_keyboard(),
         )
         await callback.answer()
     except Exception as e:
-        logger.error(f"Error in artistic_styles_placeholder callback: {e}")
+        logger.error(f"Error in artistic_styles_comics callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "as_cartoons")
+async def callback_artistic_styles_cartoons(callback: types.CallbackQuery, state: FSMContext):
+    """Show cartoons submenu"""
+    try:
+        await callback.message.edit_text(
+            "🐰 Мультфильмы\n\nВыберите стиль мультфильмов:",
+            reply_markup=artistic_styles_cartoons_keyboard(),
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in artistic_styles_cartoons callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "as_anime")
+async def callback_artistic_styles_anime(callback: types.CallbackQuery, state: FSMContext):
+    """Show anime submenu"""
+    try:
+        await callback.message.edit_text(
+            "🌸 Аниме\n\nВыберите стиль аниме:",
+            reply_markup=artistic_styles_anime_keyboard(),
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in artistic_styles_anime callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "as_fantasy")
+async def callback_artistic_styles_fantasy(callback: types.CallbackQuery, state: FSMContext):
+    """Show fantasy submenu"""
+    try:
+        await callback.message.edit_text(
+            "🧙 Фэнтези\n\nВыберите стиль фэнтези:",
+            reply_markup=artistic_styles_fantasy_keyboard(),
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in artistic_styles_fantasy callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "as_photographers")
+async def callback_artistic_styles_photographers(callback: types.CallbackQuery, state: FSMContext):
+    """Show photographers submenu"""
+    try:
+        await callback.message.edit_text(
+            "📸 Фотографы\n\nВыберите стиль фотографа:",
+            reply_markup=artistic_styles_photographers_keyboard(),
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in artistic_styles_photographers callback: {e}")
         await callback.answer("Произошла ошибка")
 
 
