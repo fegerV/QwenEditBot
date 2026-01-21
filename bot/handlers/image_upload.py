@@ -8,9 +8,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
 from ..states import UserState
 from ..keyboards import main_menu_keyboard, main_menu_inline_keyboard, cancel_keyboard
-from ..services import BackendAPIClient
-from ..utils import download_telegram_photo, send_error_message, format_balance
-from ..config import settings
+from ..utils import download_telegram_photo, send_error_message
 
 logger = logging.getLogger(__name__)
 
@@ -63,42 +61,37 @@ async def handle_image_upload(message: types.Message, state: FSMContext):
 
 @router.message(StateFilter(UserState.awaiting_image_for_custom), F.photo)
 async def handle_image_upload_for_custom(message: types.Message, state: FSMContext):
-    """Handle image upload for custom prompt processing"""
+    """Handle image upload for custom prompt flow (photo first)."""
     try:
-        # Import api_client from main module
-        from ..main import api_client
-        
-        # Get data from state
-        data = await state.get_data()
-        custom_prompt = data.get("custom_prompt")
-        
-        if not custom_prompt:
-            await message.answer("❌ Промпт не найден. Попробуйте снова.")
-            return
-        
-        # Get balance and check if admin
-        # For testing purposes, disable balance check completely
-        from backend.app.config import settings as backend_settings
-        user_is_admin = message.from_user.id in getattr(backend_settings, 'ADMIN_IDS', [])
-        
-        # Set fixed values for testing
-        balance = 99999  # High balance for display
-        cost = 0  # No cost for testing
-        
-        # Skip balance checks completely during testing
-        
-        # Show confirmation
+        photo_id = message.photo[-1].file_id
+        await state.update_data(photo_id=photo_id)
+
+        await state.set_state(UserState.awaiting_custom_photo_confirmation)
+
         await message.answer(
-            f"✅ Фото загружено!\n\n"
-            f"Подтверждаете обработку по вашему промпту?",
-            reply_markup=confirmation_keyboard()
+            "✅ Фото загружено!\n\nПодтверждаете это фото?",
+            reply_markup=custom_photo_confirmation_keyboard(),
         )
-        
-        # Save photo in state for confirmation
-        await state.update_data(photo_id=message.photo[-1].file_id)
-        
+
     except Exception as e:
         logger.error(f"Error uploading image for custom prompt: {e}")
+        await send_error_message(message)
+
+
+@router.message(StateFilter(UserState.awaiting_custom_photo_confirmation), F.photo)
+async def handle_custom_photo_reupload(message: types.Message, state: FSMContext):
+    """Allow user to replace the uploaded photo while on confirmation step."""
+    try:
+        photo_id = message.photo[-1].file_id
+        await state.update_data(photo_id=photo_id)
+
+        await message.answer(
+            "✅ Фото обновлено!\n\nПодтверждаете это фото?",
+            reply_markup=custom_photo_confirmation_keyboard(),
+        )
+
+    except Exception as e:
+        logger.error(f"Error re-uploading custom photo: {e}")
         await send_error_message(message)
 
 
@@ -228,22 +221,42 @@ async def handle_wrong_input(message: types.Message, state: FSMContext):
 
 @router.message(StateFilter(UserState.awaiting_image_for_custom), ~F.photo)
 async def handle_wrong_input_for_custom(message: types.Message, state: FSMContext):
-    """Handle wrong input when expecting photo for custom prompt"""
-    from ..keyboards import balance_menu_keyboard
+    """Handle wrong input when expecting photo for custom prompt (photo-first flow)."""
     await message.answer(
-        "Пожалуйста, отправьте фото.\n\nЕсли вы хотите вернуться к меню баланса, нажмите на кнопку ниже.",
-        reply_markup=balance_menu_keyboard()
+        "Пожалуйста, отправьте фото для обработки.",
+        reply_markup=cancel_keyboard(),
+    )
+
+
+@router.message(StateFilter(UserState.awaiting_custom_photo_confirmation), ~F.photo)
+async def handle_wrong_input_for_custom_confirmation(message: types.Message, state: FSMContext):
+    """Handle wrong input when expecting photo on custom confirmation step."""
+    await message.answer(
+        "Пожалуйста, отправьте фото (или подтвердите уже загруженное).",
+        reply_markup=cancel_keyboard(),
     )
 
 
 # Confirmation keyboard
 def confirmation_keyboard():
     """Create confirmation keyboard"""
-    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+    from aiogram.types import InlineKeyboardButton
     from aiogram.utils.keyboard import InlineKeyboardBuilder
-    
+
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="✅ Подтвердить", callback_data="confirm_processing"))
     builder.add(InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_processing"))
-    
+
+    return builder.as_markup()
+
+
+def custom_photo_confirmation_keyboard():
+    """Confirmation keyboard for custom prompt photo step."""
+    from aiogram.types import InlineKeyboardButton
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="✅ Подтвердить фото", callback_data="confirm_custom_photo"))
+    builder.add(InlineKeyboardButton(text="❌ Отменить", callback_data="cancel"))
+
     return builder.as_markup()
