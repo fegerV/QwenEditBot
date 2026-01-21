@@ -9,7 +9,8 @@ from worker.services.comfyui_client import ComfyUIClient
 from worker.services.backend_client import BackendAPIClient
 from worker.job_queue.job_queue import Job
 from worker.config import settings
-from worker.workflows.qwen_edit_2511 import build_workflow
+from worker.workflows.qwen_edit_2511 import build_workflow as build_single_workflow
+from worker.workflows.qwen_tryon import build_tryon_workflow
 
 logger = logging.getLogger(__name__)
 
@@ -25,33 +26,40 @@ class ImageEditorProcessor:
         """
         Full processing cycle.
         
-        1. Copy image from upload location to ComfyUI/input
-        2. Prepare workflow JSON
+        1. Verify images exist at expected locations
+        2. Prepare workflow JSON (single or try-on based on second_image_path)
         3. Send to ComfyUI
         4. Poll for result
         5. Download result
         6. Save to output directory
         7. Return path to result
         """
-        logger.info(f"Processing job {job.id}")
+        logger.info(f"Processing job {job.id} (try-on: {job.second_image_path is not None})")
 
         try:
-            # Step 1: Verify the image exists at the expected location
+            # Step 1: Verify the first image exists
             source_path = Path(job.image_path)
             if not source_path.exists():
                 raise Exception(f"Source image does not exist: {source_path}")
             
-            # Step 1: Verify the image exists at the expected location
-            source_path = Path(job.image_path)
-            if not source_path.exists():
-                raise Exception(f"Source image does not exist: {source_path}")
-            
-            # The image should already be in the ComfyUI input directory as saved by the Telegram handler
-            # So we don't need to copy it again, just use the existing path
-            logger.debug(f"Using image at path: {source_path}")
+            logger.debug(f"Using first image at path: {source_path}")
 
-            # Step 2: Prepare workflow using build_workflow
-            workflow = build_workflow(job)
+            # If second image is provided, verify it exists (for try-on)
+            if job.second_image_path:
+                second_source_path = Path(job.second_image_path)
+                if not second_source_path.exists():
+                    raise Exception(f"Second source image does not exist: {second_source_path}")
+                logger.debug(f"Using second image at path: {second_source_path}")
+
+            # Step 2: Prepare workflow - choose workflow based on image count
+            if job.second_image_path:
+                # Try-on workflow (2 images)
+                logger.info(f"Building try-on workflow for job {job.id}")
+                workflow = build_tryon_workflow(job)
+            else:
+                # Standard workflow (1 image)
+                logger.info(f"Building standard workflow for job {job.id}")
+                workflow = build_single_workflow(job)
 
             # Log workflow for debugging
             logger.debug(f"Workflow prepared for job {job.id}")
@@ -64,12 +72,20 @@ class ImageEditorProcessor:
             result_path = await self._wait_and_download(comfyui_job_id, job.id)
             logger.info(f"Result saved to {result_path}")
 
-            # Step 5: Clean up input file after processing
+            # Step 5: Clean up input files after processing
             try:
-                source_path.unlink()  # Clean up the original file that was saved by Telegram handler
-                logger.debug(f"Cleaned up input file: {source_path}")
+                source_path.unlink()  # Clean up the first image
+                logger.debug(f"Cleaned up first input file: {source_path}")
             except Exception as e:
-                logger.warning(f"Failed to clean up input file {source_path}: {str(e)}")
+                logger.warning(f"Failed to clean up first input file {source_path}: {str(e)}")
+
+            # Clean up second image if it exists (for try-on)
+            if job.second_image_path:
+                try:
+                    second_source_path.unlink()
+                    logger.debug(f"Cleaned up second input file: {second_source_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to clean up second input file {second_source_path}: {str(e)}")
 
             return str(result_path)
 
