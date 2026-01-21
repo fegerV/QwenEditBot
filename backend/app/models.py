@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Enum, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Float, DateTime, Enum, ForeignKey, Text, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from .database import Base
@@ -21,6 +21,7 @@ class PaymentType(str, PyEnum):
     payment = "payment"
     weekly_bonus = "weekly_bonus"
     refund = "refund"
+    promocode = "promocode"
 
 class User(Base):
     __tablename__ = "users"
@@ -106,3 +107,18 @@ class Payment(Base):
     
     # Relationships
     user = relationship("User", back_populates="payments")
+
+
+class Promocode(Base):
+    __tablename__ = "promocodes"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(50), unique=True, nullable=False, index=True)
+    amount = Column(Integer, nullable=False)  # in points (not kopeks like payments)
+    is_used = Column(Boolean, default=False)
+    used_at = Column(DateTime(timezone=True), nullable=True)
+    used_by_user_id = Column(Integer, ForeignKey("users.user_id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationship
+    used_by = relationship("User", foreign_keys=[used_by_user_id])

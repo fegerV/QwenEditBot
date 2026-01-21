@@ -90,8 +90,15 @@ async def callback_payment_history(callback: types.CallbackQuery):
             text = "📜 *История платежей*\n\n"
             
             for payment in payments:
-                # Convert amount from kopeks to rubles
-                amount_rubles = payment["amount"] / 100
+                # Format amount based on payment type
+                payment_type = payment.get("payment_type", "payment")
+                if payment_type == "promocode":
+                    # Promocodes store amount in points directly
+                    amount_text = f"{payment['amount']} баллов"
+                else:
+                    # Other payments store amount in kopeks
+                    amount_rubles = payment["amount"] / 100
+                    amount_text = f"{amount_rubles:.0f} ₽"
                 
                 # Format status
                 status_emoji = {
@@ -105,8 +112,9 @@ async def callback_payment_history(callback: types.CallbackQuery):
                 type_label = {
                     "payment": "Пополнение",
                     "weekly_bonus": "Бонус",
-                    "refund": "Возврат"
-                }.get(payment["payment_type"], "Платёж")
+                    "refund": "Возврат",
+                    "promocode": "Промокод"
+                }.get(payment_type, "Платёж")
                 
                 method_label = ""
                 if payment.get("payment_method") == "sbp":
@@ -116,7 +124,7 @@ async def callback_payment_history(callback: types.CallbackQuery):
                 
                 text += (
                     f"{status_emoji} *{type_label}{method_label}*\n"
-                    f"💰 {amount_rubles:.0f} ₽\n"
+                    f"💰 {amount_text}\n"
                     f"📅 {payment['created_at'][:10]}\n\n"
                 )
             

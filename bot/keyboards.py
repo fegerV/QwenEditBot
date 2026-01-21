@@ -92,19 +92,25 @@ def presets_keyboard(presets: list) -> InlineKeyboardMarkup:
 def balance_menu_keyboard() -> InlineKeyboardMarkup:
     """Create balance menu keyboard"""
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="🔒 Пополнение отключено", callback_data="disabled"))
-    builder.add(InlineKeyboardButton(text="📜 История", callback_data="payment_history"))
+    builder.row(InlineKeyboardButton(text="💳 Пополнить", callback_data="top_up"))
+    builder.add(InlineKeyboardButton(text="🎁 Промокод", callback_data="enter_promocode"))
+    builder.row(InlineKeyboardButton(text="📜 История", callback_data="payment_history"))
     builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
     
     return builder.as_markup()
 
 
-# Top Up Keyboard (Inline) - kept for backward compatibility
+# Top Up Keyboard (Inline)
 def top_up_keyboard() -> InlineKeyboardMarkup:
-    """Create top up keyboard (deprecated - use payments handler)"""
+    """Create top up keyboard with payment options"""
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="🔒 Пополнение отключено", callback_data="disabled"))
-    builder.add(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
+    builder.row(InlineKeyboardButton(text="300 ₽", callback_data="pay_300"))
+    builder.row(InlineKeyboardButton(text="500 ₽ (+30 🎁)", callback_data="pay_500_30"))
+    builder.row(InlineKeyboardButton(text="1000 ₽ (+60 🎁)", callback_data="pay_1000_60"))
+    builder.row(InlineKeyboardButton(text="2000 ₽ (+90 🎁)", callback_data="pay_2000_90"))
+    builder.row(InlineKeyboardButton(text="3000 ₽ (+120 🎁)", callback_data="pay_3000_120"))
+    builder.row(InlineKeyboardButton(text="5000 ₽ (+150 🎁)", callback_data="pay_5000_150"))
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="balance"))
     
     return builder.as_markup()
 
@@ -143,5 +149,14 @@ def cancel_keyboard() -> InlineKeyboardMarkup:
     """Create cancel keyboard"""
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="❌ Отменить", callback_data="cancel"))
+    
+    return builder.as_markup()
+
+
+# Promocode Keyboard (Inline)
+def promocode_keyboard() -> InlineKeyboardMarkup:
+    """Create promocode keyboard"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="❌ Отмена", callback_data="balance"))
     
     return builder.as_markup()

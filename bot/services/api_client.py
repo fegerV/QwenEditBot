@@ -259,3 +259,27 @@ class BackendAPIClient:
         except Exception as e:
             logger.error(f"Failed to get payments for user by telegram_id {telegram_id}: {e}")
             return {"payments": [], "total": 0, "limit": limit, "offset": offset}
+    
+    async def use_promocode(self, telegram_id: int, code: str) -> Dict[str, Any]:
+        """Use a promocode by telegram_id"""
+        try:
+            # Get user by telegram_id to retrieve internal user_id
+            user_data = await self.get_user(telegram_id)
+            if not user_data:
+                raise Exception(f"User with telegram_id {telegram_id} not found")
+            
+            user_id = user_data['user_id']
+            
+            response = await self._request(
+                "POST",
+                "/api/promocodes/use",
+                data={
+                    "code": code
+                },
+                params={"user_id": user_id}
+            )
+            logger.info(f"Promocode used for user {telegram_id} (internal user_id {user_id}): code {code}")
+            return response
+        except Exception as e:
+            logger.error(f"Failed to use promocode for user by telegram_id {telegram_id}: {e}")
+            return {"success": False, "message": "Ошибка активации промокода"}

@@ -8,7 +8,7 @@ from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKe
 import logging
 
 from ..services import BackendAPIClient
-from ..keyboards import main_menu_keyboard, main_menu_inline_keyboard
+from ..keyboards import main_menu_keyboard, main_menu_inline_keyboard, top_up_keyboard
 from ..states import UserState
 
 logger = logging.getLogger(__name__)
@@ -18,41 +18,56 @@ router = Router()
 
 @router.callback_query(F.data == "top_up")
 async def handle_top_up(callback_query: CallbackQuery, state: FSMContext):
-    """Show top-up options"""
-    text = """💳 Пополнение баланса
-
-Функция временно отключена для тестирования."""
-    
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu")
-        ]
-    ])
-    
+    """Show top-up options with bonus amounts"""
     try:
-        await callback_query.message.edit_text(text, reply_markup=keyboard)
-        # await state.set_state(UserState.awaiting_payment)
+        await state.set_state(UserState.awaiting_payment)
+        
+        text = """💳 *Пополнение баланса*
+
+Выберите сумму пополнения. Чем больше сумма, тем больше бонус 🎁"""
+
+        if callback_query.message:
+            await callback_query.message.edit_text(
+                text,
+                parse_mode="Markdown",
+                reply_markup=top_up_keyboard()
+            )
+        await callback_query.answer()
+        
     except Exception as e:
         logger.error(f"Error showing top-up options: {e}")
+        await callback_query.answer("Произошла ошибка")
 
 
 @router.callback_query(F.data.startswith("pay_"), StateFilter(UserState.awaiting_payment))
 async def handle_payment_amount(callback_query: CallbackQuery, state: FSMContext):
-    """Handle payment amount selection"""
-    # Payment functionality is disabled
-    text = """💳 Пополнение баланса
+    """Handle payment amount selection with bonus calculation"""
+    try:
+        # Parse callback data (e.g., "pay_500_30" -> amount=500, bonus=30)
+        parts = callback_query.data.split("_")
+        amount = int(parts[1])
+        bonus = int(parts[2]) if len(parts) > 2 else 0
+        total_points = amount * 100 + bonus  # Base points from amount + bonus
+        
+        # Show payment confirmation with bonus info
+        bonus_text = f"\n🎁 Бонус: +{bonus} баллов" if bonus > 0 else ""
+        text = f"""💳 Пополнение на {amount} ₽
 
-Функция временно отключена для тестирования."""
-    
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu")
-        ]
-    ])
-    
-    await callback_query.message.edit_text(text, reply_markup=keyboard)
-    # await state.update_data(payment_amount=amount)
-    # await show_payment_method_selection(callback_query.message, state)
+💰 Вы получите: {total_points} баллов{bonus_text}
+
+Нажмите кнопку ниже для оплаты через ЮКасса"""
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💳 Оплатить", callback_data=f"confirm_pay_{amount}_{bonus}")],
+            [InlineKeyboardButton(text="🔙 Назад", callback_data="top_up")]
+        ])
+        
+        await callback_query.message.edit_text(text, reply_markup=keyboard)
+        await callback_query.answer()
+        
+    except Exception as e:
+        logger.error(f"Error handling payment amount: {e}")
+        await callback_query.answer("Произошла ошибка")
 
 
 @router.message(StateFilter(UserState.awaiting_custom_prompt))
@@ -129,6 +144,57 @@ async def handle_payment_method(callback_query: CallbackQuery, state: FSMContext
     ])
     
     await callback_query.message.edit_text(text, reply_markup=keyboard)
+
+
+@router.callback_query(F.data.startswith("confirm_pay_"), StateFilter(UserState.awaiting_payment))
+async def handle_confirm_payment(callback_query: CallbackQuery, state: FSMContext):
+    """Handle payment confirmation and create payment"""
+    user_id = callback_query.from_user.id
+    
+    try:
+        # Parse callback data (e.g., "confirm_pay_500_30" -> amount=500, bonus=30)
+        parts = callback_query.data.split("_")
+        amount = int(parts[2])
+        bonus = int(parts[3]) if len(parts) > 3 else 0
+        total_points = amount * 100 + bonus
+        
+        # Create payment via backend API (use card as default method)
+        api_client = BackendAPIClient()
+        payment = await api_client.create_payment(user_id, amount, "card")
+        
+        # Show payment link
+        bonus_text = f"\n🎁 Бонус: +{bonus} баллов" if bonus > 0 else ""
+        text = f"""💳 Оплата {amount} ₽ через карту
+
+💰 Вы получите: {total_points} баллов{bonus_text}
+
+Нажмите кнопку ниже для оплаты через ЮКассу"""
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💳 Оплатить", url=payment["confirmation_url"])],
+            [
+                InlineKeyboardButton(text="🔄 Проверить статус", callback_data=f"check_payment_{payment['id']}"),
+                InlineKeyboardButton(text="🔙 Назад", callback_data="top_up")
+            ]
+        ])
+        
+        await callback_query.message.edit_text(text, reply_markup=keyboard)
+        
+        # Store payment info for status checking
+        await state.update_data(
+            payment_id=payment["id"],
+            amount=amount,
+            bonus=bonus
+        )
+        
+        # Start checking payment status in background
+        asyncio.create_task(
+            _check_payment_status(user_id, payment["id"], total_points, state)
+        )
+        
+    except Exception as e:
+        logger.error(f"Error creating payment: {e}")
+        await callback_query.answer("❌ Ошибка создания платежа", show_alert=True)
 
 
 async def _create_payment(callback_query: CallbackQuery, state: FSMContext, amount: int, method: str = "card"):
@@ -213,7 +279,7 @@ async def _check_payment_status(user_id: int, payment_id: int, amount: int, stat
                 try:
                     await bot.send_message(
                         user_id,
-                        f"✅ Платёж успешен! Баллы добавлены 🎉\n\n💰 Пополнено: {amount * 100} баллов\n💳 Статус: Успешно",
+                        f"✅ Платёж успешен! Баллы добавлены 🎉\n\n💰 Пополнено: {amount} баллов\n💳 Статус: Успешно",
                         reply_markup=main_menu_inline_keyboard()
                     )
                 except Exception as e:
