@@ -28,12 +28,13 @@ async def create_job(
     user_id: int,
     prompt: str,
     image_file: UploadFile = File(...),
+    second_image_file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
     """Create a new job"""
     try:
         logger.info(f"Creating job for user_id: {user_id}, prompt length: {len(prompt) if prompt else 0}")
-        
+
         # Check if user exists
         user = db.query(models.User).filter(models.User.user_id == user_id).first()
         if not user:
@@ -57,60 +58,60 @@ async def create_job(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail=f"Error creating test user: {str(db_error)}"
                 )
-        
+
         # Check if unlimited processing is enabled
         unlimited_processing = getattr(settings, 'UNLIMITED_PROCESSING', False)
-        
+
         # Check if user is admin (using original telegram_id to check against admin list)
         original_telegram_id = user_id  # The original telegram_id passed to the function
         is_admin = original_telegram_id in getattr(settings, 'ADMIN_IDS', [])  # Default to empty list if not defined
-        
+
         # Determine cost based on admin status and unlimited processing
         cost = 0 if (is_admin or unlimited_processing) else settings.EDIT_COST
-        
+
         # Skip balance checks completely during testing
         logger.info(f"Balance check skipped for user {user.user_id} during testing")
-         
+
         # Save uploaded image
-        logger.info(f"Saving uploaded image to {settings.COMFY_INPUT_DIR}")
+        logger.info(f"Saving uploaded image(s) to {settings.COMFY_INPUT_DIR}")
         input_dir = Path(settings.COMFY_INPUT_DIR)
         input_dir.mkdir(parents=True, exist_ok=True)
-        
-        logger.info(f"Input directory exists: {input_dir.exists()}")
-        
-        # Validate the uploaded file
+
+        # Validate and save first image
         if not image_file.content_type.startswith('image/'):
-            logger.error(f"Invalid file type: {image_file.content_type}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Uploaded file must be an image"
-            )
-         
+            raise HTTPException(status_code=400, detail="Uploaded file must be an image")
+
         file_ext = image_file.filename.split('.')[-1] if image_file.filename else 'jpg'
-        # Sanitize filename to prevent security issues
         image_filename = f"input_{uuid.uuid4().hex}.{file_ext}"
         image_path = input_dir / image_filename
-         
-        logger.info(f"Attempting to save image as: {image_path}")
-        
-        # Save the file
-        try:
-            with open(image_path, "wb") as buffer:
-                buffer.write(await image_file.read())
-            logger.info(f"Image saved successfully: {image_path}")
-        except Exception as img_error:
-            logger.error(f"Failed to save image: {img_error}")
-            raise
+
+        with open(image_path, "wb") as buffer:
+            buffer.write(await image_file.read())
+
+        # Validate and save second image if provided
+        second_image_path = None
+        if second_image_file:
+            if not second_image_file.content_type.startswith('image/'):
+                raise HTTPException(status_code=400, detail="Second uploaded file must be an image")
+
+            s_file_ext = second_image_file.filename.split('.')[-1] if second_image_file.filename else 'jpg'
+            s_image_filename = f"input_{uuid.uuid4().hex}.{s_file_ext}"
+            s_image_path = input_dir / s_image_filename
+
+            with open(s_image_path, "wb") as buffer:
+                buffer.write(await second_image_file.read())
+            second_image_path = str(s_image_path)
 
         # Create job in database
         logger.info(f"Creating job record in database for user {user_id}")
         new_job = models.Job(
-            user_id=user.user_id,  # Use the user object's user_id instead of the parameter
+            user_id=user.user_id,
             image_path=str(image_path),
+            second_image_path=second_image_path,
             prompt=prompt,
             status=schemas.JobStatus.queued
         )
-         
+
         db.add(new_job)
         try:
             db.commit()
@@ -130,6 +131,7 @@ async def create_job(
                 'id': new_job.id,
                 'user_id': new_job.user_id,
                 'image_path': new_job.image_path,
+                'second_image_path': new_job.second_image_path,
                 'prompt': new_job.prompt,
                 'status': new_job.status.value,
                 'created_at': new_job.created_at.isoformat() if new_job.created_at else datetime.utcnow().isoformat(),

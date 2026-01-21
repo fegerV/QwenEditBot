@@ -17,6 +17,7 @@ class Job(BaseModel):
     id: int
     user_id: int
     image_path: str
+    second_image_path: Optional[str] = None
     prompt: str
     status: str
     result_path: Optional[str] = None
@@ -92,6 +93,7 @@ class JobQueue:
                         id=job_data['id'],
                         user_id=job_data['user_id'],
                         image_path=job_data['image_path'],
+                        second_image_path=job_data.get('second_image_path'),
                         prompt=job_data['prompt'],
                         status=job_data['status'],
                         created_at=parsed_created_at,

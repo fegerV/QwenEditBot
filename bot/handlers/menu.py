@@ -891,10 +891,14 @@ async def handle_first_fitting_photo(message: types.Message, state: FSMContext):
 async def handle_second_fitting_photo(message: types.Message, state: FSMContext):
     """Handle second photo and create job with special prompt"""
     try:
+        # Import api_client from main module
         from ..main import api_client
+        from ..utils import download_telegram_photo
+        import tempfile
+        from pathlib import Path
         
-        # Store second photo
-        photo_id = message.photo[-1].file_id
+        # Store second photo ID
+        second_photo_id = message.photo[-1].file_id
         data = await state.get_data()
         first_photo_id = data.get('first_photo_id')
         
@@ -918,32 +922,61 @@ async def handle_second_fitting_photo(message: types.Message, state: FSMContext)
             "Photorealistic result, high realism, natural lighting."
         )
         
-        # Create job with both photos
-        # Note: This requires backend support for multiple photos
-        # For now, we'll use the first photo as main and include clothing photo ID
-        job_data = await api_client.create_job(
-            user_id=message.from_user.id,
-            image_id=first_photo_id,
-            prompt=fitting_prompt,
-            metadata={"second_photo_id": photo_id, "workflow_type": "fitting_room"}
-        )
+        await message.answer("📥 Загружаю фото и подготавливаю примерку...")
         
-        if job_data:
+        # Download both photos
+        first_photo_data = await download_telegram_photo(message.bot, first_photo_id)
+        second_photo_data = await download_telegram_photo(message.bot, second_photo_id)
+        
+        if not first_photo_data or not second_photo_data:
+            await message.answer("❌ Ошибка при загрузке фото. Попробуйте снова.")
+            return
+
+        # Create temporary files for both images
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as f1, \
+             tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as f2:
+            f1.write(first_photo_data)
+            f2.write(second_photo_data)
+            f1_path = Path(f1.name)
+            f2_path = Path(f2.name)
+
+        try:
+            # Prepare files for upload
+            with open(f1_path, 'rb') as f1_file, open(f2_path, 'rb') as f2_file:
+                f1_content = f1_file.read()
+                f2_content = f2_file.read()
+            
+            f1_tuple = (f1_path.name, f1_content, 'image/jpeg')
+            f2_tuple = (f2_path.name, f2_content, 'image/jpeg')
+            
+            # Create job via API with both photos
+            job_data = await api_client.create_job(
+                telegram_id=message.from_user.id,
+                image_file=f1_tuple,
+                prompt=fitting_prompt,
+                second_image_file=f2_tuple
+            )
+            
+            job_id = job_data.get('id')
+            
             await message.answer(
-                "✅ Фото принято! Начинаем примерку...\n\n"
-                "Результат будет готов в течение нескольких минут.\n\n"
-                "С вашего баланса списано 30 баллов.",
+                f"✅ Фото приняты! Начинаем примерку...\n\n"
+                f"ID задачи: {job_id}\n"
+                f"Результат будет готов в течение нескольких минут.\n\n"
+                f"С вашего баланса списано 30 баллов.",
                 reply_markup=main_menu_keyboard()
             )
             await state.clear()
             await state.set_state(UserState.main_menu)
-        else:
-            await message.answer("❌ Ошибка создания задания. Попробуйте позже.", reply_markup=main_menu_keyboard())
-            await state.clear()
-            await state.set_state(UserState.main_menu)
+            
+        finally:
+            # Clean up temporary files
+            f1_path.unlink(missing_ok=True)
+            f2_path.unlink(missing_ok=True)
             
     except Exception as e:
         logger.error(f"Error handling second fitting photo: {e}")
+        from ..utils import send_error_message
         await send_error_message(message)
         await state.clear()
         await state.set_state(UserState.main_menu)
