@@ -70,6 +70,7 @@ class PresetListResponse(BaseModel):
 class JobBase(BaseModel):
     user_id: int
     image_path: str
+    second_image_path: Optional[str] = None
     prompt: str
 
 class JobCreate(JobBase):

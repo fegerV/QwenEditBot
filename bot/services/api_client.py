@@ -149,7 +149,8 @@ class BackendAPIClient:
         self,
         telegram_id: int,
         image_file: tuple,  # (filename, file_content, content_type)
-        prompt: str
+        prompt: str,
+        second_image_file: Optional[tuple] = None  # (filename, file_content, content_type)
     ) -> Dict[str, Any]:
         """Create a new job with prompt by telegram_id"""
         try:
@@ -172,6 +173,8 @@ class BackendAPIClient:
             files = {
                 'image_file': image_file
             }
+            if second_image_file:
+                files['second_image_file'] = second_image_file
             
             params = {
                 'user_id': user_id,

@@ -55,6 +55,7 @@ class Job(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"))
     image_path = Column(String(255))
+    second_image_path = Column(String(255), nullable=True)
     prompt = Column(Text)
     status = Column(Enum(JobStatus), default=JobStatus.queued)
     result_path = Column(String(255))

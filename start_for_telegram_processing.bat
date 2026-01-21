@@ -1,89 +1,121 @@
 @echo off
-REM Start QwenEditBot services for Telegram processing (ComfyUI already running)
-REM Use this when ComfyUI is already running and you want to process Telegram requests
-REM Usage: double-click this file or run from cmd: start_for_telegram_processing.bat
+setlocal enabledelayedexpansion
+title QwenEditBot Service Manager
+chcp 65001 >nul
 
-REM Ensure script runs from the repository folder where this file is located
-cd /d "%~dp0"
+:: Configuration
+set "BACKEND_URL=http://localhost:8000"
+set "COMFYUI_URL=http://localhost:8188"
+set "REDIS_PATH=C:\Program Files\Redis\redis-server.exe"
 
-echo ======================================
-echo Starting QwenEditBot services for Telegram processing
-echo Assuming ComfyUI is already running
-echo Repository: %CD%
-echo ======================================
+cls
+echo ================================================================
+echo           QwenEditBot - Telegram Processing Services
+echo ================================================================
+echo.
 
-echo Verifying ComfyUI is running...
-ping -n 1 localhost >nul
-curl -s --connect-timeout 5 http://localhost:8188/system_stats >nul 2>&1
-if %errorlevel% equ 0 (
-    echo ✓ ComfyUI is running and responsive
-) else (
-    echo ⚠ ERROR: ComfyUI is not responding at http://localhost:8188
-    echo ComfyUI must be running for processing to work.
-    echo To start ComfyUI:
-    echo   cd C:\ComfyUI
-    echo   python main.py --listen --port 8188
-    echo.
-    echo Exiting...
-    pause
-    exit /b 1
-)
-
-echo Verifying database is accessible...
-cd /d "%~dp0backend" && python -c "from app.database import engine; print('Database connection OK')"
+:: 1. Check Python
+echo [1/6] Проверка Python...
+python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo Database connection failed!
+    color 0C
+    echo ❌ ОШИБКА: Python не найден в PATH.
     pause
     exit /b 1
 )
+echo ✓ Python найден.
+echo.
 
-REM Start backend first
-echo Starting backend (uvicorn)...
-start "QwenEditBot Backend" cmd /c "cd /d "%~dp0backend" && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+:: 2. Check Environment Files
+echo [2/6] Проверка файлов конфигурации...
+set "ENV_MISSING=0"
+if not exist "backend\.env" (echo   - ВНИМАНИЕ: backend\.env отсутствует & set "ENV_MISSING=1")
+if not exist "bot\.env" (echo   - ВНИМАНИЕ: bot\.env отсутствует & set "ENV_MISSING=1")
+if not exist "worker\.env" (echo   - ВНИМАНИЕ: worker\.env отсутствует & set "ENV_MISSING=1")
 
-echo Waiting for backend to initialize...
-timeout /t 15 /nobreak >nul
+if "%ENV_MISSING%"=="1" (
+    echo.
+    echo ⚠ Некоторые файлы .env отсутствуют. Убедитесь, что вы их создали на основе .env.example
+) else (
+    echo ✓ Все файлы .env на месте.
+)
+echo.
 
-echo Starting Telegram bot...
-start "QwenEditBot Bot" cmd /c "cd /d "%~dp0" && python -m bot.run"
+:: 3. Check ComfyUI (Must be started manually as per instructions)
+echo [3/6] Проверка ComfyUI (%COMFYUI_URL%)...
+curl -s --connect-timeout 2 %COMFYUI_URL%/system_stats >nul 2>&1
+if %errorlevel% equ 0 (
+    echo ✓ ComfyUI запущен и отвечает.
+) else (
+    color 0E
+    echo ⚠ ВНИМАНИЕ: ComfyUI не отвечает.
+    echo Пожалуйста, запустите ComfyUI: C:\ComfyUI\run_nvidia_gpu.bat
+    echo.
+    set /p "choice=Продолжить запуск остальных сервисов? (y/n): "
+    if /i "!choice!" neq "y" exit /b 1
+)
+echo.
 
-echo Waiting for bot to initialize...
-timeout /t 15 /nobreak >nul
-
-echo Checking if Redis is running...
-ping -n 1 localhost >nul
+:: 4. Check Redis
+echo [4/6] Проверка Redis...
 tasklist /FI "IMAGENAME eq redis-server.exe" 2>NUL | find /I /N "redis-server.exe">NUL
 if "%ERRORLEVEL%"=="0" (
-    echo ✓ Redis is already running
+    echo ✓ Redis уже запущен.
 ) else (
-    echo Starting Redis server...
-    start "Redis Server" cmd /c ""C:\Program Files\Redis\redis-server.exe" --port 6379"
-    
-    echo Waiting for Redis to start...
-    timeout /t 5 /nobreak >nul
-    
-    REM Verify Redis is running
-    tasklist /FI "IMAGENAME eq redis-server.exe" 2>NUL | find /I /N "redis-server.exe">NUL
-    if "%ERRORLEVEL%"=="0" (
-        echo ✓ Redis server started successfully
+    echo Redis не запущен. Попытка запуска...
+    if exist "%REDIS_PATH%" (
+        start "Redis Server" cmd /c ""%REDIS_PATH%" --port 6379"
+        timeout /t 3 /nobreak >nul
+        echo ✓ Redis запущен.
     ) else (
-        echo ⚠ Warning: Could not verify Redis server started
-        echo Make sure Redis is properly installed in C:\Program Files\Redis
+        color 0E
+        echo ⚠ ОШИБКА: Redis не найден по пути %REDIS_PATH%
+        echo Пожалуйста, запустите Redis вручную.
+        echo.
     )
 )
+echo.
 
-echo Starting worker (job processor)...
-echo The worker will connect to the running ComfyUI and process jobs from Telegram
-start "QwenEditBot Worker" cmd /c "cd /d "%~dp0" && python -m worker.run"
+:: 5. Start Backend
+echo [5/6] Запуск Backend (Uvicorn)...
+start "QwenEditBot Backend" cmd /c "cd /d "%~dp0backend" && title Backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+echo Ожидание инициализации Backend...
+set "retries=0"
+:check_backend
+set /a retries+=1
+if %retries% gtr 30 (
+    color 0C
+    echo ❌ ОШИБКА: Backend не запустился за 30 секунд.
+    pause
+    exit /b 1
+)
+curl -s %BACKEND_URL%/api/webhooks/test >nul 2>&1
+if %errorlevel% neq 0 (
+    echo   ... ожидание (%retries%/30)
+    timeout /t 2 /nobreak >nul
+    goto check_backend
+)
+echo ✓ Backend запущен.
+echo.
+
+:: 6. Start Bot and Worker
+echo [6/6] Запуск Bot и Worker...
+start "QwenEditBot Bot" cmd /c "cd /d "%~dp0" && title Bot && python -m bot.run"
+timeout /t 2 /nobreak >nul
+start "QwenEditBot Worker" cmd /c "cd /d "%~dp0" && title Worker && python -m worker.run"
 
 echo.
-echo All services started for Telegram processing.
-echo You can now send photos from Telegram for processing.
+echo ================================================================
+echo           ВСЕ СЕРВИСЫ ЗАПУЩЕНЫ УСПЕШНО
+echo ================================================================
 echo.
-echo Check individual windows for logs and errors.
-echo If a service fails to start, open its window and inspect the error message.
-
-REM Optional: Wait for a keypress before exiting to allow viewing startup messages
-echo Press any key to exit...
+echo Теперь вы можете использовать бота в Telegram.
+echo Логи доступны в отдельных окнах:
+echo   - Backend (порт 8000)
+echo   - Bot (Telegram API)
+echo   - Worker (Обработка задач)
+echo.
+echo Нажмите любую клавишу, чтобы закрыть это окно (сервисы продолжат работу).
 pause >nul
 exit /b 0
