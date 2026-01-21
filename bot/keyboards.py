@@ -9,15 +9,35 @@ from aiogram.types import (
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 
 
-# Main Menu Keyboard (Reply)
+# Main Menu Keyboard (Reply) - Updated structure
+
 def main_menu_keyboard() -> ReplyKeyboardMarkup:
-    """Create main menu keyboard"""
+    """Create main menu keyboard - 8 main sections"""
     builder = ReplyKeyboardBuilder()
-    builder.add(KeyboardButton(text="🎨 Редактировать фото"))
-    builder.row(KeyboardButton(text="🧩 Стили"), KeyboardButton(text="💡 Освещение"), KeyboardButton(text="🖼 Оформление"))
-    builder.add(KeyboardButton(text="✍️ Свой промпт"))
-    builder.row(KeyboardButton(text="💰 Баланс"), KeyboardButton(text="➕ Пополнить"))
-    builder.add(KeyboardButton(text="ℹ️ Помощь"))
+    
+    # Row 1: Artistic styles and Image transformation
+    builder.row(
+        KeyboardButton(text="🎨 Художественные стили"),
+        KeyboardButton(text="🧝‍ Изменить образ")
+    )
+    
+    # Row 2: Fitting room (requires 2 photos)
+    builder.row(KeyboardButton(text="👕 ПРИМЕРОЧНАЯ"))
+    
+    # Row 3: Photo editing and Custom prompt
+    builder.row(
+        KeyboardButton(text="✨ Редактировать фото"),
+        KeyboardButton(text="✍️ Свой промпт")
+    )
+    
+    # Row 4: Knowledge base and Profile
+    builder.row(
+        KeyboardButton(text="📚 База знаний"),
+        KeyboardButton(text="👩 Профиль")
+    )
+    
+    # Row 5: Help
+    builder.row(KeyboardButton(text="ℹ️ Помощь"))
     
     return builder.as_markup(resize_keyboard=True)
 
@@ -26,25 +46,95 @@ def main_menu_keyboard() -> ReplyKeyboardMarkup:
 def main_menu_inline_keyboard() -> InlineKeyboardMarkup:
     """Create main menu keyboard for inline use"""
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="🎨 Редактировать фото", callback_data="edit_photo"))
-    builder.row(InlineKeyboardButton(text="🧩 Стили", callback_data="category_styles"),
-                InlineKeyboardButton(text="💡 Освещение", callback_data="category_lighting"),
-                InlineKeyboardButton(text="🖼 Оформление", callback_data="category_enhancement"))
+    
+    # Row 1: Artistic styles and Image transformation
+    builder.row(InlineKeyboardButton(text="🎨 Художественные стили", callback_data="category_artistic"))
+    builder.add(InlineKeyboardButton(text="🧝‍ Изменить образ", callback_data="change_appearance"))
+    
+    # Row 2: Fitting room
+    builder.row(InlineKeyboardButton(text="👕 ПРИМЕРОЧНАЯ", callback_data="fitting_room"))
+    
+    # Row 3: Photo editing and Custom prompt
+    builder.row(InlineKeyboardButton(text="✨ Редактировать фото", callback_data="edit_photo"))
     builder.add(InlineKeyboardButton(text="✍️ Свой промпт", callback_data="custom_prompt"))
-    builder.row(InlineKeyboardButton(text="💰 Баланс", callback_data="balance"),
-                InlineKeyboardButton(text="➕ Пополнить", callback_data="top_up"))
-    builder.add(InlineKeyboardButton(text="ℹ️ Помощь", callback_data="help"))
+    
+    # Row 4: Knowledge base and Profile
+    builder.row(InlineKeyboardButton(text="📚 База знаний", callback_data="knowledge_base"))
+    builder.add(InlineKeyboardButton(text="👩 Профиль", callback_data="profile"))
+    
+    # Row 5: Help
+    builder.row(InlineKeyboardButton(text="ℹ️ Помощь", callback_data="help"))
     
     return builder.as_markup()
 
 
-# Edit Photo Submenu Keyboard (Inline)
+# Edit Photo Submenu Keyboard (Inline) - Updated
+
 def edit_photo_submenu_keyboard() -> InlineKeyboardMarkup:
     """Create edit photo submenu keyboard"""
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="🧩 Выбрать пресет", callback_data="edit_preset"))
     builder.add(InlineKeyboardButton(text="✍️ Свой промпт", callback_data="edit_custom"))
-    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"))
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
+    
+    return builder.as_markup()
+
+
+# Back and Main Menu Keyboard (Inline) - Universal
+
+def back_and_main_menu_keyboard(back_callback: str = "back_to_menu") -> InlineKeyboardMarkup:
+    """Create keyboard with Back and Main Menu buttons"""
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data=back_callback),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
+    
+    return builder.as_markup()
+
+
+# Fitting Room Instructions Keyboard (Inline)
+
+def fitting_room_instructions_keyboard() -> InlineKeyboardMarkup:
+    """Create fitting room instructions and start button"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="🚀 Начать примерку", callback_data="start_fitting"))
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
+    
+    return builder.as_markup()
+
+
+# Profile Menu Keyboard (Inline)
+
+def profile_menu_keyboard() -> InlineKeyboardMarkup:
+    """Create profile menu keyboard"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="💰 Пополнить баланс", callback_data="top_up"))
+    builder.add(InlineKeyboardButton(text="🎁 Промокод", callback_data="enter_promocode"))
+    builder.row(InlineKeyboardButton(text="📜 История платежей", callback_data="payment_history"))
+    builder.row(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
+# Knowledge Base Menu Keyboard (Inline)
+
+def knowledge_base_keyboard() -> InlineKeyboardMarkup:
+    """Create knowledge base placeholder keyboard"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="📖 Промпты и стили", callback_data="kb_prompts"))
+    builder.add(InlineKeyboardButton(text="👗 Одежда и fashion", callback_data="kb_fashion"))
+    builder.row(InlineKeyboardButton(text="🎭 Художественные техники", callback_data="kb_art"))
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
     
     return builder.as_markup()
 

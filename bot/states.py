@@ -15,6 +15,10 @@ class UserState(StatesGroup):
     awaiting_image_for_preset = State()  # После выбора пресета - загрузка фото
     awaiting_image_for_custom = State()  # После ручного промпта - загрузка фото
     
+    # Fitting room states (2 photo workflow)
+    awaiting_first_fitting_photo = State()  # First photo (user with visible body)
+    awaiting_second_fitting_photo = State()  # Second photo (clothing item)
+    
     # Custom prompt states
     awaiting_custom_prompt = State()    # Ввод ручного промпта
     
@@ -23,6 +27,13 @@ class UserState(StatesGroup):
     awaiting_payment = State()
     selecting_payment_method = State()
     awaiting_promocode = State()
+    
+    # Profile states
+    viewing_profile = State()
+    viewing_payment_history = State()
+    
+    # Knowledge base states
+    viewing_knowledge_base = State()
     
     # Job processing state
     processing_job = State()
