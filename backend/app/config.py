@@ -1,12 +1,15 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field
-from typing import Optional
+from typing import Optional, List
 import os
 from pathlib import Path
 
 class Settings(BaseSettings):
     # Bot configuration
     BOT_TOKEN: Optional[str] = Field(None, env="BOT_TOKEN")
+    # Admins / permissions
+    ADMIN_IDS: List[int] = Field(default_factory=list, env="ADMIN_IDS")  # comma-separated in .env
+    UNLIMITED_PROCESSING: bool = Field(False, env="UNLIMITED_PROCESSING")
     
     # Redis configuration
     REDIS_HOST: str = Field("localhost", env="REDIS_HOST")
@@ -26,8 +29,8 @@ class Settings(BaseSettings):
     COMFY_OUTPUT_FILENAME: str = Field("qwen_result.png", env="COMFY_OUTPUT_FILENAME")
     
     # Database configuration
-    # Use path relative to backend working dir: sqlite:///./qwen.db
-    DATABASE_URL: str = Field("sqlite:///./qwen.db", env="DATABASE_URL")
+    # Use absolute path to database: sqlite:///C:/QwenEditBot/backend/qwen.db
+    DATABASE_URL: str = Field("sqlite:///C:/QwenEditBot/backend/qwen.db", env="DATABASE_URL")
     
     # Backend configuration
     BACKEND_URL: str = Field("http://localhost:8000", env="BACKEND_URL")
@@ -74,12 +77,6 @@ class Settings(BaseSettings):
 
 # Create settings instance
 settings = Settings()
-
-# Define admin IDs (add your admin Telegram ID here)
-ADMIN_IDS = [455847500]  # Replace with actual admin Telegram IDs
-
-# Unlimited processing flag
-UNLIMITED_PROCESSING = True  # Set to True to enable unlimited processing for all users
 
 # Ensure directories exist
 def ensure_directories():

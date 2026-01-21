@@ -139,7 +139,7 @@ COMFY_INPUT_DIR = "C:/ComfyUI/ComfyUI/input/bot"
 COMFYUI_TIMEOUT = 300
 
 # Database configuration
-DATABASE_URL = "sqlite:///./qwen.db"
+DATABASE_URL = "sqlite:///C:/QwenEditBot/backend/qwen.db"
 
 # Balance configuration
 INITIAL_BALANCE = 60

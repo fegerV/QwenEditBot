@@ -1,7 +1,7 @@
 """Add promocodes table
 
 Revision ID: add_promocodes_table
-Revises: initial_migration
+Revises: e81267faf28b
 Create Date: 2024-01-21 00:00:01.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'add_promocodes_table'
-down_revision = 'initial_migration'
+down_revision = 'e81267faf28b'
 branch_labels = None
 depends_on = None
 

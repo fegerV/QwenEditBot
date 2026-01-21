@@ -1,8 +1,7 @@
 import sqlite3
 from pathlib import Path
 
-ROOT_DB = Path.cwd() / "qwen.db"
-BACKEND_DB = Path.cwd() / "backend" / "qwen.db"
+BACKEND_DB = Path("C:/QwenEditBot/backend/qwen.db")
 
 def inspect(db_path: Path):
     print(f"\nInspecting: {db_path}  ({round(db_path.stat().st_size/1024/1024,6)} MB)")

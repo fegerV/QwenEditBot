@@ -39,5 +39,5 @@ backend/.env
 Thumbs.db
 
 # Backend specific
-backend/qwen.db
+C:/QwenEditBot/backend/qwen.db
 backend/*.db
