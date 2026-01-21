@@ -50,6 +50,7 @@ class RedisQueueClient:
             'id': job_id,
             'user_id': job_data['user_id'],
             'image_path': job_data['image_path'],
+            'second_image_path': job_data.get('second_image_path'),
             'prompt': job_data['prompt'],
             'status': 'queued',
             'created_at': job_data.get('created_at'),

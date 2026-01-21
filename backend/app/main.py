@@ -8,15 +8,25 @@ from .api import users, presets, jobs, balance, telegram, payments, webhooks, pr
 from . import models
 from .services.scheduler import WeeklyBonusScheduler
 from redis_client import redis_client
+from sqlalchemy import text
 import logging
 import os
 from pathlib import Path
 import asyncio
+import sys
 
-# Configure logging
+# Configure logging with file output
+log_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'logs')
+os.makedirs(log_directory, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler(os.path.join(log_directory, 'backend_startup.log')),
+        logging.FileHandler(os.path.join(log_directory, 'backend_runtime.log'))
+    ]
 )
 logger = logging.getLogger(__name__)
 
@@ -75,57 +85,124 @@ scheduler: WeeklyBonusScheduler = None
 
 @app.on_event("startup")
 async def on_startup():
-    # Run migrations first
+    logger.info("="*60)
+    logger.info("STARTING QwenEditBot Backend")
+    logger.info("="*60)
+    
+    startup_errors = []
+    
+    # Pre-flight: Check environment
+    logger.info("[1/7] Checking environment...")
+    try:
+        env = os.getenv('APP_ENV', 'production')
+        logger.info(f"APP_ENV: {env}")
+        logger.info(f"Python Version: {sys.version}")
+        logger.info(f"Python Executable: {sys.executable}")
+    except Exception as e:
+        logger.error(f"Environment check failed: {e}")
+        startup_errors.append(f"Environment: {e}")
+    
+    # Step 1: Run migrations
+    logger.info("[2/7] Running database migrations...")
     try:
         run_migrations()
+        logger.info("✓ Migrations completed")
     except Exception as e:
-        logger.exception("Error during migrations on startup")
-
-    # Ensure required directories exist (create at startup to avoid import side-effects)
+        logger.error(f"✗ Migration failed: {e}")
+        logger.exception("Migration error details")
+        startup_errors.append(f"Migration: {str(e)[:100]}")
+    
+    # Step 2: Ensure required directories
+    logger.info("[3/7] Creating required directories...")
     try:
         ensure_directories()
-        logger.info("Ensured required directories exist")
-    except Exception:
-        logger.exception("Failed to ensure directories")
-
-    # Create tables only in development to avoid masking migration problems
+        logger.info("✓ Directories ensured")
+    except Exception as e:
+        logger.error(f"✗ Directory creation failed: {e}")
+        logger.exception("Directory error details")
+        startup_errors.append(f"Directories: {str(e)[:100]}")
+    
+    # Step 3: Test database connection
+    logger.info("[4/7] Testing database connection...")
+    db_test_session = None
+    try:
+        db_test_session = SessionLocal()
+        result = db_test_session.execute(text("SELECT 1"))
+        result.scalar()
+        logger.info("✓ Database connection successful")
+        
+        # Test if tables exist
+        from sqlalchemy import inspect
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        logger.info(f"✓ Found {len(tables)} tables in database: {tables[:5]}{'...' if len(tables) > 5 else ''}")
+    except Exception as e:
+        logger.error(f"✗ Database connection failed: {e}")
+        logger.exception("Database error details")
+        startup_errors.append(f"Database: {str(e)[:100]}")
+    finally:
+        if db_test_session:
+            db_test_session.close()
+    
+    # Step 4: Create tables (development only)
+    logger.info("[5/7] Creating tables (if development)...")
     try:
         if os.getenv('APP_ENV', 'production').lower() == 'development':
+            logger.info("Creating tables via metadata.create_all()...")
             create_tables()
+            logger.info("✓ Tables created")
         else:
-            logger.info('Skipping Base.metadata.create_all() in non-development environment')
-    except Exception:
-        logger.exception("Failed to create tables via metadata.create_all")
-
-    # Connect to Redis
-    try:
-        await redis_client.connect()
-        logger.info("Connected to Redis successfully")
-    except Exception:
-        logger.exception("Failed to connect to Redis - continuing startup without Redis")
-        # don't re-raise; allow app to start without Redis
-
-    # Seed presets if database is empty - run in thread to avoid blocking event loop
+            logger.info("Skipping Base.metadata.create_all() in production")
+    except Exception as e:
+        logger.error(f"✗ Table creation failed: {e}")
+        logger.exception("Table creation error details")
+        startup_errors.append(f"Tables: {str(e)[:100]}")
+    
+    # Step 5: Seed presets
+    logger.info("[6/7] Seeding presets...")
     db = SessionLocal()
     try:
-        try:
-            await asyncio.to_thread(seed_presets_if_empty, db)
-            logger.info("Presets initialization completed")
-        except Exception:
-            logger.exception("Failed to seed presets")
+        await asyncio.to_thread(seed_presets_if_empty, db)
+        logger.info("✓ Presets initialization completed")
+    except Exception as e:
+        logger.error(f"✗ Preset seeding failed: {e}")
+        logger.exception("Preset seeding error details")
+        startup_errors.append(f"Presets: {str(e)[:100]}")
     finally:
         db.close()
-
-    # Start weekly bonus scheduler
+    
+    # Step 6: Connect to Redis (non-critical)
+    logger.info("[7/7] Connecting to Redis...")
+    try:
+        await redis_client.connect()
+        logger.info("✓ Redis connected successfully")
+    except Exception as e:
+        logger.warning(f"⚠ Redis connection failed (non-critical): {e}")
+        # Don't add to startup_errors - this is non-critical
+    
+    # Step 7: Start scheduler (non-critical)
+    logger.info("Starting WeeklyBonusScheduler...")
     global scheduler
     try:
         scheduler = WeeklyBonusScheduler(SessionLocal)
         await scheduler.start()
-    except Exception:
-        logger.exception("Failed to start WeeklyBonusScheduler")
+        logger.info("✓ Scheduler started")
+    except Exception as e:
+        logger.warning(f"⚠ Scheduler failed to start (non-critical): {e}")
+        logger.exception("Scheduler error details (non-critical)")
         scheduler = None
-
-    logger.info("QwenEditBot Backend started successfully")
+        # Don't add to startup_errors - this is non-critical
+    
+    # Final status
+    logger.info("="*60)
+    if startup_errors:
+        logger.error("BACKEND STARTUP COMPLETED WITH ERRORS:")
+        for i, error in enumerate(startup_errors, 1):
+            logger.error(f"  {i}. {error}")
+        logger.warning("Backend started but some components may not work correctly")
+    else:
+        logger.info("✓ BACKEND STARTUP COMPLETED SUCCESSFULLY")
+    logger.info("="*60)
 
 @app.on_event("shutdown")
 async def on_shutdown():
