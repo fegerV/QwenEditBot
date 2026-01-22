@@ -11,34 +11,32 @@ class TelegramClient:
 
     def __init__(self):
         self.base_url = f"{settings.TELEGRAM_API_URL}/bot{settings.BOT_TOKEN}"
-        self.timeout = aiohttp.ClientTimeout(total=30)
-        
-        # Create SSL context that allows self-signed certificates
-        import ssl
-        self.ssl_context = ssl.create_default_context()
-        self.ssl_context.check_hostname = False
-        self.ssl_context.verify_mode = ssl.CERT_NONE
+        self.timeout = aiohttp.ClientTimeout(total=60)  # Increased timeout to 60 seconds
 
     async def send_photo(self, chat_id: int, photo: bytes, caption: str) -> bool:
         """Send photo to user"""
         url = f"{self.base_url}/sendPhoto"
         
         try:
-            connector = aiohttp.TCPConnector(ssl=self.ssl_context)
-            
-            async with aiohttp.ClientSession(timeout=self.timeout, connector=connector) as session:
+            async with aiohttp.ClientSession(timeout=self.timeout) as session:
                 form_data = aiohttp.FormData()
                 form_data.add_field('chat_id', str(chat_id))
                 form_data.add_field('photo', photo, filename='result.png', content_type='image/png')
                 form_data.add_field('caption', caption)
                 
+                logger.debug(f"Sending photo to chat_id {chat_id}, size: {len(photo)} bytes")
                 async with session.post(url, data=form_data) as response:
+                    response_text = await response.text()
+                    logger.debug(f"Telegram API response status: {response.status}")
+                    logger.debug(f"Telegram API response: {response_text}")
+                    
                     if response.status == 200:
                         data = await response.json()
-                        return data.get('ok', False)
+                        success = data.get('ok', False)
+                        logger.debug(f"Photo sent successfully: {success}")
+                        return success
                     else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to send photo: {response.status} - {error_text}")
+                        logger.error(f"Failed to send photo: {response.status} - {response_text}")
                         return False
         except Exception as e:
             logger.error(f"Error sending photo to Telegram: {str(e)}")
@@ -55,16 +53,20 @@ class TelegramClient:
                 'parse_mode': 'Markdown'
             }
             
-            connector = aiohttp.TCPConnector(ssl=self.ssl_context)
-            
-            async with aiohttp.ClientSession(timeout=self.timeout, connector=connector) as session:
+            logger.debug(f"Sending message to chat_id {chat_id}")
+            async with aiohttp.ClientSession(timeout=self.timeout) as session:
                 async with session.post(url, json=payload) as response:
+                    response_text = await response.text()
+                    logger.debug(f"Telegram API response status: {response.status}")
+                    logger.debug(f"Telegram API response: {response_text}")
+                    
                     if response.status == 200:
                         data = await response.json()
-                        return data.get('ok', False)
+                        success = data.get('ok', False)
+                        logger.debug(f"Message sent successfully: {success}")
+                        return success
                     else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to send message: {response.status} - {error_text}")
+                        logger.error(f"Failed to send message: {response.status} - {response_text}")
                         return False
         except Exception as e:
             logger.error(f"Error sending message to Telegram: {str(e)}")
