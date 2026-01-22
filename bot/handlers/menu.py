@@ -1192,10 +1192,14 @@ async def callback_artistic_styles_artists(callback: types.CallbackQuery, state:
             "🎨 Художники\n\nВыберите художника:",
             reply_markup=artistic_styles_artists_keyboard(),
         )
-        await callback.answer()
+        # Don't call callback.answer() to avoid timeout issues
     except Exception as e:
         logger.error(f"Error in artistic_styles_artists callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            # Callback is too old, just log the error
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data == "as_artists_digital")
@@ -1206,10 +1210,14 @@ async def callback_artistic_styles_digital_artists(callback: types.CallbackQuery
             "💻 Цифровые художники\n\nВыберите художника:",
             reply_markup=artistic_styles_digital_artists_keyboard(),
         )
-        await callback.answer()
+        # Don't call callback.answer() to avoid timeout issues
     except Exception as e:
         logger.error(f"Error in artistic_styles_digital_artists callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            # Callback is too old, just log the error
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data == "as_technique")
@@ -1220,10 +1228,14 @@ async def callback_artistic_styles_technique(callback: types.CallbackQuery, stat
             "✏️ Техника\n\nВыберите технику:",
             reply_markup=artistic_styles_techniques_keyboard(),
         )
-        await callback.answer()
+        # Don't call callback.answer() to avoid timeout issues
     except Exception as e:
         logger.error(f"Error in artistic_styles_technique callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            # Callback is too old, just log the error
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data == "as_comics")
@@ -1234,10 +1246,14 @@ async def callback_artistic_styles_comics(callback: types.CallbackQuery, state: 
             "⚡ Комиксы\n\nВыберите стиль комиксов:",
             reply_markup=artistic_styles_comics_keyboard(),
         )
-        await callback.answer()
+        # Don't call callback.answer() to avoid timeout issues
     except Exception as e:
         logger.error(f"Error in artistic_styles_comics callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            # Callback is too old, just log the error
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data == "as_cartoons")
@@ -1248,10 +1264,14 @@ async def callback_artistic_styles_cartoons(callback: types.CallbackQuery, state
             "🐰 Мультфильмы\n\nВыберите стиль мультфильмов:",
             reply_markup=artistic_styles_cartoons_keyboard(),
         )
-        await callback.answer()
+        # Don't call callback.answer() to avoid timeout issues
     except Exception as e:
         logger.error(f"Error in artistic_styles_cartoons callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            # Callback is too old, just log the error
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data == "as_anime")
@@ -1262,10 +1282,14 @@ async def callback_artistic_styles_anime(callback: types.CallbackQuery, state: F
             "🌸 Аниме\n\nВыберите стиль аниме:",
             reply_markup=artistic_styles_anime_keyboard(),
         )
-        await callback.answer()
+        # Don't call callback.answer() to avoid timeout issues
     except Exception as e:
         logger.error(f"Error in artistic_styles_anime callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            # Callback is too old, just log the error
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data == "as_fantasy")
@@ -1276,10 +1300,14 @@ async def callback_artistic_styles_fantasy(callback: types.CallbackQuery, state:
             "🧙 Фэнтези\n\nВыберите стиль фэнтези:",
             reply_markup=artistic_styles_fantasy_keyboard(),
         )
-        await callback.answer()
+        # Don't call callback.answer() to avoid timeout issues
     except Exception as e:
         logger.error(f"Error in artistic_styles_fantasy callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            # Callback is too old, just log the error
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data == "as_photographers")
@@ -1290,10 +1318,14 @@ async def callback_artistic_styles_photographers(callback: types.CallbackQuery, 
             "📸 Фотографы\n\nВыберите стиль фотографа:",
             reply_markup=artistic_styles_photographers_keyboard(),
         )
-        await callback.answer()
+        # Don't call callback.answer() to avoid timeout issues
     except Exception as e:
         logger.error(f"Error in artistic_styles_photographers callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            # Callback is too old, just log the error
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data.startswith("as_style_"))
@@ -1316,10 +1348,14 @@ async def callback_change_appearance(callback: types.CallbackQuery, state: FSMCo
             "Стоимость генерации 1 фото: 30 баллов",
             reply_markup=main_menu_inline_keyboard()
         )
-        await callback.answer()
+        # Don't call callback.answer() to avoid timeout issues
     except Exception as e:
         logger.error(f"Error in change_appearance callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            # Callback is too old, just log the error
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data == "knowledge_base")
@@ -1340,10 +1376,14 @@ async def callback_knowledge_base(callback: types.CallbackQuery, state: FSMConte
             welcome_text,
             reply_markup=knowledge_base_keyboard()
         )
-        await callback.answer()
+        # Don't call callback.answer() to avoid timeout issues
     except Exception as e:
         logger.error(f"Error in knowledge_base callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            # Callback is too old, just log the error
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data == "profile")
@@ -1372,11 +1412,15 @@ async def callback_profile(callback: types.CallbackQuery, state: FSMContext):
             profile_text,
             reply_markup=profile_menu_keyboard()
         )
-        await callback.answer()
+        # Don't call callback.answer() to avoid timeout issues
         
     except Exception as e:
         logger.error(f"Error in profile callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            # Callback is too old, just log the error
+            logger.warning("Callback too old, cannot send error message")
 
 
 # Knowledge base subcategories (placeholders)
@@ -1387,7 +1431,10 @@ async def callback_kb_prompts(callback: types.CallbackQuery):
         await callback.answer("📖 Раздел 'Промпты и стили' в разработке", show_alert=True)
     except Exception as e:
         logger.error(f"Error in kb_prompts callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data == "kb_fashion")
@@ -1397,7 +1444,10 @@ async def callback_kb_fashion(callback: types.CallbackQuery):
         await callback.answer("👗 Раздел 'Одежда и fashion' в разработке", show_alert=True)
     except Exception as e:
         logger.error(f"Error in kb_fashion callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data == "kb_art")
@@ -1407,7 +1457,10 @@ async def callback_kb_art(callback: types.CallbackQuery):
         await callback.answer("🎭 Раздел 'Художественные техники' в разработке", show_alert=True)
     except Exception as e:
         logger.error(f"Error in kb_art callback: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data == "disabled")
@@ -1417,4 +1470,7 @@ async def callback_disabled_feature(callback: types.CallbackQuery):
         await callback.answer("🔒 Эта функция временно отключена для тестирования", show_alert=True)
     except Exception as e:
         logger.error(f"Error handling disabled feature: {e}")
-        await callback.answer("Произошла ошибка")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            logger.warning("Callback too old, cannot send error message")
