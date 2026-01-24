@@ -29,6 +29,7 @@ from ..keyboards import (
     appearance_short_hairstyles_keyboard,
     appearance_medium_hairstyles_keyboard,
     appearance_long_hairstyles_keyboard,
+    appearance_bangs_keyboard,
 )
 from ..utils import send_error_message
 
@@ -464,6 +465,107 @@ FEMALE_LONG_HAIRSTYLES_PRESETS: dict[str, dict[str, str]] = {
             "Photorealistic result.\n"
             "Apply long hair with soft curls.\n"
             "Loose curls, elegant movement."
+        ),
+    },
+}
+
+
+# Female bangs presets (can be added to any hairstyle)
+FEMALE_BANGS_PRESETS: dict[str, dict[str, str]] = {
+    "h_bangs_straight": {
+        "name": "Прямая чёлка",
+        "icon": "🪮",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Add straight bangs.\n"
+            "Even line, natural density."
+        ),
+    },
+    "h_bangs_side_swept": {
+        "name": "Косая чёлка",
+        "icon": "🪮",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Add side-swept bangs.\n"
+            "Soft diagonal shape."
+        ),
+    },
+    "h_bangs_curtain": {
+        "name": "Чёлка-шторка",
+        "icon": "🪮",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Add curtain bangs.\n"
+            "Split in the center, soft framing."
+        ),
+    },
+    "h_bangs_choppy": {
+        "name": "Рваная чёлка",
+        "icon": "🪮",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Add textured choppy bangs.\n"
+            "Uneven ends, light look."
+        ),
+    },
+    "h_bangs_long": {
+        "name": "Удлинённая чёлка",
+        "icon": "🪮",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Add long bangs.\n"
+            "Blending naturally into the hairstyle."
+        ),
+    },
+    "h_bangs_airy": {
+        "name": "Лёгкая воздушная чёлка",
+        "icon": "🪮",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Add airy light bangs.\n"
+            "Thin, soft, natural."
         ),
     },
 }
@@ -1952,16 +2054,15 @@ async def callback_appearance_female_hair_long(callback: types.CallbackQuery, st
 async def callback_appearance_female_hair_bangs(callback: types.CallbackQuery, state: FSMContext):
     """Handle bangs hairstyles"""
     try:
-        await callback.answer(
-            "🪮 Раздел 'Чёлки' находится в разработке",
-            show_alert=True
+        await callback.message.edit_text(
+            "🪮 Чёлки\n\n"
+            "Выберите вид чёлки:",
+            reply_markup=appearance_bangs_keyboard()
         )
+        await callback.answer()
     except Exception as e:
         logger.error(f"Error in appearance_female_hair_bangs callback: {e}")
-        try:
-            await callback.answer("Произошла ошибка")
-        except Exception:
-            logger.warning("Callback too old, cannot send error message")
+        await callback.answer("Произошла ошибка")
 
 
 @router.callback_query(F.data == "appearance_female_hair_updo")
@@ -2016,7 +2117,7 @@ async def callback_appearance_female_hair_styles(callback: types.CallbackQuery, 
 async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMContext):
     """Handle hairstyle preset selection"""
     try:
-        from ..handlers.menu import FEMALE_SHORT_HAIRSTYLES_PRESETS, FEMALE_MEDIUM_HAIRSTYLES_PRESETS, FEMALE_LONG_HAIRSTYLES_PRESETS
+        from ..handlers.menu import FEMALE_SHORT_HAIRSTYLES_PRESETS, FEMALE_MEDIUM_HAIRSTYLES_PRESETS, FEMALE_LONG_HAIRSTYLES_PRESETS, FEMALE_BANGS_PRESETS
         
         hairstyle_id = callback.data.replace("hairstyle_", "")
         
@@ -2024,7 +2125,8 @@ async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMC
         hairstyle = (
             FEMALE_SHORT_HAIRSTYLES_PRESETS.get(hairstyle_id) or 
             FEMALE_MEDIUM_HAIRSTYLES_PRESETS.get(hairstyle_id) or 
-            FEMALE_LONG_HAIRSTYLES_PRESETS.get(hairstyle_id)
+            FEMALE_LONG_HAIRSTYLES_PRESETS.get(hairstyle_id) or
+            FEMALE_BANGS_PRESETS.get(hairstyle_id)
         )
         
         if not hairstyle:
