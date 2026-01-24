@@ -26,12 +26,163 @@ from ..keyboards import (
     appearance_male_keyboard,
     appearance_female_keyboard,
     appearance_female_hairstyle_categories_keyboard,
+    appearance_short_hairstyles_keyboard,
 )
 from ..utils import send_error_message
 
 logger = logging.getLogger(__name__)
 
 router = Router()
+
+
+# Female short hairstyles presets
+FEMALE_SHORT_HAIRSTYLES_PRESETS: dict[str, dict[str, str]] = {
+    "h_short_pixie": {
+        "name": "Пикси",
+        "icon": "✂️",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a pixie haircut.\n"
+            "Short neat hairstyle with clean silhouette.\n"
+            "Natural hair texture, realistic density."
+        ),
+    },
+    "h_short_pixie_volume": {
+        "name": "Пикси с объёмом",
+        "icon": "✂️",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a pixie haircut with added volume.\n"
+            "Lifted roots, airy structure, soft volume."
+        ),
+    },
+    "h_short_bob": {
+        "name": "Короткий боб",
+        "icon": "✂️",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a short bob haircut.\n"
+            "Hair length above the jawline, clean shape."
+        ),
+    },
+    "h_short_french_bob": {
+        "name": "Французский боб",
+        "icon": "✂️",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a French bob haircut.\n"
+            "Slightly messy, natural, effortless Parisian style."
+        ),
+    },
+    "h_short_garcon": {
+        "name": "Гарсон",
+        "icon": "✂️",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a garçon haircut.\n"
+            "Very short, minimalistic, elegant shape."
+        ),
+    },
+    "h_short_asymmetric": {
+        "name": "Короткая асимметричная",
+        "icon": "✂️",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a short asymmetrical haircut.\n"
+            "One side slightly longer, modern silhouette."
+        ),
+    },
+    "h_short_textured": {
+        "name": "Короткая текстурная",
+        "icon": "✂️",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a short textured haircut.\n"
+            "Visible layers, light messiness, natural movement."
+        ),
+    },
+    "h_short_elongated": {
+        "name": "Короткая с удлинёнными прядями",
+        "icon": "✂️",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a short haircut with elongated front strands.\n"
+            "Front pieces longer, soft framing."
+        ),
+    },
+    "h_short_crown_volume": {
+        "name": "Короткая с объёмом на макушке",
+        "icon": "✂️",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a short haircut with volume on the crown.\n"
+            "Lifted crown, balanced proportions."
+        ),
+    },
+}
 
 
 ARTISTIC_STYLE_PRESETS: dict[str, dict[str, str]] = {
@@ -1472,16 +1623,15 @@ async def callback_appearance_female_hair(callback: types.CallbackQuery, state: 
 async def callback_appearance_female_hair_short(callback: types.CallbackQuery, state: FSMContext):
     """Handle short hairstyles"""
     try:
-        await callback.answer(
-            "✂️ Раздел 'Короткие причёски' находится в разработке",
-            show_alert=True
+        await callback.message.edit_text(
+            "✂️ Короткие причёски\n\n"
+            "Выберите стиль:",
+            reply_markup=appearance_short_hairstyles_keyboard()
         )
+        await callback.answer()
     except Exception as e:
         logger.error(f"Error in appearance_female_hair_short callback: {e}")
-        try:
-            await callback.answer("Произошла ошибка")
-        except Exception:
-            logger.warning("Callback too old, cannot send error message")
+        await callback.answer("Произошла ошибка")
 
 
 @router.callback_query(F.data == "appearance_female_hair_medium")
@@ -1578,6 +1728,47 @@ async def callback_appearance_female_hair_styles(callback: types.CallbackQuery, 
             await callback.answer("Произошла ошибка")
         except Exception:
             logger.warning("Callback too old, cannot send error message")
+
+
+@router.callback_query(F.data.startswith("hairstyle_"))
+async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMContext):
+    """Handle hairstyle preset selection"""
+    try:
+        from ..handlers.menu import FEMALE_SHORT_HAIRSTYLES_PRESETS
+        
+        hairstyle_id = callback.data.replace("hairstyle_", "")
+        hairstyle = FEMALE_SHORT_HAIRSTYLES_PRESETS.get(hairstyle_id)
+        
+        if not hairstyle:
+            await callback.answer("Причёска не найдена", show_alert=True)
+            return
+        
+        await state.update_data(
+            selected_preset={
+                "name": hairstyle["name"],
+                "icon": hairstyle.get("icon", "✂️"),
+                "price": hairstyle.get("price", 30),
+            },
+            prompt=hairstyle["prompt"],
+        )
+        await state.set_state(UserState.awaiting_image_for_preset)
+        
+        icon = hairstyle.get("icon", "")
+        name = hairstyle.get("name", "")
+        display_name = f"{icon} {name}".strip()
+        
+        await callback.message.edit_text(
+            f"✅ Выбран стиль: {display_name}\n\n"
+            f"Стоимость: 30 баллов\n\n"
+            f"📸 Теперь загрузите фото для обработки:",
+            reply_markup=cancel_keyboard(),
+        )
+        
+        await callback.answer()
+        
+    except Exception as e:
+        logger.error(f"Error in hairstyle selection: {e}")
+        await callback.answer("Произошла ошибка", show_alert=True)
 
 
 @router.callback_query(F.data == "change_appearance")

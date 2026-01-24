@@ -433,6 +433,36 @@ def promocode_keyboard() -> InlineKeyboardMarkup:
 
 
 # Change Appearance (Образ) Root Menu - Gender Selection
+def appearance_short_hairstyles_keyboard() -> InlineKeyboardMarkup:
+    """Create short hairstyles presets keyboard"""
+    builder = InlineKeyboardBuilder()
+    
+    # Add hairstyle presets (2 per row)
+    hairstyles = [
+        ("h_short_pixie", "✂️ Пикси"),
+        ("h_short_pixie_volume", "✂️ Пикси с объёмом"),
+        ("h_short_bob", "✂️ Короткий боб"),
+        ("h_short_french_bob", "✂️ Французский боб"),
+        ("h_short_garcon", "✂️ Гарсон"),
+        ("h_short_asymmetric", "✂️ Асимметричная"),
+        ("h_short_textured", "✂️ Текстурная"),
+        ("h_short_elongated", "✂️ Удлинённые пряди"),
+        ("h_short_crown_volume", "✂️ Объём на макушке"),
+    ]
+    
+    for i, (key, name) in enumerate(hairstyles):
+        button = InlineKeyboardButton(text=name, callback_data=f"hairstyle_{key}")
+        if i % 2 == 0:
+            builder.row(button)
+        else:
+            builder.add(button)
+    
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="appearance_female_hair"))
+    builder.add(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
 def appearance_gender_keyboard() -> InlineKeyboardMarkup:
     """Create gender selection keyboard for appearance customization"""
     builder = InlineKeyboardBuilder()
