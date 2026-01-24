@@ -605,6 +605,36 @@ def appearance_braids_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+def appearance_stylistic_keyboard() -> InlineKeyboardMarkup:
+    """Create stylistic directions presets keyboard"""
+    builder = InlineKeyboardBuilder()
+    
+    # Add stylistic presets (2 per row)
+    stylistics = [
+        ("h_style_natural", "🌿 Натуральный"),
+        ("h_style_minimalism", "▫️ Минимализм"),
+        ("h_style_romantic", "💕 Романтический"),
+        ("h_style_elegant", "👑 Элегантный"),
+        ("h_style_boho", "🌾 Бохо"),
+        ("h_style_glamour", "💎 Гламур"),
+        ("h_style_retro", "🕰 Ретро"),
+        ("h_style_modern", "⚡ Современный"),
+        ("h_style_editorial", "📰 Editorial"),
+    ]
+    
+    for i, (key, name) in enumerate(stylistics):
+        button = InlineKeyboardButton(text=name, callback_data=f"hairstyle_{key}")
+        if i % 2 == 0:
+            builder.row(button)
+        else:
+            builder.add(button)
+    
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="appearance_female_hair"))
+    builder.add(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
 def appearance_gender_keyboard() -> InlineKeyboardMarkup:
     """Create gender selection keyboard for appearance customization"""
     builder = InlineKeyboardBuilder()

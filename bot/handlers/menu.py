@@ -32,6 +32,7 @@ from ..keyboards import (
     appearance_bangs_keyboard,
     appearance_updo_keyboard,
     appearance_braids_keyboard,
+    appearance_stylistic_keyboard,
 )
 from ..utils import send_error_message
 
@@ -802,6 +803,168 @@ FEMALE_BRAIDS_PRESETS: dict[str, dict[str, str]] = {
             "Photorealistic result.\n"
             "Apply a loose messy braid.\n"
             "Soft, relaxed texture."
+        ),
+    },
+}
+
+
+# Styling and mood presets (stylistic directions)
+FEMALE_STYLISTIC_PRESETS: dict[str, dict[str, str]] = {
+    "h_style_natural": {
+        "name": "Натуральный стиль",
+        "icon": "🌿",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Do NOT change the hairstyle structure, length or haircut shape.\n"
+            "Apply only styling, mood and finishing details.\n"
+            "Photorealistic result.\n"
+            "Apply a natural hairstyle styling.\n"
+            "Minimal styling, natural texture.\n"
+            "Slight imperfections allowed.\n"
+            "Soft volume, realistic look."
+        ),
+    },
+    "h_style_minimalism": {
+        "name": "Минимализм",
+        "icon": "▫️",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Do NOT change the hairstyle structure, length or haircut shape.\n"
+            "Apply only styling, mood and finishing details.\n"
+            "Photorealistic result.\n"
+            "Apply a minimalist hairstyle styling.\n"
+            "Clean lines, restrained volume.\n"
+            "No excessive texture or decoration.\n"
+            "Simple and modern look."
+        ),
+    },
+    "h_style_romantic": {
+        "name": "Романтический стиль",
+        "icon": "💕",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Do NOT change the hairstyle structure, length or haircut shape.\n"
+            "Apply only styling, mood and finishing details.\n"
+            "Photorealistic result.\n"
+            "Apply a romantic hairstyle styling.\n"
+            "Soft texture, gentle movement.\n"
+            "Light waves or softness around the face.\n"
+            "Delicate and airy mood."
+        ),
+    },
+    "h_style_elegant": {
+        "name": "Элегантный стиль",
+        "icon": "👑",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Do NOT change the hairstyle structure, length or haircut shape.\n"
+            "Apply only styling, mood and finishing details.\n"
+            "Photorealistic result.\n"
+            "Apply an elegant hairstyle styling.\n"
+            "Polished finish, controlled volume.\n"
+            "Refined and sophisticated look."
+        ),
+    },
+    "h_style_boho": {
+        "name": "Бохо",
+        "icon": "🌾",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Do NOT change the hairstyle structure, length or haircut shape.\n"
+            "Apply only styling, mood and finishing details.\n"
+            "Photorealistic result.\n"
+            "Apply boho hairstyle styling.\n"
+            "Relaxed texture, natural flow.\n"
+            "Slight messiness, effortless look."
+        ),
+    },
+    "h_style_glamour": {
+        "name": "Гламур",
+        "icon": "💎",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Do NOT change the hairstyle structure, length or haircut shape.\n"
+            "Apply only styling, mood and finishing details.\n"
+            "Photorealistic result.\n"
+            "Apply glamorous hairstyle styling.\n"
+            "Glossy finish, enhanced volume.\n"
+            "Well-defined shape, polished look."
+        ),
+    },
+    "h_style_retro": {
+        "name": "Ретро",
+        "icon": "🕰",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Do NOT change the hairstyle structure, length or haircut shape.\n"
+            "Apply only styling, mood and finishing details.\n"
+            "Photorealistic result.\n"
+            "Apply retro hairstyle styling.\n"
+            "Inspired by classic vintage aesthetics.\n"
+            "Structured waves or classic forms."
+        ),
+    },
+    "h_style_modern": {
+        "name": "Современный",
+        "icon": "⚡",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Do NOT change the hairstyle structure, length or haircut shape.\n"
+            "Apply only styling, mood and finishing details.\n"
+            "Photorealistic result.\n"
+            "Apply modern hairstyle styling.\n"
+            "Trendy texture, contemporary presentation.\n"
+            "Balanced volume and clean finish."
+        ),
+    },
+    "h_style_editorial": {
+        "name": "Модный editorial",
+        "icon": "📰",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Do NOT change the hairstyle structure, length or haircut shape.\n"
+            "Apply only styling, mood and finishing details.\n"
+            "Photorealistic result.\n"
+            "Apply editorial hairstyle styling.\n"
+            "High-fashion look.\n"
+            "Slight exaggeration allowed.\n"
+            "Clean but expressive styling."
         ),
     },
 }
@@ -2335,23 +2498,22 @@ async def callback_appearance_female_hair_braids(callback: types.CallbackQuery, 
 async def callback_appearance_female_hair_styles(callback: types.CallbackQuery, state: FSMContext):
     """Handle stylistic hairstyles"""
     try:
-        await callback.answer(
-            "✨ Раздел 'Стилистические направления' находится в разработке",
-            show_alert=True
+        await callback.message.edit_text(
+            "✨ Стилистические направления\n\n"
+            "Выберите стиль оформления:",
+            reply_markup=appearance_stylistic_keyboard()
         )
+        await callback.answer()
     except Exception as e:
         logger.error(f"Error in appearance_female_hair_styles callback: {e}")
-        try:
-            await callback.answer("Произошла ошибка")
-        except Exception:
-            logger.warning("Callback too old, cannot send error message")
+        await callback.answer("Произошла ошибка")
 
 
 @router.callback_query(F.data.startswith("hairstyle_"))
 async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMContext):
     """Handle hairstyle preset selection"""
     try:
-        from ..handlers.menu import FEMALE_SHORT_HAIRSTYLES_PRESETS, FEMALE_MEDIUM_HAIRSTYLES_PRESETS, FEMALE_LONG_HAIRSTYLES_PRESETS, FEMALE_BANGS_PRESETS, FEMALE_UPDO_PRESETS, FEMALE_BRAIDS_PRESETS
+        from ..handlers.menu import FEMALE_SHORT_HAIRSTYLES_PRESETS, FEMALE_MEDIUM_HAIRSTYLES_PRESETS, FEMALE_LONG_HAIRSTYLES_PRESETS, FEMALE_BANGS_PRESETS, FEMALE_UPDO_PRESETS, FEMALE_BRAIDS_PRESETS, FEMALE_STYLISTIC_PRESETS
         
         hairstyle_id = callback.data.replace("hairstyle_", "")
         
@@ -2362,7 +2524,8 @@ async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMC
             FEMALE_LONG_HAIRSTYLES_PRESETS.get(hairstyle_id) or
             FEMALE_BANGS_PRESETS.get(hairstyle_id) or
             FEMALE_UPDO_PRESETS.get(hairstyle_id) or
-            FEMALE_BRAIDS_PRESETS.get(hairstyle_id)
+            FEMALE_BRAIDS_PRESETS.get(hairstyle_id) or
+            FEMALE_STYLISTIC_PRESETS.get(hairstyle_id)
         )
         
         if not hairstyle:
