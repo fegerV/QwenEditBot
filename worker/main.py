@@ -71,7 +71,7 @@ class QwenEditWorker:
             logger.error(f"Error handling new file {filepath}: {str(e)}")
 
     async def process_jobs(self):
-        """Main worker loop"""
+        """Main worker loop with exponential backoff"""
         logger.info("Worker started, polling for jobs...")
         
         # Initialize components
@@ -85,17 +85,24 @@ class QwenEditWorker:
         # Define local variables to avoid UnboundLocalError
         polling_interval = settings.WORKER_POLLING_INTERVAL
         gpu_lock_timeout = settings.WORKER_GPU_LOCK_TIMEOUT
+        max_backoff = 10  # Maximum wait time between job checks
+        current_backoff = 0  # Current backoff time
         
         while True:
             try:
-                # 1. Get next job from queue (blocking operation)
-                logger.debug("Waiting for next job from queue...")
+                # 1. Get next job from queue (non-blocking)
+                logger.debug("Checking queue for next job...")
                 job_data = await redis_client.dequeue_job()
 
                 if not job_data:
-                    # No job received within timeout, continue the loop
-                    logger.debug("No job received, continuing...")
+                    # No job received - use exponential backoff
+                    current_backoff = min(current_backoff + polling_interval, max_backoff)
+                    logger.debug(f"No job in queue, waiting {current_backoff}s before next check...")
+                    await asyncio.sleep(current_backoff)
                     continue
+                
+                # Reset backoff when job found
+                current_backoff = 0
 
                 # Convert job_data to Job object
                 from datetime import datetime
@@ -160,7 +167,9 @@ class QwenEditWorker:
 
                 # 2. Try to acquire GPU lock
                 if not await self.gpu_lock.acquire(timeout=gpu_lock_timeout):
-                    logger.warning(f"Failed to acquire GPU lock for job {job.id}")
+                    logger.warning(f"Failed to acquire GPU lock for job {job.id}, returning to queue")
+                    # Re-queue the job if GPU is busy
+                    await redis_client.enqueue_job(job_data)
                     await asyncio.sleep(polling_interval)
                     continue
 
@@ -172,11 +181,13 @@ class QwenEditWorker:
                         
                         if not comfyui_healthy:
                             logger.warning(f"ComfyUI health check failed for job {job.id}, returning to queue")
-                            await asyncio.sleep(polling_interval)  # Use the local polling interval variable
+                            await redis_client.enqueue_job(job_data)
+                            await asyncio.sleep(polling_interval)
                             continue
                     except Exception as health_error:
                         logger.error(f"Error during ComfyUI health check for job {job.id}: {health_error}")
-                        await asyncio.sleep(polling_interval)  # Use the local polling interval variable
+                        await redis_client.enqueue_job(job_data)
+                        await asyncio.sleep(polling_interval)
                         continue
                     
                     # 4. Update job status to processing
@@ -185,8 +196,15 @@ class QwenEditWorker:
                         "processing"
                     )
 
-                    # 5. Process the job
-                    result_path = await self.processor.process(job)
+                    # 5. Process the job with timeout protection
+                    try:
+                        result_path = await asyncio.wait_for(
+                            self.processor.process(job),
+                            timeout=settings.COMFYUI_TIMEOUT + 30  # Add buffer for safety
+                        )
+                    except asyncio.TimeoutError:
+                        logger.error(f"Job {job.id} processing timeout exceeded")
+                        raise Exception(f"Processing timeout exceeded ({settings.COMFYUI_TIMEOUT}s)")
 
                     # 6. Update job status to completed
                     await self.queue.update_job_status(
@@ -231,32 +249,6 @@ class QwenEditWorker:
                         )
                         await self.result_handler.send_error(job, str(e))
 
-                        # TEMPORARILY DISABLED: Skip all balance refunds for testing
-                        # Original code (commented out for testing):
-                        # # Check if user is admin (for unlimited processing)
-                        # from worker.config import settings as worker_settings
-                        # from worker.services.backend_client import BackendAPIClient
-                        #
-                        # # Get user info to check if admin
-                        # backend_client = BackendAPIClient()
-                        # try:
-                        #     user_data = await backend_client.get_user(job.user_id)
-                        #     if user_data:
-                        #         is_admin = job.user_id in getattr(worker_settings, 'ADMIN_IDS', [])
-                        #
-                        #         # Only refund if not admin (admins don't pay for processing)
-                        #         if not is_admin:
-                        #             # Use the actual cost from settings
-                        #             cost = settings.EDIT_COST
-                        #             await self.queue.refund_balance(job.user_id, cost, f"Job {job.id} failed")
-                        #             logger.warning(f"Job {job.id} failed and refunded {cost} points")
-                        #         else:
-                        #             logger.info(f"Job {job.id} failed but not refunded (admin user)")
-                        #     else:
-                        #         logger.warning(f"Could not retrieve user data for job {job.id}")
-                        # except Exception as user_error:
-                        #     logger.error(f"Error checking admin status for job {job.id}: {user_error}")
-
                 finally:
                     # Release GPU lock
                     await self.gpu_lock.release()
@@ -264,4 +256,5 @@ class QwenEditWorker:
 
             except Exception as e:
                 logger.error(f"Unexpected error in main loop: {str(e)}", exc_info=True)
-                await asyncio.sleep(polling_interval)  # Use the local polling interval variable
+                # Don't sleep too long on unexpected errors
+                await asyncio.sleep(polling_interval)

@@ -2,6 +2,7 @@ import logging
 import aiohttp
 from typing import Optional, Dict, Any
 from worker.config import settings
+import ssl
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,9 @@ class TelegramClient:
         url = f"{self.base_url}/sendPhoto"
         
         try:
-            async with aiohttp.ClientSession(timeout=self.timeout) as session:
+            # Create SSL context that skips certificate verification
+            connector = aiohttp.TCPConnector(ssl=False)
+            async with aiohttp.ClientSession(timeout=self.timeout, connector=connector) as session:
                 form_data = aiohttp.FormData()
                 form_data.add_field('chat_id', str(chat_id))
                 form_data.add_field('photo', photo, filename='result.png', content_type='image/png')
@@ -54,7 +57,9 @@ class TelegramClient:
             }
             
             logger.debug(f"Sending message to chat_id {chat_id}")
-            async with aiohttp.ClientSession(timeout=self.timeout) as session:
+            # Create SSL context that skips certificate verification
+            connector = aiohttp.TCPConnector(ssl=False)
+            async with aiohttp.ClientSession(timeout=self.timeout, connector=connector) as session:
                 async with session.post(url, json=payload) as response:
                     response_text = await response.text()
                     logger.debug(f"Telegram API response status: {response.status}")

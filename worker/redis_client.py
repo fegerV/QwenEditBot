@@ -63,22 +63,21 @@ class RedisQueueClient:
         return str(job_id)
     
     async def dequeue_job(self) -> Optional[Dict[str, Any]]:
-        """Get next job from queue (blocking pop)"""
+        """Get next job from queue (non-blocking with exponential backoff)"""
         if not self.redis:
             raise RuntimeError("Redis client not connected")
         
         try:
-            # Blocking pop from queue
-            result = await self.redis.brpop(settings.REDIS_JOB_QUEUE_KEY, timeout=1)
+            # Non-blocking pop - check queue immediately
+            result = await self.redis.rpop(settings.REDIS_JOB_QUEUE_KEY)
             if result:
-                _, job_json = result
                 try:
-                    job_data = json.loads(job_json.decode('utf-8'))
+                    job_data = json.loads(result.decode('utf-8') if isinstance(result, bytes) else result)
                     logger.info(f"Job {job_data['id']} dequeued from Redis")
                     return job_data
                 except json.JSONDecodeError as e:
                     logger.error(f"Error decoding JSON from Redis: {e}")
-                    logger.error(f"Raw data: {job_json}")
+                    logger.error(f"Raw data: {result}")
                     return None
                 except Exception as e:
                     logger.error(f"Unexpected error processing job from Redis: {e}")

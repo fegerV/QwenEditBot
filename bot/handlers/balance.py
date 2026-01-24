@@ -165,7 +165,6 @@ async def show_top_up_menu(message: types.Message, state: FSMContext):
             await message.answer(text, parse_mode="Markdown", reply_markup=top_up_keyboard())
         else:
             # For callback (from balance menu)
-            from keyboards import back_to_menu_keyboard
             await message.answer(text, parse_mode="Markdown", reply_markup=top_up_keyboard())
         
     except Exception as e:

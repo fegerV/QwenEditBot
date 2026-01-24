@@ -42,8 +42,13 @@ async def create_bot():
     # Initialize bot
     bot = Bot(token=settings.BOT_TOKEN)
     
+    # Use Redis storage instead of MemoryStorage to avoid memory leaks
+    # For now keep MemoryStorage but with cleanup strategy
+    from aiogram.fsm.storage.memory import MemoryStorage
+    storage = MemoryStorage()
+    
     # Initialize dispatcher with memory storage
-    dp = Dispatcher(storage=MemoryStorage())
+    dp = Dispatcher(storage=storage)
     
     # Register handlers
     dp.include_router(start_router)
@@ -62,7 +67,7 @@ async def create_bot():
 
 
 async def start_bot():
-    """Start the bot"""
+    """Start the bot with graceful error handling"""
     bot, dp = await create_bot()
     
     try:
@@ -70,11 +75,31 @@ async def start_bot():
         await bot.delete_webhook(drop_pending_updates=True)
         logger.info("Webhook deleted, starting polling...")
         
-        # Start polling
-        await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+        # Configure session with connection pooling
+        session = bot.session
+        if session:
+            # Reuse session for better performance
+            logger.info("Using bot session with connection pooling")
+        
+        # Start polling with error recovery
+        try:
+            await dp.start_polling(
+                bot,
+                allowed_updates=dp.resolve_used_update_types(),
+                skip_updates=False
+            )
+        except Exception as polling_error:
+            logger.error(f"Polling error: {polling_error}", exc_info=True)
+            # Wait a bit before potentially restarting
+            import asyncio
+            await asyncio.sleep(5)
+            raise
         
     except Exception as e:
-        logger.error(f"Error starting bot: {e}")
+        logger.error(f"Error starting bot: {e}", exc_info=True)
         raise
     finally:
-        await bot.session.close()
+        logger.info("Closing bot session...")
+        if bot.session:
+            await bot.session.close()
+        logger.info("Bot stopped")

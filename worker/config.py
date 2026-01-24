@@ -22,8 +22,8 @@ class Settings(BaseSettings):
 
     # ComfyUI configuration
     COMFYUI_URL: str = Field("http://localhost:8188", env="COMFYUI_URL")
-    COMFYUI_TIMEOUT: int = Field(600, env="COMFYUI_TIMEOUT")  # Increased timeout to 10 minutes
-    COMFYUI_POLL_INTERVAL: float = Field(0.5, env="COMFYUI_POLL_INTERVAL")
+    COMFYUI_TIMEOUT: int = Field(300, env="COMFYUI_TIMEOUT")  # Reduced from 600 to 300 seconds (5 minutes)
+    COMFYUI_POLL_INTERVAL: float = Field(0.25, env="COMFYUI_POLL_INTERVAL")  # Reduced from 0.5 to 0.25
     COMFYUI_INPUT_DIR: str = Field("C:/ComfyUI/ComfyUI/input", env="COMFYUI_INPUT_DIR")
     COMFYUI_OUTPUT_DIR: str = Field("C:/ComfyUI/ComfyUI/output", env="COMFYUI_OUTPUT_DIR")
 
@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     TELEGRAM_API_URL: str = Field("https://api.telegram.org", env="TELEGRAM_API_URL")
 
     # Worker configuration
-    WORKER_POLLING_INTERVAL: int = Field(2, env="WORKER_POLLING_INTERVAL")
+    WORKER_POLLING_INTERVAL: int = Field(1, env="WORKER_POLLING_INTERVAL")  # Reduced from 2 to 1
     WORKER_GPU_LOCK_TIMEOUT: int = Field(30, env="WORKER_GPU_LOCK_TIMEOUT")
     WORKER_LOG_LEVEL: str = Field("INFO", env="WORKER_LOG_LEVEL")
 
