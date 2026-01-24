@@ -28,7 +28,7 @@ echo.
 :: 0. Pre-flight diagnostics
 echo [0/7] Запуск диагностики...
 echo [0/7] Запуск диагностики... > "%DIAGNOSTIC_LOG%"
-echo Diagnostic run at %DATE% %TIME% > "%DIAGNOSTIC_LOG%"
+echo Diagnostic run at %DATE% %TIME% >> "%DIAGNOSTIC_LOG%"
 echo ================================= >> "%DIAGNOSTIC_LOG%"
 
 :: Check Python and modules
@@ -157,12 +157,20 @@ goto check_backend
 echo ✓ Backend запущен.
 echo.
 
-:: 6. Start Bot and Worker
+:: 6. Start Bot and Worker with optimized settings
 echo [6/7] Запуск Bot и Worker...
 echo [6/7] Starting Bot and Worker... >> "%~dp0startup.log"
-start "QwenEditBot Bot" cmd /c "cd /d "%~dp0" && title Bot && python -m bot.run"
+
+:: Create bot and worker log directories for better organization
+if not exist "%LOG_DIR%\bot" mkdir "%LOG_DIR%\bot"
+if not exist "%LOG_DIR%\worker" mkdir "%LOG_DIR%\worker"
+
+:: Start Bot with error handling and logging
+start "QwenEditBot Bot" cmd /c "cd /d "%~dp0" && title Bot && python -m bot.run > "%~dp0logs\bot\runtime.log" 2>&1"
 timeout /t 2 /nobreak >nul
-start "QwenEditBot Worker" cmd /c "cd /d "%~dp0" && title Worker && python -m worker.run"
+
+:: Start Worker with error handling and logging
+start "QwenEditBot Worker" cmd /c "cd /d "%~dp0" && title Worker && python -m worker.run > "%~dp0logs\worker\runtime.log" 2>&1"
 
 echo.
 echo [7/7] Завершение...
@@ -171,16 +179,27 @@ echo ================================================================
 echo           ВСЕ СЕРВИСЫ ЗАПУЩЕНЫ УСПЕШНО
 echo ================================================================
 echo.
+echo ⚙️  ВАЖНО! После оптимизации запомните:
+echo   - Worker использует exponential backoff (не создаёт пустой нагрузки)
+echo   - Bot и Worker оптимизированы на быструю обработку
+echo   - Система НЕ должна "зависать" более чем на 5 минут
+echo.
 echo Теперь вы можете использовать бота в Telegram.
 echo Логи доступны в отдельных окнах:
 echo   - Backend (порт 8000) - Логи: %~dp0logs\backend\
-echo   - Bot (Telegram API)
-echo   - Worker (Обработка задач)
+echo   - Bot (Telegram API) - Логи: %~dp0logs\bot\
+echo   - Worker (Обработка задач) - Логи: %~dp0logs\worker\
 echo.
-echo Диагностическая информация: %DIAGNOSTIC_LOG%
-echo Общий лог запуска: %~dp0startup.log
+echo 📋 Диагностическая информация: %DIAGNOSTIC_LOG%
+echo 📋 Общий лог запуска: %~dp0startup.log
+echo.
+echo 🔍 Если система зависает:
+echo   1. Проверьте логи в %~dp0logs\
+echo   2. Смотрите PERFORMANCE_OPTIMIZATION_GUIDE.md
+echo   3. Смотрите OPTIMIZATION_REPORT.md
 echo.
 echo Нажмите любую клавишу, чтобы закрыть это окно (сервисы продолжат работу).
 pause >nul
 echo [INFO] Service manager closed at %TIME% >> "%~dp0startup.log"
 exit /b 0
+
