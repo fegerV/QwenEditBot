@@ -1338,6 +1338,39 @@ async def callback_artistic_style_selected(callback: types.CallbackQuery, state:
         await callback.answer("Произошла ошибка", show_alert=True)
 
 
+@router.callback_query(F.data == "fitting_room")
+async def callback_fitting_room(callback: types.CallbackQuery, state: FSMContext):
+    """Handle fitting room callback from inline menu"""
+    try:
+        instructions = (
+            "👕 ПРИМЕРОЧНАЯ\n\n"
+            "Здесь вы можете примерить любую одежду на свое фото!\n\n"
+            "📸 Вам понадобится 2 фото:\n\n"
+            "1️⃣ Фото с ВАМИ\n"
+            "Подойдет:\n"
+            "• фото по пояс или во весь рост\n"
+            "• обычное фото с телефона\n"
+            "• можно в зеркале, дома, на улице\n"
+            "❗ Главное — чтобы было хорошо видно тело.\n\n"
+            "2️⃣ Фото ОДЕЖДЫ\n"
+            "Просто:\n"
+            "• откройте любой маркетплейс (Ozon, Wildberries, Lamoda и т.д.)\n"
+            "• скачайте фото понравившейся одежды\n"
+            "• платье, костюм, куртка, рубашка — что угодно\n\n"
+            "💡 После загрузки 2 фото, нейросеть создаст реалистичное фото в новой одежде!\n\n"
+            "Стоимость: 30 баллов"
+        )
+        
+        await callback.message.edit_text(
+            instructions,
+            reply_markup=fitting_room_instructions_keyboard()
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in fitting_room callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
 @router.callback_query(F.data == "change_appearance")
 async def callback_change_appearance(callback: types.CallbackQuery, state: FSMContext):
     """Handle change appearance callback"""

@@ -181,6 +181,31 @@ async def callback_cancel_custom_prompt(callback: types.CallbackQuery, state: FS
         await callback.answer("Произошла ошибка", show_alert=True)
 
 
+@router.callback_query(F.data == "custom_prompt")
+async def callback_custom_prompt(callback: types.CallbackQuery, state: FSMContext):
+    """Handle custom prompt callback from inline menu"""
+    try:
+        await state.clear()
+        await state.set_state(UserState.awaiting_image_for_custom)
+        
+        text = (
+            "✍️ *Свой промпт*\n\n"
+            "Сначала загрузите фото, которое нужно обработать.\n"
+            "После этого вы подтвердите фото и сможете написать промпт.\n\n"
+            "📸 *Загрузите фото для обработки:*"
+        )
+        
+        await callback.message.edit_text(
+            text,
+            parse_mode="Markdown",
+            reply_markup=cancel_keyboard()
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in custom_prompt callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
 @router.callback_query(
     F.data == "cancel",
     StateFilter(UserState.awaiting_image_for_custom),
