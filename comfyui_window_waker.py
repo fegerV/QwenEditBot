@@ -34,12 +34,7 @@ VK_RETURN = 0x0D
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
 
-# Определение типов для EnumWindows
-EnumWindowsProc = ctypes.WINFUNCTYPE(
-    ctypes.c_bool,
-    ctypes.POINTER(ctypes.c_int),
-    ctypes.POINTER(ctypes.c_int)
-)
+# Определение типов для EnumWindows будет создано внутри метода
 
 
 class ComfyUIWindowWaker:
@@ -70,26 +65,44 @@ class ComfyUIWindowWaker:
         Returns:
             HWND окна или None
         """
+        # Используем атрибут класса для хранения найденных окон
+        # Это обходит проблему с передачей списка через LPARAM
+        found_windows = []
+        
         def enum_windows_callback(hwnd, lParam):
             """Callback для EnumWindows"""
-            if user32.IsWindowVisible(hwnd):
-                length = user32.GetWindowTextLengthW(hwnd)
-                if length > 0:
-                    buffer = ctypes.create_unicode_buffer(length + 1)
-                    user32.GetWindowTextW(hwnd, buffer, length + 1)
-                    window_title = buffer.value
-                    
-                    if self.window_title.lower() in window_title.lower():
-                        # Сохраняем найденное окно
-                        lParam.append(hwnd)
+            try:
+                if user32.IsWindowVisible(hwnd):
+                    length = user32.GetWindowTextLengthW(hwnd)
+                    if length > 0:
+                        buffer = ctypes.create_unicode_buffer(length + 1)
+                        user32.GetWindowTextW(hwnd, buffer, length + 1)
+                        window_title = buffer.value
+                        
+                        if self.window_title.lower() in window_title.lower():
+                            found_windows.append(hwnd)
+            except Exception:
+                pass
             return True
         
-        windows = []
-        callback = EnumWindowsProc(enum_windows_callback)
-        user32.EnumWindows(callback, windows)
+        # Определяем тип callback с правильными типами
+        # HWND - это ctypes.c_void_p или ctypes.wintypes.HWND
+        # LPARAM - это ctypes.c_void_p или ctypes.wintypes.LPARAM
+        EnumWindowsProcType = ctypes.WINFUNCTYPE(
+            ctypes.c_bool,
+            ctypes.wintypes.HWND,
+            ctypes.wintypes.LPARAM
+        )
         
-        if windows:
-            return windows[0]
+        callback = EnumWindowsProcType(enum_windows_callback)
+        try:
+            user32.EnumWindows(callback, 0)
+        except Exception as e:
+            logger.error(f"EnumWindows error: {e}", exc_info=True)
+            return None
+        
+        if found_windows:
+            return found_windows[0]
         return None
     
     def wake_window(self, hwnd: int) -> bool:

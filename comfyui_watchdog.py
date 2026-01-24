@@ -298,7 +298,7 @@ class ComfyUIWatchdog:
                     proactive_wakeup_counter += 1
                     if proactive_wakeup_counter >= proactive_wakeup_interval:
                         proactive_wakeup_counter = 0
-                        logger.debug("Proactive wakeup to prevent ComfyUI sleeping...")
+                        logger.info("Proactive wakeup to prevent ComfyUI sleeping...")
                         await self._proactive_wakeup()
                 else:
                     consecutive_failures += 1
