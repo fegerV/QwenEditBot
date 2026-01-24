@@ -171,6 +171,17 @@ timeout /t 2 /nobreak >nul
 
 :: Start Worker with error handling and logging
 start "QwenEditBot Worker" cmd /c "cd /d "%~dp0" && title Worker && python -m worker.run > "%~dp0logs\worker\runtime.log" 2>&1"
+timeout /t 2 /nobreak >nul
+
+:: Start ComfyUI Watchdog (предотвращает "засыпание" ComfyUI через API запросы)
+echo [6.5/7] Запуск ComfyUI Watchdog...
+if not exist "%LOG_DIR%\comfyui" mkdir "%LOG_DIR%\comfyui"
+start "ComfyUI Watchdog" cmd /c "cd /d "%~dp0" && title ComfyUI-Watchdog && python comfyui_watchdog.py > "%~dp0logs\comfyui\watchdog.log" 2>&1"
+timeout /t 1 /nobreak >nul
+
+:: Опционально: Window Waker (программное пробуждение окна через Windows API)
+:: Раскомментируйте следующую строку, если Watchdog недостаточно:
+:: start "ComfyUI Window Waker" cmd /c "cd /d "%~dp0" && title ComfyUI-Waker && python comfyui_window_waker.py > "%~dp0logs\comfyui\waker.log" 2>&1"
 
 echo.
 echo [7/7] Завершение...
@@ -189,6 +200,7 @@ echo Логи доступны в отдельных окнах:
 echo   - Backend (порт 8000) - Логи: %~dp0logs\backend\
 echo   - Bot (Telegram API) - Логи: %~dp0logs\bot\
 echo   - Worker (Обработка задач) - Логи: %~dp0logs\worker\
+echo   - ComfyUI Watchdog - Логи: %~dp0logs\comfyui\
 echo.
 echo 📋 Диагностическая информация: %DIAGNOSTIC_LOG%
 echo 📋 Общий лог запуска: %~dp0startup.log
@@ -197,6 +209,8 @@ echo 🔍 Если система зависает:
 echo   1. Проверьте логи в %~dp0logs\
 echo   2. Смотрите PERFORMANCE_OPTIMIZATION_GUIDE.md
 echo   3. Смотрите OPTIMIZATION_REPORT.md
+echo   4. ComfyUI Watchdog автоматически предотвращает "засыпание"
+echo      Смотрите COMFYUI_WAKEUP_SOLUTION.md для деталей
 echo.
 echo Нажмите любую клавишу, чтобы закрыть это окно (сервисы продолжат работу).
 pause >nul
