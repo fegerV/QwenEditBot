@@ -98,6 +98,7 @@ class ComfyUIWindowWaker:
             HWND окна или None
         """
         found_windows = []
+        all_cmd_windows = []  # Для диагностики - все найденные cmd.exe окна
         
         def enum_windows_callback(hwnd, lParam):
             """Callback для EnumWindows"""
@@ -128,21 +129,29 @@ class ComfyUIWindowWaker:
                         user32.GetWindowTextW(hwnd, buffer, length + 1)
                         window_title = buffer.value
                     
+                    # Получаем класс окна
+                    class_name = ctypes.create_unicode_buffer(260)
+                    user32.GetClassNameW(hwnd, class_name, 260)
+                    class_name_str = class_name.value
+                    
+                    # Сохраняем все cmd.exe окна для диагностики
+                    all_cmd_windows.append({
+                        'hwnd': hwnd,
+                        'title': window_title if window_title else '(no title)',
+                        'process': process_name,
+                        'class': class_name_str
+                    })
+                    
                     title_lower = window_title.lower() if window_title else ''
                     
                     # Исключаем окна наших сервисов (они имеют специфичные названия)
                     # Наши сервисы: "QwenEditBot Worker", "ComfyUI Watchdog", "ComfyUI Window Waker", "QwenEditBot Bot"
                     excluded_keywords = ['qwen', 'worker', 'bot', 'watchdog', 'waker', 'qweneditbot', 'cursor', 'vscode', 'visual studio', 'code', 'editor']
                     if any(keyword in title_lower for keyword in excluded_keywords):
-                        logger.debug(f"Skipping window (excluded keyword): '{window_title if window_title else '(no title)'}' (Process: {process_name})")
+                        logger.debug(f"Skipping window (excluded keyword): '{window_title if window_title else '(no title)'}' (Process: {process_name}, Class: {class_name_str})")
                         return True  # Пропускаем окна наших сервисов и редакторов
                     
                     # Проверяем класс окна - консольные окна имеют класс "ConsoleWindowClass"
-                    class_name = ctypes.create_unicode_buffer(260)
-                    user32.GetClassNameW(hwnd, class_name, 260)
-                    class_name_str = class_name.value
-                    
-                    # Консольные окна имеют класс "ConsoleWindowClass"
                     if 'console' in class_name_str.lower() or class_name_str == 'ConsoleWindowClass':
                         # Это консольное окно cmd.exe
                         # Если окно не имеет названия или имеет пустое/стандартное название cmd.exe
@@ -201,6 +210,14 @@ class ComfyUIWindowWaker:
         
         # Если не найдено, логируем для диагностики
         logger.warning(f"No ComfyUI window found (cmd.exe console window)")
+        if all_cmd_windows:
+            logger.info(f"Found {len(all_cmd_windows)} cmd.exe windows total (all were excluded or didn't match criteria):")
+            for i, win in enumerate(all_cmd_windows[:10], 1):  # Показываем первые 10
+                logger.info(f"  {i}. '{win['title']}' (Process: {win['process']}, Class: {win['class']}, HWND: {win['hwnd']})")
+            if len(all_cmd_windows) > 10:
+                logger.info(f"  ... and {len(all_cmd_windows) - 10} more cmd.exe windows")
+        else:
+            logger.warning("No cmd.exe windows found at all. Is ComfyUI running?")
         logger.debug("To debug: Check if ComfyUI cmd.exe window is open and visible")
         return None
     
