@@ -29,6 +29,8 @@ WM_KEYUP = 0x0101
 WM_CHAR = 0x0102
 WM_LBUTTONDOWN = 0x0201
 WM_LBUTTONUP = 0x0202
+WM_RBUTTONDOWN = 0x0204
+WM_RBUTTONUP = 0x0205
 WM_MOUSEMOVE = 0x0200
 VK_SPACE = 0x20
 VK_RETURN = 0x0D
@@ -90,7 +92,7 @@ class ComfyUIWindowWaker:
     
     def find_comfyui_window(self) -> Optional[int]:
         """
-        Найти окно ComfyUI - это cmd.exe, запущенный из C:\ComfyUI
+        Найти окно ComfyUI - это cmd.exe, запущенный из C:\\ComfyUI
         
         Returns:
             HWND окна или None
@@ -118,21 +120,24 @@ class ComfyUIWindowWaker:
                     if 'cmd.exe' not in process_lower:
                         return True
                     
-                    # Исключаем окна Cursor, VS Code и другие редакторы
+                    # Получаем название окна
                     length = user32.GetWindowTextLengthW(hwnd)
+                    window_title = ''
                     if length > 0:
                         buffer = ctypes.create_unicode_buffer(length + 1)
                         user32.GetWindowTextW(hwnd, buffer, length + 1)
                         window_title = buffer.value
-                        title_lower = window_title.lower()
-                        
-                        excluded_keywords = ['cursor', 'vscode', 'visual studio', 'code', 'editor', 'qweneditbot', 'worker', 'bot', 'watchdog', 'waker']
-                        if any(excluded in title_lower for excluded in excluded_keywords):
-                            return True  # Пропускаем эти окна
                     
-                    # Проверяем, что это окно cmd.exe
-                    # ComfyUI запускается через run_nvidia_gpu.bat в C:\ComfyUI
-                    # Проверяем по классу окна - консольные окна имеют класс "ConsoleWindowClass"
+                    title_lower = window_title.lower() if window_title else ''
+                    
+                    # Исключаем окна наших сервисов (они имеют специфичные названия)
+                    # Наши сервисы: "QwenEditBot Worker", "ComfyUI Watchdog", "ComfyUI Window Waker", "QwenEditBot Bot"
+                    excluded_keywords = ['qwen', 'worker', 'bot', 'watchdog', 'waker', 'qweneditbot', 'cursor', 'vscode', 'visual studio', 'code', 'editor']
+                    if any(keyword in title_lower for keyword in excluded_keywords):
+                        logger.debug(f"Skipping window (excluded keyword): '{window_title if window_title else '(no title)'}' (Process: {process_name})")
+                        return True  # Пропускаем окна наших сервисов и редакторов
+                    
+                    # Проверяем класс окна - консольные окна имеют класс "ConsoleWindowClass"
                     class_name = ctypes.create_unicode_buffer(260)
                     user32.GetClassNameW(hwnd, class_name, 260)
                     class_name_str = class_name.value
@@ -140,23 +145,18 @@ class ComfyUIWindowWaker:
                     # Консольные окна имеют класс "ConsoleWindowClass"
                     if 'console' in class_name_str.lower() or class_name_str == 'ConsoleWindowClass':
                         # Это консольное окно cmd.exe
-                        window_title = buffer.value if length > 0 else ''
-                        title_lower = window_title.lower() if window_title else ''
-                        
-                        # Исключаем окна наших сервисов (они имеют специфичные названия)
-                        # Наши сервисы: "QwenEditBot Worker", "ComfyUI Watchdog", "ComfyUI Window Waker", "QwenEditBot Bot"
-                        excluded_keywords = ['qwen', 'worker', 'bot', 'watchdog', 'waker', 'qweneditbot']
-                        if any(keyword in title_lower for keyword in excluded_keywords):
-                            return True  # Пропускаем окна наших сервисов
-                        
                         # Если окно не имеет названия или имеет пустое/стандартное название cmd.exe
                         # Это может быть окно ComfyUI (оно запускается через run_nvidia_gpu.bat)
                         # Приоритет: окна с "comfyui" в названии, затем окна без специфичных названий
                         priority = 0
                         if 'comfyui' in title_lower:
                             priority = 2  # Высокий приоритет
-                        elif not window_title or window_title.strip() == '' or 'cmd' in title_lower:
-                            priority = 1  # Средний приоритет (пустое или стандартное название)
+                        elif not window_title or window_title.strip() == '' or len(window_title.strip()) < 5:
+                            # Пустое название или очень короткое (скорее всего ComfyUI)
+                            priority = 1  # Средний приоритет
+                        elif 'cmd' in title_lower and 'comfy' not in title_lower:
+                            # Стандартное cmd.exe окно без специфичных признаков наших сервисов
+                            priority = 1  # Средний приоритет
                         
                         if priority > 0:
                             found_windows.append({
@@ -167,6 +167,8 @@ class ComfyUIWindowWaker:
                                 'priority': priority
                             })
                             logger.debug(f"Found potential ComfyUI window: '{window_title if window_title else '(no title)'}' (Process: {process_name}, Class: {class_name_str}, Priority: {priority}, HWND: {hwnd})")
+                    else:
+                        logger.debug(f"Skipping cmd.exe window (not console class): '{window_title if window_title else '(no title)'}' (Class: {class_name_str})")
             except Exception as e:
                 logger.debug(f"Error in enum_windows_callback: {e}")
             return True
@@ -193,9 +195,13 @@ class ComfyUIWindowWaker:
             logger.info(f"Selected ComfyUI window: '{selected['title']}' (Process: {selected['process']}, Class: {selected['class']}, Priority: {selected.get('priority', 0)}, HWND: {selected['hwnd']})")
             if len(found_windows) > 1:
                 logger.info(f"Found {len(found_windows)} potential ComfyUI windows, selected highest priority")
+                for i, win in enumerate(found_windows[:3], 1):
+                    logger.debug(f"  {i}. '{win['title']}' (Priority: {win.get('priority', 0)}, HWND: {win['hwnd']})")
             return selected['hwnd']
         
+        # Если не найдено, логируем для диагностики
         logger.warning(f"No ComfyUI window found (cmd.exe console window)")
+        logger.debug("To debug: Check if ComfyUI cmd.exe window is open and visible")
         return None
     
     def wake_window(self, hwnd: int) -> bool:
@@ -222,25 +228,20 @@ class ComfyUIWindowWaker:
             user32.ShowWindow(hwnd, 9)  # SW_RESTORE
             time.sleep(0.05)  # Даем время окну активироваться
             
-            # Реальный клик по окну (более эффективно, чем PostMessage)
+            # Реальный клик по окну правой кнопкой мыши (более эффективно, чем PostMessage)
             # Конвертируем координаты в lParam для SendMessage
             lParam = center_y << 16 | (center_x & 0xFFFF)
-            
-            # Отправляем события клика мыши
-            WM_LBUTTONDOWN = 0x0201
-            WM_LBUTTONUP = 0x0202
-            WM_MOUSEMOVE = 0x0200
             
             # Движение мыши
             user32.SendMessageW(hwnd, WM_MOUSEMOVE, 0, lParam)
             time.sleep(0.01)
             
-            # Нажатие левой кнопки мыши
-            user32.SendMessageW(hwnd, WM_LBUTTONDOWN, 0x0001, lParam)  # MK_LBUTTON
+            # Нажатие правой кнопки мыши
+            user32.SendMessageW(hwnd, WM_RBUTTONDOWN, 0x0002, lParam)  # MK_RBUTTON
             time.sleep(0.01)
             
-            # Отпускание левой кнопки мыши
-            user32.SendMessageW(hwnd, WM_LBUTTONUP, 0, lParam)
+            # Отпускание правой кнопки мыши
+            user32.SendMessageW(hwnd, WM_RBUTTONUP, 0, lParam)
             time.sleep(0.01)
             
             # Дополнительно: отправляем событие клавиатуры
