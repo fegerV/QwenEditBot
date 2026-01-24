@@ -158,12 +158,18 @@ class ComfyUIWindowWaker:
                         # Это может быть окно ComfyUI (оно запускается через run_nvidia_gpu.bat)
                         # Приоритет: окна с "comfyui" в названии, затем окна без специфичных названий
                         priority = 0
-                        if 'comfyui' in title_lower:
+                        if 'comfyui' in title_lower or 'comfy' in title_lower:
                             priority = 2  # Высокий приоритет
-                        elif not window_title or window_title.strip() == '' or len(window_title.strip()) < 5:
+                        elif 'run_nvidia_gpu' in title_lower or 'run_nvidia' in title_lower:
+                            # Окно запущено через run_nvidia_gpu.bat
+                            priority = 2  # Высокий приоритет
+                        elif 'c:\\comfyui' in title_lower or 'c:/comfyui' in title_lower:
+                            # Окно запущено из директории ComfyUI
+                            priority = 2  # Высокий приоритет
+                        elif not window_title or window_title.strip() == '' or len(window_title.strip()) < 10:
                             # Пустое название или очень короткое (скорее всего ComfyUI)
                             priority = 1  # Средний приоритет
-                        elif 'cmd' in title_lower and 'comfy' not in title_lower:
+                        elif 'cmd' in title_lower and 'comfy' not in title_lower and 'qwen' not in title_lower:
                             # Стандартное cmd.exe окно без специфичных признаков наших сервисов
                             priority = 1  # Средний приоритет
                         
