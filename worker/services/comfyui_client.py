@@ -1,4 +1,5 @@
 import logging
+import asyncio
 import aiohttp
 from typing import Optional, Dict, Any
 from worker.config import settings
@@ -71,21 +72,32 @@ class ComfyUIClient:
         try:
             session = await self._get_session()
             
-            async with session.get(url) as response:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
                 if response.status == 200:
                     data = await response.json()
                     if prompt_id in data:
+                        job_data = data[prompt_id]
+                        # Log job status to debug hanging
+                        if "outputs" in job_data:
+                            logger.debug(f"ComfyUI job {prompt_id} has outputs available")
+                        else:
+                            logger.debug(f"ComfyUI job {prompt_id} still processing...")
                         return data
                     else:
+                        logger.debug(f"ComfyUI job {prompt_id} not found in history yet (status 200)")
                         return {}
                 elif response.status == 404:
+                    logger.debug(f"ComfyUI job {prompt_id} not found (404)")
                     return {}
                 else:
                     error_text = await response.text()
                     logger.error(f"Failed to get history: {response.status} - {error_text}")
                     return None
+        except asyncio.TimeoutError:
+            logger.error(f"Timeout getting history for {prompt_id}")
+            return None
         except Exception as e:
-            logger.error(f"Error getting ComfyUI history: {str(e)}")
+            logger.error(f"Error getting ComfyUI history: {str(e)}", exc_info=True)
             return None
 
     async def download_result(self, prompt_id: str, filename: str) -> Optional[bytes]:

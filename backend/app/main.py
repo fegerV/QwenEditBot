@@ -24,8 +24,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler(os.path.join(log_directory, 'backend_startup.log')),
-        logging.FileHandler(os.path.join(log_directory, 'backend_runtime.log'))
+        logging.FileHandler(os.path.join(log_directory, 'backend_startup.log'), encoding='utf-8'),
+        logging.FileHandler(os.path.join(log_directory, 'backend_runtime.log'), encoding='utf-8')
     ]
 )
 logger = logging.getLogger(__name__)
@@ -106,9 +106,9 @@ async def on_startup():
     logger.info("[2/7] Running database migrations...")
     try:
         run_migrations()
-        logger.info("✓ Migrations completed")
+        logger.info("[OK] Migrations completed")
     except Exception as e:
-        logger.error(f"✗ Migration failed: {e}")
+        logger.error(f"[ERROR] Migration failed: {e}")
         logger.exception("Migration error details")
         startup_errors.append(f"Migration: {str(e)[:100]}")
     
@@ -116,9 +116,9 @@ async def on_startup():
     logger.info("[3/7] Creating required directories...")
     try:
         ensure_directories()
-        logger.info("✓ Directories ensured")
+        logger.info("[OK] Directories ensured")
     except Exception as e:
-        logger.error(f"✗ Directory creation failed: {e}")
+        logger.error(f"[ERROR] Directory creation failed: {e}")
         logger.exception("Directory error details")
         startup_errors.append(f"Directories: {str(e)[:100]}")
     
@@ -129,15 +129,15 @@ async def on_startup():
         db_test_session = SessionLocal()
         result = db_test_session.execute(text("SELECT 1"))
         result.scalar()
-        logger.info("✓ Database connection successful")
+        logger.info("[OK] Database connection successful")
         
         # Test if tables exist
         from sqlalchemy import inspect
         inspector = inspect(engine)
         tables = inspector.get_table_names()
-        logger.info(f"✓ Found {len(tables)} tables in database: {tables[:5]}{'...' if len(tables) > 5 else ''}")
+        logger.info(f"[OK] Found {len(tables)} tables in database: {tables[:5]}{'...' if len(tables) > 5 else ''}")
     except Exception as e:
-        logger.error(f"✗ Database connection failed: {e}")
+        logger.error(f"[ERROR] Database connection failed: {e}")
         logger.exception("Database error details")
         startup_errors.append(f"Database: {str(e)[:100]}")
     finally:
@@ -150,11 +150,11 @@ async def on_startup():
         if os.getenv('APP_ENV', 'production').lower() == 'development':
             logger.info("Creating tables via metadata.create_all()...")
             create_tables()
-            logger.info("✓ Tables created")
+            logger.info("[OK] Tables created")
         else:
             logger.info("Skipping Base.metadata.create_all() in production")
     except Exception as e:
-        logger.error(f"✗ Table creation failed: {e}")
+        logger.error(f"[ERROR] Table creation failed: {e}")
         logger.exception("Table creation error details")
         startup_errors.append(f"Tables: {str(e)[:100]}")
     
@@ -163,9 +163,9 @@ async def on_startup():
     db = SessionLocal()
     try:
         await asyncio.to_thread(seed_presets_if_empty, db)
-        logger.info("✓ Presets initialization completed")
+        logger.info("[OK] Presets initialization completed")
     except Exception as e:
-        logger.error(f"✗ Preset seeding failed: {e}")
+        logger.error(f"[ERROR] Preset seeding failed: {e}")
         logger.exception("Preset seeding error details")
         startup_errors.append(f"Presets: {str(e)[:100]}")
     finally:
@@ -175,9 +175,9 @@ async def on_startup():
     logger.info("[7/7] Connecting to Redis...")
     try:
         await redis_client.connect()
-        logger.info("✓ Redis connected successfully")
+        logger.info("[OK] Redis connected successfully")
     except Exception as e:
-        logger.warning(f"⚠ Redis connection failed (non-critical): {e}")
+        logger.warning(f"[WARN] Redis connection failed (non-critical): {e}")
         # Don't add to startup_errors - this is non-critical
     
     # Step 7: Start scheduler (non-critical)
@@ -186,9 +186,9 @@ async def on_startup():
     try:
         scheduler = WeeklyBonusScheduler(SessionLocal)
         await scheduler.start()
-        logger.info("✓ Scheduler started")
+        logger.info("[OK] Scheduler started")
     except Exception as e:
-        logger.warning(f"⚠ Scheduler failed to start (non-critical): {e}")
+        logger.warning(f"[WARN] Scheduler failed to start (non-critical): {e}")
         logger.exception("Scheduler error details (non-critical)")
         scheduler = None
         # Don't add to startup_errors - this is non-critical
@@ -201,7 +201,7 @@ async def on_startup():
             logger.error(f"  {i}. {error}")
         logger.warning("Backend started but some components may not work correctly")
     else:
-        logger.info("✓ BACKEND STARTUP COMPLETED SUCCESSFULLY")
+        logger.info("[OK] BACKEND STARTUP COMPLETED SUCCESSFULLY")
     logger.info("="*60)
 
 @app.on_event("shutdown")

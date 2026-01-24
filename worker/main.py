@@ -207,6 +207,12 @@ class QwenEditWorker:
                         raise Exception(f"Processing timeout exceeded ({settings.COMFYUI_TIMEOUT}s)")
 
                     # 6. Update job status to completed
+                    if not Path(result_path).exists():
+                        logger.error(f"Result file not found after processing for job {job.id}: {result_path}")
+                        raise Exception(f"Result file not found: {result_path}")
+                    
+                    logger.info(f"Result file verified for job {job.id}: {result_path}")
+                    
                     await self.queue.update_job_status(
                         job.id,
                         "completed",
@@ -217,11 +223,12 @@ class QwenEditWorker:
                     await redis_client.set_job_result(job.id, result_path)
 
                     # 7. Send result to user
+                    logger.info(f"Sending result to user for job {job.id}")
                     try:
                         await self.result_handler.send_result(job, result_path)
-                        logger.info(f"Result sent to user for job {job.id}")
+                        logger.info(f"Result successfully sent to user for job {job.id}")
                     except Exception as result_error:
-                        logger.error(f"Failed to send result to user for job {job.id}: {result_error}")
+                        logger.error(f"Failed to send result to user for job {job.id}: {result_error}", exc_info=True)
 
                     logger.info(f"Job {job.id} completed successfully")
 

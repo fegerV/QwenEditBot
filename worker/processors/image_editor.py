@@ -68,13 +68,15 @@ class ImageEditorProcessor:
         """Wait for result and download."""
 
         max_attempts = 600  # 600 * 0.5s = 300s = 5 minutes
+        logger.info(f"Starting to wait and download result for job {job_id}, ComfyUI job: {comfyui_job_id}")
 
-        for _attempt in range(max_attempts):
+        for attempt in range(max_attempts):
             try:
                 history = await self.comfyui_client.get_history(comfyui_job_id)
 
                 if history and isinstance(history, dict) and comfyui_job_id in history:
                     job_result = history[comfyui_job_id]
+                    logger.debug(f"Attempt {attempt}: Got history for job {job_id}")
 
                     if job_result and "outputs" in job_result:
                         output_image_info = None
@@ -85,6 +87,7 @@ class ImageEditorProcessor:
                                 break
 
                         if output_image_info:
+                            logger.info(f"Found output image for job {job_id}, downloading...")
                             filename = output_image_info["filename"]
                             subfolder = output_image_info.get("subfolder", "")
                             image_type = output_image_info.get("type", "output")
@@ -109,7 +112,7 @@ class ImageEditorProcessor:
                                             f.write(result_data)
 
                                         logger.info(
-                                            f"Successfully downloaded and saved result for job {job_id}"
+                                            f"Successfully downloaded and saved result for job {job_id} to {result_path}"
                                         )
                                         return result_path
 
@@ -120,12 +123,18 @@ class ImageEditorProcessor:
                                     raise Exception(
                                         f"Failed to download result image: {img_response.status}"
                                     )
+                    else:
+                        logger.debug(f"Attempt {attempt}: Job still processing (no outputs yet)")
+                else:
+                    logger.debug(f"Attempt {attempt}: Job not found in history yet")
 
             except Exception as e:
                 logger.error(
-                    f"Error checking ComfyUI job status for {comfyui_job_id}: {str(e)}"
+                    f"Error checking ComfyUI job status for {comfyui_job_id}: {str(e)}", 
+                    exc_info=True
                 )
 
             await asyncio.sleep(settings.COMFYUI_POLL_INTERVAL)
 
+        logger.error(f"ComfyUI job timeout for job {job_id} after {max_attempts} attempts ({max_attempts * settings.COMFYUI_POLL_INTERVAL}s)")
         raise Exception("ComfyUI job timeout")

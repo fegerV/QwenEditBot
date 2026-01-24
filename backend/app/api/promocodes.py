@@ -122,13 +122,8 @@ def batch_generate_promocodes(
                 "created_at": promocode.created_at.isoformat()
             })
         
-<<<<<<< Updated upstream
         # Save to file
         data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data")
-=======
-        # Save to file
-        data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data")
->>>>>>> Stashed changes
         os.makedirs(data_dir, exist_ok=True)
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

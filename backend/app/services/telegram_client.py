@@ -45,7 +45,7 @@ class TelegramClient:
         }
         
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
+            async with httpx.AsyncClient(timeout=self.timeout, verify=False) as client:
                 response = await client.post(url, json=payload)
                 response.raise_for_status()
                 
@@ -95,7 +95,7 @@ class TelegramClient:
             payload["caption"] = caption
         
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
+            async with httpx.AsyncClient(timeout=self.timeout, verify=False) as client:
                 response = await client.post(url, json=payload)
                 response.raise_for_status()
                 
