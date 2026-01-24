@@ -2863,6 +2863,68 @@ async def callback_back_to_menu(callback: types.CallbackQuery, state: FSMContext
         await callback.answer("Произошла ошибка")
 
 
+@router.callback_query(F.data == "edit_photo")
+async def callback_edit_photo(callback: types.CallbackQuery, state: FSMContext):
+    """Handle 'edit photo' submenu"""
+    try:
+        await callback.message.edit_text(
+            "✨ Редактировать фото\n\n"
+            "Выберите действие:",
+            reply_markup=edit_photo_submenu_keyboard()
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in edit_photo callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "custom_prompt")
+async def callback_custom_prompt_main(callback: types.CallbackQuery, state: FSMContext):
+    """Handle 'custom prompt' from main menu"""
+    try:
+        await state.set_state(UserState.waiting_for_custom_prompt)
+        await callback.message.edit_text(
+            "✍️ Введите свой промпт\n\n"
+            "Опишите, как вы хотите изменить фото. Будьте детальны!"
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in custom_prompt callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "help")
+async def callback_help(callback: types.CallbackQuery, state: FSMContext):
+    """Handle 'help' menu"""
+    try:
+        help_text = (
+            "ℹ️ СПРАВКА И ПОМОЩЬ\n\n"
+            "🎨 Художественные стили\n"
+            "Примените классические художественные стили к вашему фото\n\n"
+            "🧝‍ Изменить образ\n"
+            "Измените прическу, борода, усы для мужчин и женщин\n\n"
+            "👕 ПРИМЕРОЧНАЯ\n"
+            "Попробуйте одежду и аксессуары (нужны 2 фото)\n\n"
+            "✨ Редактировать фото\n"
+            "Выберите пресет или используйте свой промпт\n\n"
+            "✍️ Свой промпт\n"
+            "Создайте собственное описание изменений\n\n"
+            "📚 База знаний\n"
+            "Советы по созданию хороших промптов\n\n"
+            "👩 Профиль\n"
+            "Ваш баланс и история"
+        )
+        
+        await callback.message.edit_text(
+            help_text,
+            reply_markup=back_and_main_menu_keyboard("back_to_menu")
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in help callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
 @router.callback_query(F.data == "back_to_balance")
 async def callback_back_to_balance(callback: types.CallbackQuery):
     """Handle 'back to balance' callback"""
