@@ -549,6 +549,62 @@ def appearance_bangs_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+def appearance_updo_keyboard() -> InlineKeyboardMarkup:
+    """Create updo hairstyles presets keyboard"""
+    builder = InlineKeyboardBuilder()
+    
+    # Add updo presets (2 per row)
+    updos = [
+        ("h_updo_low_bun", "🎀 Низкий пучок"),
+        ("h_updo_high_bun", "🎀 Высокий пучок"),
+        ("h_updo_low_ponytail", "🎀 Низкий хвост"),
+        ("h_updo_high_ponytail", "🎀 Высокий хвост"),
+        ("h_updo_slicked_back", "🎀 Гладкие"),
+        ("h_updo_half_up", "🎀 Полусобранные"),
+        ("h_updo_bun_with_framing", "🎀 Пучок с прядями"),
+    ]
+    
+    for i, (key, name) in enumerate(updos):
+        button = InlineKeyboardButton(text=name, callback_data=f"hairstyle_{key}")
+        if i % 2 == 0:
+            builder.row(button)
+        else:
+            builder.add(button)
+    
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="appearance_female_hair"))
+    builder.add(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
+def appearance_braids_keyboard() -> InlineKeyboardMarkup:
+    """Create braids presets keyboard"""
+    builder = InlineKeyboardBuilder()
+    
+    # Add braids presets (2 per row)
+    braids = [
+        ("h_braids_classic", "🧵 Классическая"),
+        ("h_braids_french", "🧵 Французская"),
+        ("h_braids_dutch", "🧵 Голландская"),
+        ("h_braids_fishtail", "🧵 Рыбий хвост"),
+        ("h_braids_crown", "🧵 Вокруг головы"),
+        ("h_braids_two", "🧵 Две косы"),
+        ("h_braids_loose_messy", "🧵 Небрежная"),
+    ]
+    
+    for i, (key, name) in enumerate(braids):
+        button = InlineKeyboardButton(text=name, callback_data=f"hairstyle_{key}")
+        if i % 2 == 0:
+            builder.row(button)
+        else:
+            builder.add(button)
+    
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="appearance_female_hair"))
+    builder.add(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
 def appearance_gender_keyboard() -> InlineKeyboardMarkup:
     """Create gender selection keyboard for appearance customization"""
     builder = InlineKeyboardBuilder()

@@ -30,6 +30,8 @@ from ..keyboards import (
     appearance_medium_hairstyles_keyboard,
     appearance_long_hairstyles_keyboard,
     appearance_bangs_keyboard,
+    appearance_updo_keyboard,
+    appearance_braids_keyboard,
 )
 from ..utils import send_error_message
 
@@ -566,6 +568,240 @@ FEMALE_BANGS_PRESETS: dict[str, dict[str, str]] = {
             "Photorealistic result.\n"
             "Add airy light bangs.\n"
             "Thin, soft, natural."
+        ),
+    },
+}
+
+
+# Female updo hairstyles presets
+FEMALE_UPDO_PRESETS: dict[str, dict[str, str]] = {
+    "h_updo_low_bun": {
+        "name": "Низкий пучок",
+        "icon": "🎀",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a low bun hairstyle.\n"
+            "Clean, elegant shape."
+        ),
+    },
+    "h_updo_high_bun": {
+        "name": "Высокий пучок",
+        "icon": "🎀",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a high bun hairstyle.\n"
+            "Lifted, neat structure."
+        ),
+    },
+    "h_updo_low_ponytail": {
+        "name": "Низкий хвост",
+        "icon": "🎀",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a low ponytail.\n"
+            "Relaxed and natural."
+        ),
+    },
+    "h_updo_high_ponytail": {
+        "name": "Высокий хвост",
+        "icon": "🎀",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a high ponytail.\n"
+            "Tight and lifted."
+        ),
+    },
+    "h_updo_slicked_back": {
+        "name": "Гладко убранные волосы",
+        "icon": "🎀",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply slicked-back hair.\n"
+            "Smooth, polished finish."
+        ),
+    },
+    "h_updo_half_up": {
+        "name": "Полусобранные волосы",
+        "icon": "🎀",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply half-up hairstyle.\n"
+            "Top section tied, rest loose."
+        ),
+    },
+    "h_updo_bun_with_framing": {
+        "name": "Пучок с прядями у лица",
+        "icon": "🎀",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a bun with loose face-framing strands.\n"
+            "Soft romantic look."
+        ),
+    },
+}
+
+
+# Female braids presets
+FEMALE_BRAIDS_PRESETS: dict[str, dict[str, str]] = {
+    "h_braids_classic": {
+        "name": "Классическая коса",
+        "icon": "🧵",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a classic braid.\n"
+            "Neat and even weaving."
+        ),
+    },
+    "h_braids_french": {
+        "name": "Французская коса",
+        "icon": "🧵",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a French braid.\n"
+            "Tight weaving from the crown."
+        ),
+    },
+    "h_braids_dutch": {
+        "name": "Голландская коса",
+        "icon": "🧵",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a Dutch braid.\n"
+            "Raised braid with inverted weaving."
+        ),
+    },
+    "h_braids_fishtail": {
+        "name": "Рыбий хвост",
+        "icon": "🧵",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a fishtail braid.\n"
+            "Detailed fine weaving."
+        ),
+    },
+    "h_braids_crown": {
+        "name": "Коса вокруг головы",
+        "icon": "🧵",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a crown braid.\n"
+            "Wrapped around the head."
+        ),
+    },
+    "h_braids_two": {
+        "name": "Две косы",
+        "icon": "🧵",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply two braids.\n"
+            "Symmetrical and neat."
+        ),
+    },
+    "h_braids_loose_messy": {
+        "name": "Свободная небрежная коса",
+        "icon": "🧵",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a loose messy braid.\n"
+            "Soft, relaxed texture."
         ),
     },
 }
@@ -2069,32 +2305,30 @@ async def callback_appearance_female_hair_bangs(callback: types.CallbackQuery, s
 async def callback_appearance_female_hair_updo(callback: types.CallbackQuery, state: FSMContext):
     """Handle updo hairstyles"""
     try:
-        await callback.answer(
-            "🎀 Раздел 'Убранные волосы' находится в разработке",
-            show_alert=True
+        await callback.message.edit_text(
+            "🎀 Убранные волосы\n\n"
+            "Выберите стиль:",
+            reply_markup=appearance_updo_keyboard()
         )
+        await callback.answer()
     except Exception as e:
         logger.error(f"Error in appearance_female_hair_updo callback: {e}")
-        try:
-            await callback.answer("Произошла ошибка")
-        except Exception:
-            logger.warning("Callback too old, cannot send error message")
+        await callback.answer("Произошла ошибка")
 
 
 @router.callback_query(F.data == "appearance_female_hair_braids")
 async def callback_appearance_female_hair_braids(callback: types.CallbackQuery, state: FSMContext):
     """Handle braids hairstyles"""
     try:
-        await callback.answer(
-            "🧵 Раздел 'Косы' находится в разработке",
-            show_alert=True
+        await callback.message.edit_text(
+            "🧵 Косы\n\n"
+            "Выберите вид косы:",
+            reply_markup=appearance_braids_keyboard()
         )
+        await callback.answer()
     except Exception as e:
         logger.error(f"Error in appearance_female_hair_braids callback: {e}")
-        try:
-            await callback.answer("Произошла ошибка")
-        except Exception:
-            logger.warning("Callback too old, cannot send error message")
+        await callback.answer("Произошла ошибка")
 
 
 @router.callback_query(F.data == "appearance_female_hair_styles")
@@ -2117,7 +2351,7 @@ async def callback_appearance_female_hair_styles(callback: types.CallbackQuery, 
 async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMContext):
     """Handle hairstyle preset selection"""
     try:
-        from ..handlers.menu import FEMALE_SHORT_HAIRSTYLES_PRESETS, FEMALE_MEDIUM_HAIRSTYLES_PRESETS, FEMALE_LONG_HAIRSTYLES_PRESETS, FEMALE_BANGS_PRESETS
+        from ..handlers.menu import FEMALE_SHORT_HAIRSTYLES_PRESETS, FEMALE_MEDIUM_HAIRSTYLES_PRESETS, FEMALE_LONG_HAIRSTYLES_PRESETS, FEMALE_BANGS_PRESETS, FEMALE_UPDO_PRESETS, FEMALE_BRAIDS_PRESETS
         
         hairstyle_id = callback.data.replace("hairstyle_", "")
         
@@ -2126,7 +2360,9 @@ async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMC
             FEMALE_SHORT_HAIRSTYLES_PRESETS.get(hairstyle_id) or 
             FEMALE_MEDIUM_HAIRSTYLES_PRESETS.get(hairstyle_id) or 
             FEMALE_LONG_HAIRSTYLES_PRESETS.get(hairstyle_id) or
-            FEMALE_BANGS_PRESETS.get(hairstyle_id)
+            FEMALE_BANGS_PRESETS.get(hairstyle_id) or
+            FEMALE_UPDO_PRESETS.get(hairstyle_id) or
+            FEMALE_BRAIDS_PRESETS.get(hairstyle_id)
         )
         
         if not hairstyle:
