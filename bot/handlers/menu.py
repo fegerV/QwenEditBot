@@ -2513,15 +2513,10 @@ async def callback_appearance_female_hair_styles(callback: types.CallbackQuery, 
 async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMContext):
     """Handle hairstyle preset selection"""
     try:
-        # Declare global variables to access module-level presets
-        global FEMALE_SHORT_HAIRSTYLES_PRESETS, FEMALE_MEDIUM_HAIRSTYLES_PRESETS
-        global FEMALE_LONG_HAIRSTYLES_PRESETS, FEMALE_BANGS_PRESETS
-        global FEMALE_UPDO_PRESETS, FEMALE_BRAIDS_PRESETS, FEMALE_STYLISTIC_PRESETS
-        
         hairstyle_id = callback.data.replace("hairstyle_", "")
         logger.info(f"Selected hairstyle ID: {hairstyle_id}")
         
-        # Check all dictionaries for the hairstyle
+        # Find hairstyle in all preset dictionaries
         hairstyle = (
             FEMALE_SHORT_HAIRSTYLES_PRESETS.get(hairstyle_id) or 
             FEMALE_MEDIUM_HAIRSTYLES_PRESETS.get(hairstyle_id) or 
@@ -2538,7 +2533,20 @@ async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMC
             return
         
         logger.info(f"Found hairstyle: {hairstyle.get('name')}")
+        await _start_hairstyle_flow(callback, state, hairstyle)
         
+    except Exception as e:
+        logger.error(f"Error in hairstyle selection: {e}", exc_info=True)
+        await callback.answer("Произошла ошибка", show_alert=True)
+
+
+async def _start_hairstyle_flow(
+    callback: types.CallbackQuery,
+    state: FSMContext,
+    hairstyle: dict
+):
+    """Helper function to start hairstyle editing flow"""
+    try:
         await state.update_data(
             selected_preset={
                 "name": hairstyle["name"],
@@ -2548,6 +2556,8 @@ async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMC
             prompt=hairstyle["prompt"],
         )
         await state.set_state(UserState.awaiting_image_for_preset)
+        
+        from ..keyboards import cancel_keyboard
         
         icon = hairstyle.get("icon", "")
         name = hairstyle.get("name", "")
@@ -2561,9 +2571,8 @@ async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMC
         )
         
         await callback.answer()
-        
     except Exception as e:
-        logger.error(f"Error in hairstyle selection: {e}", exc_info=True)
+        logger.error(f"Error in hairstyle flow: {e}", exc_info=True)
         await callback.answer("Произошла ошибка", show_alert=True)
 
 
