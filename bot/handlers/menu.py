@@ -24,6 +24,10 @@ from ..keyboards import (
     artistic_styles_photographers_keyboard,
     appearance_gender_keyboard,
     appearance_male_keyboard,
+    appearance_male_hairstyle_categories_keyboard,
+    appearance_male_short_hairstyles_keyboard,
+    appearance_male_medium_hairstyles_keyboard,
+    appearance_male_long_hairstyles_keyboard,
     appearance_female_keyboard,
     appearance_female_hairstyle_categories_keyboard,
     appearance_short_hairstyles_keyboard,
@@ -965,6 +969,358 @@ FEMALE_STYLISTIC_PRESETS: dict[str, dict[str, str]] = {
             "High-fashion look.\n"
             "Slight exaggeration allowed.\n"
             "Clean but expressive styling."
+        ),
+    },
+}
+
+
+# Male short hairstyles presets
+MALE_SHORT_HAIRSTYLES_PRESETS: dict[str, dict[str, str]] = {
+    "m_short_buzz_cut": {
+        "name": "Buzz cut",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a men's buzz cut haircut.\n"
+            "Very short uniform length.\n"
+            "Clean and minimal look."
+        ),
+    },
+    "m_short_crew_cut": {
+        "name": "Crew cut",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a men's crew cut haircut.\n"
+            "Short sides and back, slightly longer top.\n"
+            "Neat and balanced proportions."
+        ),
+    },
+    "m_short_crop": {
+        "name": "Short crop",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a men's short crop haircut.\n"
+            "Short textured top, clean sides.\n"
+            "Modern and practical look."
+        ),
+    },
+    "m_short_caesar": {
+        "name": "Caesar",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a men's Caesar haircut.\n"
+            "Short straight fringe, uniform length.\n"
+            "Classic structured shape."
+        ),
+    },
+    "m_short_military": {
+        "name": "Military cut",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a men's military haircut.\n"
+            "Very short sides and back, minimal top length.\n"
+            "Strict and clean appearance."
+        ),
+    },
+    "m_short_high_tight": {
+        "name": "High and tight",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a men's high and tight haircut.\n"
+            "Extremely short sides, compact top.\n"
+            "Sharp contrast, clean finish."
+        ),
+    },
+    "m_short_textured": {
+        "name": "Textured short",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a very short textured men's haircut.\n"
+            "Subtle texture on top, clean sides.\n"
+            "Natural realistic finish."
+        ),
+    },
+}
+
+
+# Male medium length hairstyles presets
+MALE_MEDIUM_HAIRSTYLES_PRESETS: dict[str, dict[str, str]] = {
+    "m_medium_short_sides_medium_top": {
+        "name": "Short sides, medium top",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a men's haircut with short sides and medium length top.\n"
+            "Balanced proportions.\n"
+            "Classic versatile style."
+        ),
+    },
+    "m_medium_textured_crop": {
+        "name": "Textured crop",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a textured crop men's haircut.\n"
+            "Medium length top with visible texture.\n"
+            "Natural and modern look."
+        ),
+    },
+    "m_medium_side_part": {
+        "name": "Side part",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a men's haircut with a clear side part.\n"
+            "Medium length top, tidy sides.\n"
+            "Clean and professional appearance."
+        ),
+    },
+    "m_medium_ivy_league": {
+        "name": "Ivy League",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a men's Ivy League haircut.\n"
+            "Neat medium top, tapered sides.\n"
+            "Classic academic style."
+        ),
+    },
+    "m_medium_natural": {
+        "name": "Natural medium",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a natural medium length men's haircut.\n"
+            "Relaxed shape, natural flow.\n"
+            "Minimal styling."
+        ),
+    },
+    "m_medium_layered": {
+        "name": "Layered medium",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a layered medium length men's haircut.\n"
+            "Visible layers for movement and depth.\n"
+            "Natural texture."
+        ),
+    },
+    "m_medium_messy": {
+        "name": "Messy medium",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a slightly messy medium length men's haircut.\n"
+            "Casual texture, effortless look."
+        ),
+    },
+}
+
+
+# Male long hairstyles presets
+MALE_LONG_HAIRSTYLES_PRESETS: dict[str, dict[str, str]] = {
+    "m_long_straight": {
+        "name": "Long straight",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply long straight men's hair.\n"
+            "Smooth natural flow.\n"
+            "Even length."
+        ),
+    },
+    "m_long_wavy": {
+        "name": "Long wavy",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply long wavy men's hair.\n"
+            "Soft natural waves.\n"
+            "Relaxed shape."
+        ),
+    },
+    "m_long_curly": {
+        "name": "Long curly",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply long curly men's hair.\n"
+            "Defined natural curls.\n"
+            "Balanced volume."
+        ),
+    },
+    "m_long_layered": {
+        "name": "Layered long",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply layered long men's hair.\n"
+            "Visible layers for depth and movement."
+        ),
+    },
+    "m_long_natural": {
+        "name": "Natural long",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply natural long men's hair.\n"
+            "Minimal styling.\n"
+            "Realistic texture."
+        ),
+    },
+    "m_long_shoulder_length": {
+        "name": "Shoulder-length",
+        "icon": "💈",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply shoulder-length men's hair.\n"
+            "Balanced length and natural fall."
         ),
     },
 }
@@ -2344,14 +2700,62 @@ async def callback_appearance_male(callback: types.CallbackQuery, state: FSMCont
 
 @router.callback_query(F.data == "appearance_male_hair")
 async def callback_appearance_male_hair(callback: types.CallbackQuery, state: FSMContext):
-    """Handle male hairstyles - placeholder for future"""
+    """Handle male hairstyles menu"""
     try:
-        await callback.answer(
-            "💇 Раздел 'Прическа' для мужчин находится в разработке",
-            show_alert=True
+        await callback.message.edit_text(
+            "💇 Мужские прически\n\n"
+            "Выберите категорию:",
+            reply_markup=appearance_male_hairstyle_categories_keyboard()
         )
+        await callback.answer()
     except Exception as e:
         logger.error(f"Error in appearance_male_hair callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "appearance_male_hair_short")
+async def callback_appearance_male_hair_short(callback: types.CallbackQuery, state: FSMContext):
+    """Handle short hairstyles for men"""
+    try:
+        await callback.message.edit_text(
+            "✂️ Короткие стрижки\n\n"
+            "Выберите стиль:",
+            reply_markup=appearance_male_short_hairstyles_keyboard()
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in appearance_male_hair_short callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "appearance_male_hair_medium")
+async def callback_appearance_male_hair_medium(callback: types.CallbackQuery, state: FSMContext):
+    """Handle medium length hairstyles for men"""
+    try:
+        await callback.message.edit_text(
+            "🌊 Средняя длина\n\n"
+            "Выберите стиль:",
+            reply_markup=appearance_male_medium_hairstyles_keyboard()
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in appearance_male_hair_medium callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "appearance_male_hair_long")
+async def callback_appearance_male_hair_long(callback: types.CallbackQuery, state: FSMContext):
+    """Handle long hairstyles for men"""
+    try:
+        await callback.message.edit_text(
+            "💁 Длинные волосы\n\n"
+            "Выберите стиль:",
+            reply_markup=appearance_male_long_hairstyles_keyboard()
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in appearance_male_hair_long callback: {e}")
+        await callback.answer("Произошла ошибка")
         try:
             await callback.answer("Произошла ошибка")
         except Exception:
@@ -2524,7 +2928,10 @@ async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMC
             FEMALE_BANGS_PRESETS.get(hairstyle_id) or
             FEMALE_UPDO_PRESETS.get(hairstyle_id) or
             FEMALE_BRAIDS_PRESETS.get(hairstyle_id) or
-            FEMALE_STYLISTIC_PRESETS.get(hairstyle_id)
+            FEMALE_STYLISTIC_PRESETS.get(hairstyle_id) or
+            MALE_SHORT_HAIRSTYLES_PRESETS.get(hairstyle_id) or
+            MALE_MEDIUM_HAIRSTYLES_PRESETS.get(hairstyle_id) or
+            MALE_LONG_HAIRSTYLES_PRESETS.get(hairstyle_id)
         )
         
         if not hairstyle:

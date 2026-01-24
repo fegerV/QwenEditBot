@@ -657,6 +657,102 @@ def appearance_male_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+# Male Hairstyles Categories Menu
+def appearance_male_hairstyle_categories_keyboard() -> InlineKeyboardMarkup:
+    """Create male hairstyle categories menu"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="✂️ Короткие стрижки", callback_data="appearance_male_hair_short"))
+    builder.row(InlineKeyboardButton(text="🌊 Средняя длина", callback_data="appearance_male_hair_medium"))
+    builder.row(InlineKeyboardButton(text="💁 Длинные волосы", callback_data="appearance_male_hair_long"))
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="appearance_male"))
+    builder.add(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
+def appearance_male_short_hairstyles_keyboard() -> InlineKeyboardMarkup:
+    """Create male short hairstyles presets keyboard"""
+    builder = InlineKeyboardBuilder()
+    
+    # Add hairstyle presets (2 per row)
+    hairstyles = [
+        ("m_short_buzz_cut", "Buzz cut"),
+        ("m_short_crew_cut", "Crew cut"),
+        ("m_short_crop", "Short crop"),
+        ("m_short_caesar", "Caesar"),
+        ("m_short_military", "Military cut"),
+        ("m_short_high_tight", "High and tight"),
+        ("m_short_textured", "Textured short"),
+    ]
+    
+    for i, (key, name) in enumerate(hairstyles):
+        button = InlineKeyboardButton(text=name, callback_data=f"hairstyle_{key}")
+        if i % 2 == 0:
+            builder.row(button)
+        else:
+            builder.add(button)
+    
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="appearance_male_hair"))
+    builder.add(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
+def appearance_male_medium_hairstyles_keyboard() -> InlineKeyboardMarkup:
+    """Create male medium length hairstyles presets keyboard"""
+    builder = InlineKeyboardBuilder()
+    
+    # Add hairstyle presets (2 per row)
+    hairstyles = [
+        ("m_medium_short_sides_medium_top", "Short sides, medium top"),
+        ("m_medium_textured_crop", "Textured crop"),
+        ("m_medium_side_part", "Side part"),
+        ("m_medium_ivy_league", "Ivy League"),
+        ("m_medium_natural", "Natural medium"),
+        ("m_medium_layered", "Layered medium"),
+        ("m_medium_messy", "Messy medium"),
+    ]
+    
+    for i, (key, name) in enumerate(hairstyles):
+        button = InlineKeyboardButton(text=name, callback_data=f"hairstyle_{key}")
+        if i % 2 == 0:
+            builder.row(button)
+        else:
+            builder.add(button)
+    
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="appearance_male_hair"))
+    builder.add(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
+def appearance_male_long_hairstyles_keyboard() -> InlineKeyboardMarkup:
+    """Create male long hairstyles presets keyboard"""
+    builder = InlineKeyboardBuilder()
+    
+    # Add hairstyle presets (2 per row)
+    hairstyles = [
+        ("m_long_straight", "Long straight"),
+        ("m_long_wavy", "Long wavy"),
+        ("m_long_curly", "Long curly"),
+        ("m_long_layered", "Layered long"),
+        ("m_long_natural", "Natural long"),
+        ("m_long_shoulder_length", "Shoulder-length"),
+    ]
+    
+    for i, (key, name) in enumerate(hairstyles):
+        button = InlineKeyboardButton(text=name, callback_data=f"hairstyle_{key}")
+        if i % 2 == 0:
+            builder.row(button)
+        else:
+            builder.add(button)
+    
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="appearance_male_hair"))
+    builder.add(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
 # Female Appearance Menu
 def appearance_female_keyboard() -> InlineKeyboardMarkup:
     """Create female appearance menu"""
