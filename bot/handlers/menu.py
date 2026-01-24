@@ -2513,7 +2513,13 @@ async def callback_appearance_female_hair_styles(callback: types.CallbackQuery, 
 async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMContext):
     """Handle hairstyle preset selection"""
     try:
+        # Declare global variables to access module-level presets
+        global FEMALE_SHORT_HAIRSTYLES_PRESETS, FEMALE_MEDIUM_HAIRSTYLES_PRESETS
+        global FEMALE_LONG_HAIRSTYLES_PRESETS, FEMALE_BANGS_PRESETS
+        global FEMALE_UPDO_PRESETS, FEMALE_BRAIDS_PRESETS, FEMALE_STYLISTIC_PRESETS
+        
         hairstyle_id = callback.data.replace("hairstyle_", "")
+        logger.info(f"Selected hairstyle ID: {hairstyle_id}")
         
         # Check all dictionaries for the hairstyle
         hairstyle = (
@@ -2527,8 +2533,11 @@ async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMC
         )
         
         if not hairstyle:
+            logger.warning(f"Hairstyle not found for ID: {hairstyle_id}")
             await callback.answer("Причёска не найдена", show_alert=True)
             return
+        
+        logger.info(f"Found hairstyle: {hairstyle.get('name')}")
         
         await state.update_data(
             selected_preset={
