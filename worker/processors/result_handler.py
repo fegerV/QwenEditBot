@@ -21,7 +21,7 @@ class ResultHandler:
         3. Return True if successful, False if error
         
         Message text:
-        "✅ Your photo is ready! 🎨\n\nProcessing time: X sec"
+        "✅ Ваше фото готово! 🎨\n\nСпасибо за использование нашего сервиса!"
         """
         try:
             # Read result image
@@ -62,7 +62,7 @@ class ResultHandler:
         Send error notification.
         
         Text:
-        "❌ Error processing photo\n\nMessage: {error}\n\nPoints refunded ✅"
+        "❌ Произошла ошибка при обработке фото\n\nСообщение: {error}\n\nБаллы возвращены ✅"
         """
         try:
             # Get user's telegram ID
@@ -78,7 +78,7 @@ class ResultHandler:
                 return False  # Return False since we couldn't notify the user
             
             # Send error message
-            message = f"❌ Error processing photo\n\nMessage: {error}\n\nPoints refunded ✅"
+            message = f"❌ Произошла ошибка при обработке фото\n\nСообщение: {error}\n\nБаллы возвращены ✅"
             success = await self.telegram_client.send_message(telegram_id, message)
             
             if success:
