@@ -109,40 +109,28 @@ class ComfyUIWatchdog:
             except Exception as e:
                 logger.debug(f"Windows API wakeup not available: {e}")
             
-            # 2. Отправляем несколько запросов для "пробуждения"
+            # 2. Отправляем легкие GET запросы для "пробуждения"
             # Используем более длинный timeout для wakeup
             wakeup_timeout = aiohttp.ClientTimeout(total=10, connect=3)
             
+            # Только легкие GET запросы - не отправляем POST к /prompt, так как это вызывает ошибки
             wakeup_endpoints = [
-                ("/system_stats", "GET"),
-                ("/queue", "GET"),
-                ("/history", "GET"),
-                ("/prompt", "POST")  # POST с пустым body может помочь
+                "/system_stats",  # Легкий запрос статуса
+                "/queue",         # Проверка очереди
+                "/history"        # История (легкий запрос)
             ]
             
             wakeup_success = False
-            for endpoint, method in wakeup_endpoints:
+            for endpoint in wakeup_endpoints:
                 try:
-                    if method == "GET":
-                        async with self.session.get(
-                            f"{self.comfyui_url}{endpoint}", 
-                            timeout=wakeup_timeout
-                        ) as response:
-                            if response.status in (200, 404, 400):
-                                wakeup_success = True
-                                await asyncio.sleep(0.2)  # Задержка между запросами
-                    elif method == "POST":
-                        # POST с минимальным пустым workflow
-                        empty_workflow = {"prompt": {}}
-                        async with self.session.post(
-                            f"{self.comfyui_url}{endpoint}",
-                            json=empty_workflow,
-                            timeout=wakeup_timeout
-                        ) as response:
-                            # Даже ошибка означает, что сервер отвечает
-                            if response.status in (200, 400, 500):
-                                wakeup_success = True
-                                await asyncio.sleep(0.2)
+                    async with self.session.get(
+                        f"{self.comfyui_url}{endpoint}", 
+                        timeout=wakeup_timeout
+                    ) as response:
+                        # Любой ответ (даже 404) означает, что сервер отвечает
+                        if response.status in (200, 404, 400):
+                            wakeup_success = True
+                            await asyncio.sleep(0.2)  # Задержка между запросами
                 except asyncio.TimeoutError:
                     logger.debug(f"Wakeup request to {endpoint} timed out")
                     continue
@@ -171,9 +159,11 @@ class ComfyUIWatchdog:
             await self._create_session()
             
             # Легкие запросы для поддержания активности
-            proactive_timeout = aiohttp.ClientTimeout(total=3, connect=1)
+            # Используем очень короткий timeout, чтобы не мешать обработке
+            proactive_timeout = aiohttp.ClientTimeout(total=2, connect=1)
             
-            # Быстрая проверка queue - это легкий запрос, который не мешает обработке
+            # Только один легкий запрос - /queue (самый легкий endpoint)
+            # Не используем /system_stats во время обработки, так как он может быть тяжелее
             try:
                 async with self.session.get(
                     f"{self.comfyui_url}/queue",
@@ -182,17 +172,7 @@ class ComfyUIWatchdog:
                     if response.status == 200:
                         return True
             except Exception:
-                pass
-            
-            # Если queue не ответил, пробуем system_stats
-            try:
-                async with self.session.get(
-                    f"{self.comfyui_url}/system_stats",
-                    timeout=proactive_timeout
-                ) as response:
-                    if response.status == 200:
-                        return True
-            except Exception:
+                # Игнорируем ошибки при proactive wakeup - это не критично
                 pass
             
             return False
