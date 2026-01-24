@@ -9,26 +9,66 @@ logger = logging.getLogger(__name__)
 
 
 class RedisQueueClient:
-    """Redis client for job queue management"""
+    """Redis client for job queue management with auto-reconnect"""
     
     def __init__(self):
         self.redis: Optional[Redis] = None
+        self._reconnect_attempts = 0
+        self._max_reconnect_attempts = 5
+        self._reconnect_delay = 2.0  # seconds
+        
+    async def _ensure_connected(self):
+        """Ensure Redis connection is active, reconnect if needed"""
+        if self.redis:
+            try:
+                await self.redis.ping()
+                self._reconnect_attempts = 0  # Reset counter on successful ping
+                return True
+            except Exception as e:
+                logger.warning(f"Redis connection lost: {e}, attempting reconnect...")
+                self.redis = None
+        
+        # Try to reconnect
+        if self._reconnect_attempts < self._max_reconnect_attempts:
+            try:
+                await self.connect()
+                return True
+            except Exception as e:
+                self._reconnect_attempts += 1
+                logger.warning(f"Reconnect attempt {self._reconnect_attempts}/{self._max_reconnect_attempts} failed: {e}")
+                await asyncio.sleep(self._reconnect_delay)
+                return False
+        else:
+            logger.error(f"Max reconnect attempts ({self._max_reconnect_attempts}) reached")
+            return False
         
     async def connect(self):
         """Connect to Redis server"""
         try:
+            if self.redis:
+                try:
+                    await self.redis.close()
+                except:
+                    pass
+            
             self.redis = Redis(
                 host=settings.REDIS_HOST,
                 port=settings.REDIS_PORT,
                 password=settings.REDIS_PASSWORD,
                 db=settings.REDIS_DB,
-                decode_responses=False
+                decode_responses=False,
+                socket_connect_timeout=5,
+                socket_timeout=5,
+                retry_on_timeout=True,
+                health_check_interval=30
             )
             # Test connection
             await self.redis.ping()
             logger.info("Connected to Redis successfully")
+            self._reconnect_attempts = 0
         except Exception as e:
             logger.error(f"Failed to connect to Redis: {e}")
+            self.redis = None
             raise
     
     async def close(self):
@@ -38,34 +78,39 @@ class RedisQueueClient:
             
     async def enqueue_job(self, job_data: Dict[str, Any]) -> str:
         """Add job to queue"""
-        if not self.redis:
-            raise RuntimeError("Redis client not connected")
+        if not await self._ensure_connected():
+            raise RuntimeError("Redis client not connected and reconnect failed")
         
         job_id = job_data.get('id')
         if not job_id:
             raise ValueError("Job must have an id field")
         
-        # Add job to queue
-        queue_item = {
-            'id': job_id,
-            'user_id': job_data['user_id'],
-            'image_path': job_data['image_path'],
-            'second_image_path': job_data.get('second_image_path'),
-            'prompt': job_data['prompt'],
-            'status': 'queued',
-            'created_at': job_data.get('created_at'),
-            'updated_at': job_data.get('updated_at')
-        }
-        
-        await self.redis.lpush(settings.REDIS_JOB_QUEUE_KEY, json.dumps(queue_item))
-        logger.info(f"Job {job_id} added to Redis queue")
-        
-        return str(job_id)
+        try:
+            # Add job to queue
+            queue_item = {
+                'id': job_id,
+                'user_id': job_data['user_id'],
+                'image_path': job_data['image_path'],
+                'second_image_path': job_data.get('second_image_path'),
+                'prompt': job_data['prompt'],
+                'status': 'queued',
+                'created_at': job_data.get('created_at'),
+                'updated_at': job_data.get('updated_at')
+            }
+            
+            await self.redis.lpush(settings.REDIS_JOB_QUEUE_KEY, json.dumps(queue_item))
+            logger.info(f"Job {job_id} added to Redis queue")
+            return str(job_id)
+        except Exception as e:
+            logger.error(f"Error adding job {job_id} to Redis queue: {e}")
+            # Mark connection as lost for next reconnect attempt
+            self.redis = None
+            raise
     
     async def dequeue_job(self) -> Optional[Dict[str, Any]]:
         """Get next job from queue (non-blocking with exponential backoff)"""
-        if not self.redis:
-            raise RuntimeError("Redis client not connected")
+        if not await self._ensure_connected():
+            return None
         
         try:
             # Non-blocking pop - check queue immediately
@@ -84,6 +129,8 @@ class RedisQueueClient:
                     return None
         except Exception as e:
             logger.error(f"Error retrieving job from Redis queue: {e}")
+            # Mark connection as lost for next reconnect attempt
+            self.redis = None
             return None
         
         return None
