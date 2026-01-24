@@ -27,6 +27,7 @@ from ..keyboards import (
     appearance_female_keyboard,
     appearance_female_hairstyle_categories_keyboard,
     appearance_short_hairstyles_keyboard,
+    appearance_medium_hairstyles_keyboard,
 )
 from ..utils import send_error_message
 
@@ -180,6 +181,155 @@ FEMALE_SHORT_HAIRSTYLES_PRESETS: dict[str, dict[str, str]] = {
             "Photorealistic result.\n"
             "Apply a short haircut with volume on the crown.\n"
             "Lifted crown, balanced proportions."
+        ),
+    },
+}
+
+
+# Female medium length hairstyles presets
+FEMALE_MEDIUM_HAIRSTYLES_PRESETS: dict[str, dict[str, str]] = {
+    "h_medium_classic_bob": {
+        "name": "Классический боб",
+        "icon": "🌊",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a classic bob haircut.\n"
+            "Even length, clean geometric shape."
+        ),
+    },
+    "h_medium_lob": {
+        "name": "Удлинённый боб (LOB)",
+        "icon": "🌊",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a long bob (lob) haircut.\n"
+            "Length between chin and shoulders."
+        ),
+    },
+    "h_medium_carre": {
+        "name": "Каре",
+        "icon": "🌊",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a carré haircut.\n"
+            "Straight shape, clear horizontal line."
+        ),
+    },
+    "h_medium_carre_long": {
+        "name": "Каре с удлинением",
+        "icon": "🌊",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a bob haircut with longer front strands.\n"
+            "Angled silhouette, modern look."
+        ),
+    },
+    "h_medium_layered": {
+        "name": "Средняя длина с слоями",
+        "icon": "🌊",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a medium-length layered haircut.\n"
+            "Soft layers for movement and depth."
+        ),
+    },
+    "h_medium_shoulder": {
+        "name": "Волосы до плеч",
+        "icon": "🌊",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply shoulder-length hairstyle.\n"
+            "Natural fall, balanced volume."
+        ),
+    },
+    "h_medium_textured": {
+        "name": "Текстурная средняя длина",
+        "icon": "🌊",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a textured medium-length haircut.\n"
+            "Light layers, natural flow."
+        ),
+    },
+    "h_medium_volume": {
+        "name": "Средняя длина с объёмом",
+        "icon": "🌊",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a medium-length hairstyle with added volume.\n"
+            "Lifted roots, airy structure."
+        ),
+    },
+    "h_medium_waves": {
+        "name": "Средняя длина с мягкими волнами",
+        "icon": "🌊",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply a medium-length hairstyle with soft waves.\n"
+            "Natural loose waves, relaxed look."
         ),
     },
 }
@@ -1638,16 +1788,15 @@ async def callback_appearance_female_hair_short(callback: types.CallbackQuery, s
 async def callback_appearance_female_hair_medium(callback: types.CallbackQuery, state: FSMContext):
     """Handle medium length hairstyles"""
     try:
-        await callback.answer(
-            "🌊 Раздел 'Средняя длина волос' находится в разработке",
-            show_alert=True
+        await callback.message.edit_text(
+            "🌊 Средняя длина волос\n\n"
+            "Выберите стиль:",
+            reply_markup=appearance_medium_hairstyles_keyboard()
         )
+        await callback.answer()
     except Exception as e:
         logger.error(f"Error in appearance_female_hair_medium callback: {e}")
-        try:
-            await callback.answer("Произошла ошибка")
-        except Exception:
-            logger.warning("Callback too old, cannot send error message")
+        await callback.answer("Произошла ошибка")
 
 
 @router.callback_query(F.data == "appearance_female_hair_long")
@@ -1734,10 +1883,12 @@ async def callback_appearance_female_hair_styles(callback: types.CallbackQuery, 
 async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMContext):
     """Handle hairstyle preset selection"""
     try:
-        from ..handlers.menu import FEMALE_SHORT_HAIRSTYLES_PRESETS
+        from ..handlers.menu import FEMALE_SHORT_HAIRSTYLES_PRESETS, FEMALE_MEDIUM_HAIRSTYLES_PRESETS
         
         hairstyle_id = callback.data.replace("hairstyle_", "")
-        hairstyle = FEMALE_SHORT_HAIRSTYLES_PRESETS.get(hairstyle_id)
+        
+        # Check both dictionaries for the hairstyle
+        hairstyle = FEMALE_SHORT_HAIRSTYLES_PRESETS.get(hairstyle_id) or FEMALE_MEDIUM_HAIRSTYLES_PRESETS.get(hairstyle_id)
         
         if not hairstyle:
             await callback.answer("Причёска не найдена", show_alert=True)
