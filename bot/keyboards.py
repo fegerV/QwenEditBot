@@ -439,15 +439,15 @@ def appearance_short_hairstyles_keyboard() -> InlineKeyboardMarkup:
     
     # Add hairstyle presets (2 per row)
     hairstyles = [
-        ("h_short_pixie", "✂️ Пикси"),
-        ("h_short_pixie_volume", "✂️ Пикси с объёмом"),
-        ("h_short_bob", "✂️ Короткий боб"),
-        ("h_short_french_bob", "✂️ Французский боб"),
-        ("h_short_garcon", "✂️ Гарсон"),
-        ("h_short_asymmetric", "✂️ Асимметричная"),
-        ("h_short_textured", "✂️ Текстурная"),
-        ("h_short_elongated", "✂️ Удлинённые пряди"),
-        ("h_short_crown_volume", "✂️ Объём на макушке"),
+        ("h_short_pixie", "Пикси"),
+        ("h_short_pixie_volume", "Пикси с объёмом"),
+        ("h_short_bob", "Короткий боб"),
+        ("h_short_french_bob", "Французский боб"),
+        ("h_short_garcon", "Гарсон"),
+        ("h_short_asymmetric", "Асимметричная"),
+        ("h_short_textured", "Текстурная"),
+        ("h_short_elongated", "Удлинённые пряди"),
+        ("h_short_crown_volume", "Объём на макушке"),
     ]
     
     for i, (key, name) in enumerate(hairstyles):
@@ -469,15 +469,15 @@ def appearance_medium_hairstyles_keyboard() -> InlineKeyboardMarkup:
     
     # Add hairstyle presets (2 per row)
     hairstyles = [
-        ("h_medium_classic_bob", "🌊 Классический боб"),
-        ("h_medium_lob", "🌊 Удлинённый боб (LOB)"),
-        ("h_medium_carre", "🌊 Каре"),
-        ("h_medium_carre_long", "🌊 Каре с удлинением"),
-        ("h_medium_layered", "🌊 С слоями"),
-        ("h_medium_shoulder", "🌊 До плеч"),
-        ("h_medium_textured", "🌊 Текстурная"),
-        ("h_medium_volume", "🌊 С объёмом"),
-        ("h_medium_waves", "🌊 С волнами"),
+        ("h_medium_classic_bob", "Классический боб"),
+        ("h_medium_lob", "Удлинённый боб (LOB)"),
+        ("h_medium_carre", "Каре"),
+        ("h_medium_carre_long", "Каре с удлинением"),
+        ("h_medium_layered", "С слоями"),
+        ("h_medium_shoulder", "До плеч"),
+        ("h_medium_textured", "Текстурная"),
+        ("h_medium_volume", "С объёмом"),
+        ("h_medium_waves", "С волнами"),
     ]
     
     for i, (key, name) in enumerate(hairstyles):
@@ -499,14 +499,14 @@ def appearance_long_hairstyles_keyboard() -> InlineKeyboardMarkup:
     
     # Add hairstyle presets (2 per row)
     hairstyles = [
-        ("h_long_straight", "💁 Прямые"),
-        ("h_long_wavy", "💁 Волнистые"),
-        ("h_long_curly", "💁 Кудрявые"),
-        ("h_long_layered", "💁 С слоями"),
-        ("h_long_volume", "💁 С объёмом"),
-        ("h_long_sleek", "💁 Гладкие"),
-        ("h_long_natural", "💁 Натуральная текстура"),
-        ("h_long_soft_curls", "💁 С локонами"),
+        ("h_long_straight", "Прямые"),
+        ("h_long_wavy", "Волнистые"),
+        ("h_long_curly", "Кудрявые"),
+        ("h_long_layered", "С слоями"),
+        ("h_long_volume", "С объёмом"),
+        ("h_long_sleek", "Гладкие"),
+        ("h_long_natural", "Натуральная текстура"),
+        ("h_long_soft_curls", "С локонами"),
     ]
     
     for i, (key, name) in enumerate(hairstyles):
@@ -528,12 +528,12 @@ def appearance_bangs_keyboard() -> InlineKeyboardMarkup:
     
     # Add bangs presets (2 per row)
     bangs = [
-        ("h_bangs_straight", "🪮 Прямая"),
-        ("h_bangs_side_swept", "🪮 Косая"),
-        ("h_bangs_curtain", "🪮 Шторка"),
-        ("h_bangs_choppy", "🪮 Рваная"),
-        ("h_bangs_long", "🪮 Удлинённая"),
-        ("h_bangs_airy", "🪮 Воздушная"),
+        ("h_bangs_straight", "Прямая"),
+        ("h_bangs_side_swept", "Косая"),
+        ("h_bangs_curtain", "Шторка"),
+        ("h_bangs_choppy", "Рваная"),
+        ("h_bangs_long", "Удлинённая"),
+        ("h_bangs_airy", "Воздушная"),
     ]
     
     for i, (key, name) in enumerate(bangs):
@@ -555,13 +555,13 @@ def appearance_updo_keyboard() -> InlineKeyboardMarkup:
     
     # Add updo presets (2 per row)
     updos = [
-        ("h_updo_low_bun", "🎀 Низкий пучок"),
-        ("h_updo_high_bun", "🎀 Высокий пучок"),
-        ("h_updo_low_ponytail", "🎀 Низкий хвост"),
-        ("h_updo_high_ponytail", "🎀 Высокий хвост"),
-        ("h_updo_slicked_back", "🎀 Гладкие"),
-        ("h_updo_half_up", "🎀 Полусобранные"),
-        ("h_updo_bun_with_framing", "🎀 Пучок с прядями"),
+        ("h_updo_low_bun", "Низкий пучок"),
+        ("h_updo_high_bun", "Высокий пучок"),
+        ("h_updo_low_ponytail", "Низкий хвост"),
+        ("h_updo_high_ponytail", "Высокий хвост"),
+        ("h_updo_slicked_back", "Гладкие"),
+        ("h_updo_half_up", "Полусобранные"),
+        ("h_updo_bun_with_framing", "Пучок с прядями"),
     ]
     
     for i, (key, name) in enumerate(updos):
@@ -583,13 +583,13 @@ def appearance_braids_keyboard() -> InlineKeyboardMarkup:
     
     # Add braids presets (2 per row)
     braids = [
-        ("h_braids_classic", "🧵 Классическая"),
-        ("h_braids_french", "🧵 Французская"),
-        ("h_braids_dutch", "🧵 Голландская"),
-        ("h_braids_fishtail", "🧵 Рыбий хвост"),
-        ("h_braids_crown", "🧵 Вокруг головы"),
-        ("h_braids_two", "🧵 Две косы"),
-        ("h_braids_loose_messy", "🧵 Небрежная"),
+        ("h_braids_classic", "Классическая"),
+        ("h_braids_french", "Французская"),
+        ("h_braids_dutch", "Голландская"),
+        ("h_braids_fishtail", "Рыбий хвост"),
+        ("h_braids_crown", "Вокруг головы"),
+        ("h_braids_two", "Две косы"),
+        ("h_braids_loose_messy", "Небрежная"),
     ]
     
     for i, (key, name) in enumerate(braids):
@@ -611,15 +611,15 @@ def appearance_stylistic_keyboard() -> InlineKeyboardMarkup:
     
     # Add stylistic presets (2 per row)
     stylistics = [
-        ("h_style_natural", "🌿 Натуральный"),
-        ("h_style_minimalism", "▫️ Минимализм"),
-        ("h_style_romantic", "💕 Романтический"),
-        ("h_style_elegant", "👑 Элегантный"),
-        ("h_style_boho", "🌾 Бохо"),
-        ("h_style_glamour", "💎 Гламур"),
-        ("h_style_retro", "🕰 Ретро"),
-        ("h_style_modern", "⚡ Современный"),
-        ("h_style_editorial", "📰 Editorial"),
+        ("h_style_natural", "Натуральный"),
+        ("h_style_minimalism", "Минимализм"),
+        ("h_style_romantic", "Романтический"),
+        ("h_style_elegant", "Элегантный"),
+        ("h_style_boho", "Бохо"),
+        ("h_style_glamour", "Гламур"),
+        ("h_style_retro", "Ретро"),
+        ("h_style_modern", "Современный"),
+        ("h_style_editorial", "Editorial"),
     ]
     
     for i, (key, name) in enumerate(stylistics):

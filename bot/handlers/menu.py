@@ -1708,7 +1708,7 @@ async def _start_art_style_flow(
 
     icon = style.get("icon", "")
     name = style.get("name", "")
-    display_name = f"{icon} {name}".strip()
+    display_name = f"{name}".strip()
 
     await callback.message.edit_text(
         f"✅ Выбран стиль: {display_name}\n\n"
@@ -2561,7 +2561,7 @@ async def _start_hairstyle_flow(
         
         icon = hairstyle.get("icon", "")
         name = hairstyle.get("name", "")
-        display_name = f"{icon} {name}".strip()
+        display_name = f"{name}".strip()
         
         await callback.message.edit_text(
             f"✅ Выбран стиль: {display_name}\n\n"
