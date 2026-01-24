@@ -36,6 +36,7 @@ VK_RETURN = 0x0D
 # Windows API функции
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
+psapi = ctypes.windll.psapi
 
 # Определение типов для EnumWindows будет создано внутри метода
 
@@ -61,15 +62,38 @@ class ComfyUIWindowWaker:
             'window_not_found': 0
         }
     
+    def _get_window_process_name(self, hwnd: int) -> Optional[str]:
+        """Получить имя процесса для окна"""
+        try:
+            process_id = ctypes.wintypes.DWORD()
+            user32.GetWindowThreadProcessId(hwnd, ctypes.byref(process_id))
+            
+            if process_id.value == 0:
+                return None
+            
+            # PROCESS_QUERY_INFORMATION | PROCESS_VM_READ
+            h_process = kernel32.OpenProcess(0x0410, False, process_id.value)
+            if h_process == 0:
+                return None
+            
+            try:
+                process_name = ctypes.create_unicode_buffer(260)
+                size = ctypes.wintypes.DWORD(260)
+                if psapi.GetModuleBaseNameW(h_process, None, process_name, size):
+                    return process_name.value
+            finally:
+                kernel32.CloseHandle(h_process)
+        except Exception:
+            pass
+        return None
+    
     def find_comfyui_window(self) -> Optional[int]:
         """
-        Найти окно ComfyUI по заголовку
+        Найти окно ComfyUI по заголовку и процессу
         
         Returns:
             HWND окна или None
         """
-        # Используем атрибут класса для хранения найденных окон
-        # Это обходит проблему с передачей списка через LPARAM
         found_windows = []
         
         def enum_windows_callback(hwnd, lParam):
@@ -81,16 +105,33 @@ class ComfyUIWindowWaker:
                         buffer = ctypes.create_unicode_buffer(length + 1)
                         user32.GetWindowTextW(hwnd, buffer, length + 1)
                         window_title = buffer.value
+                        title_lower = window_title.lower()
                         
-                        if self.window_title.lower() in window_title.lower():
-                            found_windows.append(hwnd)
+                        # Проверяем название окна
+                        if self.window_title.lower() in title_lower:
+                            # Дополнительная проверка: это должно быть окно консоли Python
+                            # Исключаем окна Cursor, VS Code и другие редакторы
+                            excluded_keywords = ['cursor', 'vscode', 'visual studio', 'code', 'editor']
+                            if any(excluded in title_lower for excluded in excluded_keywords):
+                                return True  # Пропускаем эти окна
+                            
+                            # Проверяем процесс - должно быть python.exe или pythonw.exe
+                            process_name = self._get_window_process_name(hwnd)
+                            if process_name:
+                                process_lower = process_name.lower()
+                                # Ищем окна Python (ComfyUI запускается через Python)
+                                if 'python' in process_lower or 'pythonw' in process_lower:
+                                    found_windows.append({
+                                        'hwnd': hwnd,
+                                        'title': window_title,
+                                        'process': process_name
+                                    })
+                                    logger.debug(f"Found potential ComfyUI window: '{window_title}' (Process: {process_name}, HWND: {hwnd})")
             except Exception:
                 pass
             return True
         
         # Определяем тип callback с правильными типами
-        # HWND - это ctypes.c_void_p или ctypes.wintypes.HWND
-        # LPARAM - это ctypes.c_void_p или ctypes.wintypes.LPARAM
         EnumWindowsProcType = ctypes.WINFUNCTYPE(
             ctypes.c_bool,
             ctypes.wintypes.HWND,
@@ -105,7 +146,13 @@ class ComfyUIWindowWaker:
             return None
         
         if found_windows:
-            return found_windows[0]
+            # Если найдено несколько окон, выбираем первое
+            # Логируем информацию о найденном окне
+            selected = found_windows[0]
+            logger.info(f"Selected ComfyUI window: '{selected['title']}' (Process: {selected['process']}, HWND: {selected['hwnd']})")
+            return selected['hwnd']
+        
+        logger.warning(f"No ComfyUI window found matching '{self.window_title}' with Python process")
         return None
     
     def wake_window(self, hwnd: int) -> bool:
@@ -186,8 +233,19 @@ class ComfyUIWindowWaker:
         
         if success:
             self.stats['successful_wakes'] += 1
-            # Логируем каждое успешное пробуждение для видимости
-            logger.info(f"ComfyUI window woken successfully (HWND: {hwnd}, total: {self.stats['successful_wakes']})")
+            # Получаем название окна для логирования
+            try:
+                length = user32.GetWindowTextLengthW(hwnd)
+                if length > 0:
+                    buffer = ctypes.create_unicode_buffer(length + 1)
+                    user32.GetWindowTextW(hwnd, buffer, length + 1)
+                    window_title = buffer.value
+                    process_name = self._get_window_process_name(hwnd) or "Unknown"
+                    logger.info(f"ComfyUI window woken successfully: '{window_title}' (Process: {process_name}, HWND: {hwnd}, total: {self.stats['successful_wakes']})")
+                else:
+                    logger.info(f"ComfyUI window woken successfully (HWND: {hwnd}, total: {self.stats['successful_wakes']})")
+            except Exception:
+                logger.info(f"ComfyUI window woken successfully (HWND: {hwnd}, total: {self.stats['successful_wakes']})")
         else:
             self.stats['failed_wakes'] += 1
             logger.warning(f"Failed to wake ComfyUI window (HWND: {hwnd})")
