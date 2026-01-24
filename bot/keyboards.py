@@ -430,3 +430,54 @@ def promocode_keyboard() -> InlineKeyboardMarkup:
     builder.row(InlineKeyboardButton(text="❌ Отмена", callback_data="balance"))
     
     return builder.as_markup()
+
+
+# Change Appearance (Образ) Root Menu - Gender Selection
+def appearance_gender_keyboard() -> InlineKeyboardMarkup:
+    """Create gender selection keyboard for appearance customization"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="👨 Мужской", callback_data="appearance_male"))
+    builder.row(InlineKeyboardButton(text="👩 Женский", callback_data="appearance_female"))
+    builder.row(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
+# Male Appearance Menu
+def appearance_male_keyboard() -> InlineKeyboardMarkup:
+    """Create male appearance menu"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="💇 Прическа", callback_data="appearance_male_hair"))
+    builder.row(InlineKeyboardButton(text="🧔 Борода, Усы", callback_data="appearance_male_beard"))
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="appearance_gender"))
+    builder.add(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
+# Female Appearance Menu
+def appearance_female_keyboard() -> InlineKeyboardMarkup:
+    """Create female appearance menu"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="💇 Прически", callback_data="appearance_female_hair"))
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="appearance_gender"))
+    builder.add(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
+# Female Hairstyles Categories Menu
+def appearance_female_hairstyle_categories_keyboard() -> InlineKeyboardMarkup:
+    """Create female hairstyle categories menu"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="✂️ Короткие причёски", callback_data="appearance_female_hair_short"))
+    builder.row(InlineKeyboardButton(text="🌊 Средняя длина волос", callback_data="appearance_female_hair_medium"))
+    builder.row(InlineKeyboardButton(text="💁 Длинные волосы", callback_data="appearance_female_hair_long"))
+    builder.row(InlineKeyboardButton(text="🪮 Чёлки", callback_data="appearance_female_hair_bangs"))
+    builder.row(InlineKeyboardButton(text="🎀 Убранные волосы", callback_data="appearance_female_hair_updo"))
+    builder.row(InlineKeyboardButton(text="🧵 Косы", callback_data="appearance_female_hair_braids"))
+    builder.row(InlineKeyboardButton(text="✨ Стилистические направления", callback_data="appearance_female_hair_styles"))
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="appearance_female"))
+    builder.add(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()

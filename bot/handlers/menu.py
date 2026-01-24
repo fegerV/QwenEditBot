@@ -22,6 +22,10 @@ from ..keyboards import (
     artistic_styles_anime_keyboard,
     artistic_styles_fantasy_keyboard,
     artistic_styles_photographers_keyboard,
+    appearance_gender_keyboard,
+    appearance_male_keyboard,
+    appearance_female_keyboard,
+    appearance_female_hairstyle_categories_keyboard,
 )
 from ..utils import send_error_message
 
@@ -801,13 +805,13 @@ async def btn_artistic_styles(message: types.Message, state: FSMContext):
 # 2. 🧝‍ Изменить образ
 @router.message(UserState.main_menu, F.text == "🧝‍ Изменить образ")
 async def btn_change_appearance(message: types.Message, state: FSMContext):
-    """Handle 'Изменить образ' button - disabled for testing"""
+    """Handle 'Изменить образ' button"""
     try:
         await message.answer(
             "🧝‍ Изменить образ\n\n"
-            "Кнопка временно не активна. Подразделы находятся в разработке.\n\n"
+            "Выберите пол:\n"
             "Стоимость генерации 1 фото: 30 баллов",
-            reply_markup=back_and_main_menu_keyboard()
+            reply_markup=appearance_gender_keyboard()
         )
     except Exception as e:
         logger.error(f"Error in change_appearance button: {e}")
@@ -1369,6 +1373,211 @@ async def callback_fitting_room(callback: types.CallbackQuery, state: FSMContext
     except Exception as e:
         logger.error(f"Error in fitting_room callback: {e}")
         await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "appearance_gender")
+async def callback_appearance_gender(callback: types.CallbackQuery, state: FSMContext):
+    """Handle appearance gender selection callback"""
+    try:
+        await callback.message.edit_text(
+            "🧝‍ Изменить образ\n\n"
+            "Выберите пол:\n"
+            "Стоимость генерации 1 фото: 30 баллов",
+            reply_markup=appearance_gender_keyboard()
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in appearance_gender callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "appearance_male")
+async def callback_appearance_male(callback: types.CallbackQuery, state: FSMContext):
+    """Handle male appearance menu"""
+    try:
+        await callback.message.edit_text(
+            "👨 Мужской образ\n\n"
+            "Выберите раздел:",
+            reply_markup=appearance_male_keyboard()
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in appearance_male callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "appearance_male_hair")
+async def callback_appearance_male_hair(callback: types.CallbackQuery, state: FSMContext):
+    """Handle male hairstyles - placeholder for future"""
+    try:
+        await callback.answer(
+            "💇 Раздел 'Прическа' для мужчин находится в разработке",
+            show_alert=True
+        )
+    except Exception as e:
+        logger.error(f"Error in appearance_male_hair callback: {e}")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            logger.warning("Callback too old, cannot send error message")
+
+
+@router.callback_query(F.data == "appearance_male_beard")
+async def callback_appearance_male_beard(callback: types.CallbackQuery, state: FSMContext):
+    """Handle male beard/mustache - placeholder for future"""
+    try:
+        await callback.answer(
+            "🧔 Раздел 'Борода, Усы' для мужчин находится в разработке",
+            show_alert=True
+        )
+    except Exception as e:
+        logger.error(f"Error in appearance_male_beard callback: {e}")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            logger.warning("Callback too old, cannot send error message")
+
+
+@router.callback_query(F.data == "appearance_female")
+async def callback_appearance_female(callback: types.CallbackQuery, state: FSMContext):
+    """Handle female appearance menu"""
+    try:
+        await callback.message.edit_text(
+            "👩 Женский образ\n\n"
+            "Выберите раздел:",
+            reply_markup=appearance_female_keyboard()
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in appearance_female callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "appearance_female_hair")
+async def callback_appearance_female_hair(callback: types.CallbackQuery, state: FSMContext):
+    """Handle female hairstyles menu"""
+    try:
+        await callback.message.edit_text(
+            "💇 Прически\n\n"
+            "Выберите категорию:",
+            reply_markup=appearance_female_hairstyle_categories_keyboard()
+        )
+        await callback.answer()
+    except Exception as e:
+        logger.error(f"Error in appearance_female_hair callback: {e}")
+        await callback.answer("Произошла ошибка")
+
+
+@router.callback_query(F.data == "appearance_female_hair_short")
+async def callback_appearance_female_hair_short(callback: types.CallbackQuery, state: FSMContext):
+    """Handle short hairstyles"""
+    try:
+        await callback.answer(
+            "✂️ Раздел 'Короткие причёски' находится в разработке",
+            show_alert=True
+        )
+    except Exception as e:
+        logger.error(f"Error in appearance_female_hair_short callback: {e}")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            logger.warning("Callback too old, cannot send error message")
+
+
+@router.callback_query(F.data == "appearance_female_hair_medium")
+async def callback_appearance_female_hair_medium(callback: types.CallbackQuery, state: FSMContext):
+    """Handle medium length hairstyles"""
+    try:
+        await callback.answer(
+            "🌊 Раздел 'Средняя длина волос' находится в разработке",
+            show_alert=True
+        )
+    except Exception as e:
+        logger.error(f"Error in appearance_female_hair_medium callback: {e}")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            logger.warning("Callback too old, cannot send error message")
+
+
+@router.callback_query(F.data == "appearance_female_hair_long")
+async def callback_appearance_female_hair_long(callback: types.CallbackQuery, state: FSMContext):
+    """Handle long hairstyles"""
+    try:
+        await callback.answer(
+            "💁 Раздел 'Длинные волосы' находится в разработке",
+            show_alert=True
+        )
+    except Exception as e:
+        logger.error(f"Error in appearance_female_hair_long callback: {e}")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            logger.warning("Callback too old, cannot send error message")
+
+
+@router.callback_query(F.data == "appearance_female_hair_bangs")
+async def callback_appearance_female_hair_bangs(callback: types.CallbackQuery, state: FSMContext):
+    """Handle bangs hairstyles"""
+    try:
+        await callback.answer(
+            "🪮 Раздел 'Чёлки' находится в разработке",
+            show_alert=True
+        )
+    except Exception as e:
+        logger.error(f"Error in appearance_female_hair_bangs callback: {e}")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            logger.warning("Callback too old, cannot send error message")
+
+
+@router.callback_query(F.data == "appearance_female_hair_updo")
+async def callback_appearance_female_hair_updo(callback: types.CallbackQuery, state: FSMContext):
+    """Handle updo hairstyles"""
+    try:
+        await callback.answer(
+            "🎀 Раздел 'Убранные волосы' находится в разработке",
+            show_alert=True
+        )
+    except Exception as e:
+        logger.error(f"Error in appearance_female_hair_updo callback: {e}")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            logger.warning("Callback too old, cannot send error message")
+
+
+@router.callback_query(F.data == "appearance_female_hair_braids")
+async def callback_appearance_female_hair_braids(callback: types.CallbackQuery, state: FSMContext):
+    """Handle braids hairstyles"""
+    try:
+        await callback.answer(
+            "🧵 Раздел 'Косы' находится в разработке",
+            show_alert=True
+        )
+    except Exception as e:
+        logger.error(f"Error in appearance_female_hair_braids callback: {e}")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            logger.warning("Callback too old, cannot send error message")
+
+
+@router.callback_query(F.data == "appearance_female_hair_styles")
+async def callback_appearance_female_hair_styles(callback: types.CallbackQuery, state: FSMContext):
+    """Handle stylistic hairstyles"""
+    try:
+        await callback.answer(
+            "✨ Раздел 'Стилистические направления' находится в разработке",
+            show_alert=True
+        )
+    except Exception as e:
+        logger.error(f"Error in appearance_female_hair_styles callback: {e}")
+        try:
+            await callback.answer("Произошла ошибка")
+        except Exception:
+            logger.warning("Callback too old, cannot send error message")
 
 
 @router.callback_query(F.data == "change_appearance")
