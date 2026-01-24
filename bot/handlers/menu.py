@@ -28,6 +28,7 @@ from ..keyboards import (
     appearance_male_short_hairstyles_keyboard,
     appearance_male_medium_hairstyles_keyboard,
     appearance_male_long_hairstyles_keyboard,
+    appearance_male_beard_keyboard,
     appearance_female_keyboard,
     appearance_female_hairstyle_categories_keyboard,
     appearance_short_hairstyles_keyboard,
@@ -1321,6 +1322,215 @@ MALE_LONG_HAIRSTYLES_PRESETS: dict[str, dict[str, str]] = {
             "Photorealistic result.\n"
             "Apply shoulder-length men's hair.\n"
             "Balanced length and natural fall."
+        ),
+    },
+}
+
+
+# Male beard and mustache presets
+MALE_BEARD_PRESETS: dict[str, dict[str, str]] = {
+    "m_beard_clean_shaven": {
+        "name": "Чистобритый",
+        "icon": "🧔",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Only change the facial hair.\n"
+            "Apply clean shaven look.\n"
+            "Smooth face, no beard or stubble.\n"
+            "Photorealistic result."
+        ),
+    },
+    "m_beard_light_stubble": {
+        "name": "Лёгкая щетина",
+        "icon": "🧔",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Only change the facial hair.\n"
+            "Apply light stubble.\n"
+            "Short, subtle facial hair.\n"
+            "Barely visible texture.\n"
+            "Photorealistic result."
+        ),
+    },
+    "m_beard_heavy_stubble": {
+        "name": "Тёмная щетина",
+        "icon": "🧔",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Only change the facial hair.\n"
+            "Apply heavy stubble.\n"
+            "Visible, thick facial hair.\n"
+            "Dark and pronounced texture.\n"
+            "Photorealistic result."
+        ),
+    },
+    "m_beard_short_beard": {
+        "name": "Короткая борода",
+        "icon": "🧔",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Only change the facial hair.\n"
+            "Apply a short, well-groomed beard.\n"
+            "Length: 2-3mm.\n"
+            "Clean lines and edges.\n"
+            "Neat appearance.\n"
+            "Photorealistic result."
+        ),
+    },
+    "m_beard_medium_beard": {
+        "name": "Средняя борода",
+        "icon": "🧔",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Only change the facial hair.\n"
+            "Apply a medium beard.\n"
+            "Length: 5-10mm.\n"
+            "Fuller appearance.\n"
+            "Well-maintained and textured.\n"
+            "Photorealistic result."
+        ),
+    },
+    "m_beard_full_beard": {
+        "name": "Полная борода",
+        "icon": "🧔",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Only change the facial hair.\n"
+            "Apply a full, thick beard.\n"
+            "Length: 15-20mm.\n"
+            "Dense and voluminous.\n"
+            "Masculine appearance.\n"
+            "Photorealistic result."
+        ),
+    },
+    "m_beard_long_beard": {
+        "name": "Длинная борода",
+        "icon": "🧔",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Only change the facial hair.\n"
+            "Apply a long, full beard.\n"
+            "Length: 25mm or longer.\n"
+            "Flowing and substantial.\n"
+            "Distinguished appearance.\n"
+            "Photorealistic result."
+        ),
+    },
+    "m_beard_goatee": {
+        "name": "Бородка",
+        "icon": "🧔",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Only change the facial hair.\n"
+            "Apply a goatee.\n"
+            "Facial hair on chin and lower lip area.\n"
+            "Clean cheeks.\n"
+            "Stylish appearance.\n"
+            "Photorealistic result."
+        ),
+    },
+    "m_beard_van_dyke": {
+        "name": "Ван Дайк",
+        "icon": "🧔",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Only change the facial hair.\n"
+            "Apply a Van Dyke beard.\n"
+            "Full beard with clean cheeks.\n"
+            "Distinctive upturned, curled mustache.\n"
+            "Classic sophisticated look.\n"
+            "Photorealistic result."
+        ),
+    },
+    "m_mustache_handlebar": {
+        "name": "Руль (усы)",
+        "icon": "🧔",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Only change the facial hair.\n"
+            "Apply a handlebar mustache.\n"
+            "No beard, only thick mustache.\n"
+            "Distinctive upturned, curled ends.\n"
+            "Clean shaven cheeks and chin.\n"
+            "Photorealistic result."
+        ),
+    },
+    "m_mustache_classic": {
+        "name": "Классические усы",
+        "icon": "🧔",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Only change the facial hair.\n"
+            "Apply classic mustache.\n"
+            "No beard, only neat mustache.\n"
+            "Straight and well-groomed.\n"
+            "Clean shaven cheeks and chin.\n"
+            "Photorealistic result."
+        ),
+    },
+    "m_mustache_thin": {
+        "name": "Тонкие усы",
+        "icon": "🧔",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Only change the facial hair.\n"
+            "Apply thin mustache.\n"
+            "No beard, only thin, delicate mustache.\n"
+            "Subtle and refined.\n"
+            "Clean shaven cheeks and chin.\n"
+            "Photorealistic result."
+        ),
+    },
+    "m_mustache_pencil": {
+        "name": "Карандаш (усы)",
+        "icon": "🧔",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Only change the facial hair.\n"
+            "Apply pencil mustache.\n"
+            "No beard, only very thin, precise mustache line.\n"
+            "Neat and defined.\n"
+            "Clean shaven cheeks and chin.\n"
+            "Photorealistic result."
         ),
     },
 }
@@ -2764,18 +2974,17 @@ async def callback_appearance_male_hair_long(callback: types.CallbackQuery, stat
 
 @router.callback_query(F.data == "appearance_male_beard")
 async def callback_appearance_male_beard(callback: types.CallbackQuery, state: FSMContext):
-    """Handle male beard/mustache - placeholder for future"""
+    """Handle male beard and mustache styles"""
     try:
-        await callback.answer(
-            "🧔 Раздел 'Борода, Усы' для мужчин находится в разработке",
-            show_alert=True
+        await callback.message.edit_text(
+            "🧔 Борода и Усы\n\n"
+            "Выберите стиль:",
+            reply_markup=appearance_male_beard_keyboard()
         )
+        await callback.answer()
     except Exception as e:
         logger.error(f"Error in appearance_male_beard callback: {e}")
-        try:
-            await callback.answer("Произошла ошибка")
-        except Exception:
-            logger.warning("Callback too old, cannot send error message")
+        await callback.answer("Произошла ошибка")
 
 
 @router.callback_query(F.data == "appearance_female")
@@ -2931,7 +3140,8 @@ async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMC
             FEMALE_STYLISTIC_PRESETS.get(hairstyle_id) or
             MALE_SHORT_HAIRSTYLES_PRESETS.get(hairstyle_id) or
             MALE_MEDIUM_HAIRSTYLES_PRESETS.get(hairstyle_id) or
-            MALE_LONG_HAIRSTYLES_PRESETS.get(hairstyle_id)
+            MALE_LONG_HAIRSTYLES_PRESETS.get(hairstyle_id) or
+            MALE_BEARD_PRESETS.get(hairstyle_id)
         )
         
         if not hairstyle:

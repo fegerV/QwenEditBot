@@ -753,6 +753,40 @@ def appearance_male_long_hairstyles_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+def appearance_male_beard_keyboard() -> InlineKeyboardMarkup:
+    """Create male beard and mustache presets keyboard"""
+    builder = InlineKeyboardBuilder()
+    
+    # Add beard presets (2 per row)
+    beards = [
+        ("m_beard_clean_shaven", "Чистобритый"),
+        ("m_beard_light_stubble", "Лёгкая щетина"),
+        ("m_beard_heavy_stubble", "Тёмная щетина"),
+        ("m_beard_short_beard", "Короткая борода"),
+        ("m_beard_medium_beard", "Средняя борода"),
+        ("m_beard_full_beard", "Полная борода"),
+        ("m_beard_long_beard", "Длинная борода"),
+        ("m_beard_goatee", "Бородка"),
+        ("m_beard_van_dyke", "Ван Дайк"),
+        ("m_mustache_handlebar", "Руль (усы)"),
+        ("m_mustache_classic", "Классические усы"),
+        ("m_mustache_thin", "Тонкие усы"),
+        ("m_mustache_pencil", "Карандаш (усы)"),
+    ]
+    
+    for i, (key, name) in enumerate(beards):
+        button = InlineKeyboardButton(text=name, callback_data=f"hairstyle_{key}")
+        if i % 2 == 0:
+            builder.row(button)
+        else:
+            builder.add(button)
+    
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="appearance_male"))
+    builder.add(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
 # Female Appearance Menu
 def appearance_female_keyboard() -> InlineKeyboardMarkup:
     """Create female appearance menu"""
