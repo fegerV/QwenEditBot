@@ -67,16 +67,21 @@ class ImageEditorProcessor:
     async def _wait_and_download(self, comfyui_job_id: str, job_id: int) -> Path:
         """Wait for result and download."""
 
-        max_attempts = 600  # 600 * 0.5s = 300s = 5 minutes
+        max_attempts = 3600  # 3600 * 0.25s = 900s = 15 minutes
         logger.info(f"Starting to wait and download result for job {job_id}, ComfyUI job: {comfyui_job_id}")
 
         for attempt in range(max_attempts):
             try:
+                # Log every 10 attempts to track progress
+                if attempt % 10 == 0 and attempt > 0:
+                    logger.info(f"Waiting for job {job_id}... (attempt {attempt}/{max_attempts}, {attempt * settings.COMFYUI_POLL_INTERVAL:.1f}s elapsed)")
+                
                 history = await self.comfyui_client.get_history(comfyui_job_id)
+                logger.debug(f"Attempt {attempt}: get_history returned: {type(history)} = {bool(history)}")
 
                 if history and isinstance(history, dict) and comfyui_job_id in history:
                     job_result = history[comfyui_job_id]
-                    logger.debug(f"Attempt {attempt}: Got history for job {job_id}")
+                    logger.debug(f"Attempt {attempt}: Got history for job {job_id}, job_result keys: {job_result.keys() if isinstance(job_result, dict) else type(job_result)}")
 
                     if job_result and "outputs" in job_result:
                         output_image_info = None
@@ -87,7 +92,7 @@ class ImageEditorProcessor:
                                 break
 
                         if output_image_info:
-                            logger.info(f"Found output image for job {job_id}, downloading...")
+                            logger.info(f"Found output image for job {job_id} at attempt {attempt}, downloading...")
                             filename = output_image_info["filename"]
                             subfolder = output_image_info.get("subfolder", "")
                             image_type = output_image_info.get("type", "output")
@@ -96,6 +101,7 @@ class ImageEditorProcessor:
                                 f"{self.comfyui_client.base_url}/view"
                                 f"?filename={filename}&subfolder={subfolder}&type={image_type}"
                             )
+                            logger.debug(f"Downloading from: {download_url}")
 
                             async with aiohttp.ClientSession(
                                 timeout=self.comfyui_client.timeout
@@ -112,7 +118,7 @@ class ImageEditorProcessor:
                                             f.write(result_data)
 
                                         logger.info(
-                                            f"Successfully downloaded and saved result for job {job_id} to {result_path}"
+                                            f"Successfully downloaded and saved result for job {job_id} to {result_path} (size: {len(result_data)} bytes)"
                                         )
                                         return result_path
 
@@ -123,18 +129,20 @@ class ImageEditorProcessor:
                                     raise Exception(
                                         f"Failed to download result image: {img_response.status}"
                                     )
+                        else:
+                            logger.debug(f"Attempt {attempt}: Job result has outputs but no images")
                     else:
                         logger.debug(f"Attempt {attempt}: Job still processing (no outputs yet)")
                 else:
-                    logger.debug(f"Attempt {attempt}: Job not found in history yet")
+                    logger.debug(f"Attempt {attempt}: history={bool(history)}, is_dict={isinstance(history, dict) if history else False}, has_job={comfyui_job_id in history if isinstance(history, dict) else False}")
 
             except Exception as e:
                 logger.error(
-                    f"Error checking ComfyUI job status for {comfyui_job_id}: {str(e)}", 
+                    f"Error checking ComfyUI job status for {comfyui_job_id} at attempt {attempt}: {str(e)}", 
                     exc_info=True
                 )
 
             await asyncio.sleep(settings.COMFYUI_POLL_INTERVAL)
 
-        logger.error(f"ComfyUI job timeout for job {job_id} after {max_attempts} attempts ({max_attempts * settings.COMFYUI_POLL_INTERVAL}s)")
+        logger.error(f"ComfyUI job timeout for job {job_id} after {max_attempts} attempts ({max_attempts * settings.COMFYUI_POLL_INTERVAL:.1f}s)")
         raise Exception("ComfyUI job timeout")

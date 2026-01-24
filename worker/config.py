@@ -22,8 +22,8 @@ class Settings(BaseSettings):
 
     # ComfyUI configuration
     COMFYUI_URL: str = Field("http://localhost:8188", env="COMFYUI_URL")
-    COMFYUI_TIMEOUT: int = Field(300, env="COMFYUI_TIMEOUT")  # Reduced from 600 to 300 seconds (5 minutes)
-    COMFYUI_POLL_INTERVAL: float = Field(0.25, env="COMFYUI_POLL_INTERVAL")  # Reduced from 0.5 to 0.25
+    COMFYUI_TIMEOUT: int = Field(900, env="COMFYUI_TIMEOUT")  # Increased from 300 to 900 seconds (15 minutes) to allow for large models
+    COMFYUI_POLL_INTERVAL: float = Field(0.25, env="COMFYUI_POLL_INTERVAL")  # 0.25 second between checks
     COMFYUI_INPUT_DIR: str = Field("C:/ComfyUI/ComfyUI/input", env="COMFYUI_INPUT_DIR")
     COMFYUI_OUTPUT_DIR: str = Field("C:/ComfyUI/ComfyUI/output", env="COMFYUI_OUTPUT_DIR")
 
