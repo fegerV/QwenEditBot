@@ -2,6 +2,7 @@ import asyncio
 import logging
 from typing import Optional
 import uuid
+from pathlib import Path
 
 from worker.job_queue.job_queue import JobQueue
 from worker.gpu.lock import GPULock
