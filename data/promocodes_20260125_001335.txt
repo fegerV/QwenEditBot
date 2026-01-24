@@ -1,0 +1,7 @@
+# Generated Promocodes - 2026-01-25 00:13:35
+# Total: 3 promocodes
+# Format: CODE - AMOUNT (points)
+
+BSM4HO2T - 100
+QHIRKIB1 - 200
+465FZIQP - 300

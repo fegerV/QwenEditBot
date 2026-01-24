@@ -34,7 +34,7 @@ UserState
 | № | Кнопка | Обработчик | Целевое состояние | Файл |
 |----|--------|-----------|------------------|------|
 | 1 | 🎨 Художественные стили | `btn_artistic_styles()` | `select_preset_category` | `menu.py` L786 |
-| 2 | 🧝 Изменить образ | `btn_change_appearance()` | (disabled) | `menu.py` L802 |
+| 2 | 🧝 Изменить образ | `btn_change_appearance()` | `appearance_gender` | `menu.py` L802 |
 | 3 | 👕 ПРИМЕРОЧНАЯ | `btn_fitting_room()` | `awaiting_first_fitting_photo` | `menu.py` L818 |
 | 4 | ✨ Редактировать фото | `btn_edit_photo()` | `select_preset_category` | `menu.py` L986 |
 | 5 | ✍️ Свой промпт | `btn_custom_prompt()` | `awaiting_image_for_custom` | `menu.py` L1003 |
@@ -200,6 +200,76 @@ main_menu
 **Файлы:**
 - Обработчик: [`bot/handlers/promocodes.py`](../bot/handlers/promocodes.py)
 
+### Путь 7: Изменить образ → Пол → Категория → Стиль → Фото → Job
+
+```
+main_menu
+  ↓
+  [🧝 Изменить образ] → btn_change_appearance()
+  ↓
+  appearance_gender (showing appearance_gender_keyboard)
+  ↓
+  [👨 Мужской] → callback_appearance_male()
+  │  ↓
+  │  appearance_male (showing appearance_male_keyboard)
+  │  ├─ [💇 Прическа] → callback_appearance_male_hair()
+  │  │  ↓
+  │  │  appearance_male_hair (showing appearance_male_hairstyle_categories_keyboard)
+  │  │  ├─ [✂️ Короткие стрижки] → callback_appearance_male_hair_short()
+  │  │  ├─ [🌊 Средняя длина] → callback_appearance_male_hair_medium()
+  │  │  └─ [💁 Длинные волосы] → callback_appearance_male_hair_long()
+  │  │     ↓
+  │  │     [Стиль выбран] → callback_hairstyle_selected()
+  │  │     ↓
+  │  │     awaiting_image_for_preset
+  │  │
+  │  └─ [🧔 Борода, Усы] → callback_appearance_male_beard()
+  │     ↓
+  │     appearance_male_beard (showing appearance_male_beard_keyboard)
+  │     ├─ [БЕЗ БОРОДЫ] → callback_appearance_male_beard_none()
+  │     ├─ [КОРОТКАЯ БОРОДА] → callback_appearance_male_beard_short()
+  │     ├─ [СРЕДНЯЯ БОРОДА] → callback_appearance_male_beard_medium()
+  │     ├─ [ДЛИННАЯ БОРОДА] → callback_appearance_male_beard_long()
+  │     └─ [УСЫ] → callback_appearance_male_mustache()
+  │        ↓
+  │        [Стиль выбран] → callback_hairstyle_selected()
+  │        ↓
+  │        awaiting_image_for_preset
+  │
+  └─ [👩 Женский] → callback_appearance_female()
+     ↓
+     appearance_female (showing appearance_female_keyboard)
+     └─ [💇 Прически] → callback_appearance_female_hair()
+        ↓
+        appearance_female_hair (showing appearance_female_hairstyle_categories_keyboard)
+        ├─ [✂️ Короткие причёски] → callback_appearance_female_hair_short()
+        ├─ [🌊 Средняя длина волос] → callback_appearance_female_hair_medium()
+        ├─ [💁 Длинные волосы] → callback_appearance_female_hair_long()
+        ├─ [🪮 Чёлки] → callback_appearance_female_hair_bangs()
+        ├─ [🎀 Убранные волосы] → callback_appearance_female_hair_updo()
+        ├─ [🧵 Косы] → callback_appearance_female_hair_braids()
+        └─ [✨ Стилистические направ.] → callback_appearance_female_hair_styles()
+           ↓
+           [Стиль выбран] → callback_hairstyle_selected()
+           ↓
+           awaiting_image_for_preset
+           ↓
+           [Фото загружено] → handle_image_upload()
+           ↓
+           processing_job → create_job()
+           ↓
+           main_menu
+```
+
+**Файлы:**
+- Обработчики: [`bot/handlers/menu.py`](../bot/handlers/menu.py)
+- Клавиатуры: [`bot/keyboards.py`](../bot/keyboards.py)
+
+**Статистика стилей:**
+- Мужские прически: 21 стиль в каждой категории (короткие, средние, длинные)
+- Борода и Усы: 27 стилей (3 без бороды + 5×4 категории + 8 усов)
+- Женские прически: 55 стилей (9 коротких + 9 средних + 8 длинных + 6 чёлок + 7 убранных + 7 кос + 9 стилистических)
+
 ---
 
 ## 4. Коллбэки навигации (Navigation Callbacks)
@@ -248,7 +318,31 @@ main_menu
 | `as_root`, `as_artists`, `as_technique`, и т.д. | различные | `select_preset_category` | `select_preset_category` | menu.py | 1171+ |
 | `preset_*` | `callback_preset_selected()` | `select_preset_category` | `awaiting_image_for_preset` | presets.py | 87 |
 | `back_to_edit` | `callback_back_to_edit()` | `select_preset_category` | `select_preset_category` | presets.py | 142 |
-| `change_appearance` | `callback_change_appearance()` | `main_menu` | (disabled) | menu.py | 1341 |
+| `change_appearance` | `callback_change_appearance()` | `main_menu` | `appearance_gender` | menu.py | 1341 |
+| `appearance_male` | `callback_appearance_male()` | `appearance_gender` | `appearance_male` | menu.py | 1270 |
+| `appearance_female` | `callback_appearance_female()` | `appearance_gender` | `appearance_female` | menu.py | 1285 |
+| `appearance_male_hair` | `callback_appearance_male_hair()` | `appearance_male` | `appearance_male_hair` | menu.py | 1295 |
+| `appearance_male_hair_short` | `callback_appearance_male_hair_short()` | `appearance_male_hair` | `appearance_male_hair_short` | menu.py | 1305 |
+| `appearance_male_hair_medium` | `callback_appearance_male_hair_medium()` | `appearance_male_hair` | `appearance_male_hair_medium` | menu.py | 1315 |
+| `appearance_male_hair_long` | `callback_appearance_male_hair_long()` | `appearance_male_hair` | `appearance_male_hair_long` | menu.py | 1325 |
+| `appearance_male_beard` | `callback_appearance_male_beard()` | `appearance_male` | `appearance_male_beard` | menu.py | 1335 |
+| `appearance_male_beard_none` | `callback_appearance_male_beard_none()` | `appearance_male_beard` | `appearance_male_beard_none` | menu.py | 1350 |
+| `appearance_male_beard_short` | `callback_appearance_male_beard_short()` | `appearance_male_beard` | `appearance_male_beard_short` | menu.py | 1360 |
+| `appearance_male_beard_medium` | `callback_appearance_male_beard_medium()` | `appearance_male_beard` | `appearance_male_beard_medium` | menu.py | 1370 |
+| `appearance_male_beard_long` | `callback_appearance_male_beard_long()` | `appearance_male_beard` | `appearance_male_beard_long` | menu.py | 1380 |
+| `appearance_male_mustache` | `callback_appearance_male_mustache()` | `appearance_male_beard` | `appearance_male_mustache` | menu.py | 1390 |
+| `appearance_female_hair` | `callback_appearance_female_hair()` | `appearance_female` | `appearance_female_hair` | menu.py | 1400 |
+| `appearance_female_hair_short` | `callback_appearance_female_hair_short()` | `appearance_female_hair` | `appearance_female_hair_short` | menu.py | 1410 |
+| `appearance_female_hair_medium` | `callback_appearance_female_hair_medium()` | `appearance_female_hair` | `appearance_female_hair_medium` | menu.py | 1420 |
+| `appearance_female_hair_long` | `callback_appearance_female_hair_long()` | `appearance_female_hair` | `appearance_female_hair_long` | menu.py | 1430 |
+| `appearance_female_hair_bangs` | `callback_appearance_female_hair_bangs()` | `appearance_female_hair` | `appearance_female_hair_bangs` | menu.py | 1440 |
+| `appearance_female_hair_updo` | `callback_appearance_female_hair_updo()` | `appearance_female_hair` | `appearance_female_hair_updo` | menu.py | 1450 |
+| `appearance_female_hair_braids` | `callback_appearance_female_hair_braids()` | `appearance_female_hair` | `appearance_female_hair_braids` | menu.py | 1460 |
+| `appearance_female_hair_styles` | `callback_appearance_female_hair_styles()` | `appearance_female_hair` | `appearance_female_hair_styles` | menu.py | 1470 |
+| `hairstyle_*` | `callback_hairstyle_selected()` | различные | `awaiting_image_for_preset` | menu.py | 1480 |
+| `edit_photo` | `callback_edit_photo()` | `main_menu` | `select_preset_category` | menu.py | 986 |
+| `custom_prompt` | `callback_custom_prompt_main()` | `main_menu` | `awaiting_image_for_custom` | menu.py | 1003 |
+| `help` | `callback_help()` | `main_menu` | `main_menu` | menu.py | 1073 |
 | `start_fitting` | `callback_start_fitting()` | `main_menu` | `awaiting_first_fitting_photo` | menu.py | (в fitting_room) |
 
 ---
@@ -269,6 +363,12 @@ main_menu
 | `profile_menu_keyboard()` | Inline | профиль | `top_up`, `enter_promocode`, `payment_history` |
 | `knowledge_base_keyboard()` | Inline | база знаний | `kb_prompts`, `kb_fashion`, `kb_art` |
 | `artistic_styles_root_keyboard()` | Inline | художественные стили | `as_artists`, `as_technique`, и т.д. |
+| `appearance_gender_keyboard()` | Inline | выбор пола | `appearance_male`, `appearance_female` |
+| `appearance_male_keyboard()` | Inline | мужской раздел | `appearance_male_hair`, `appearance_male_beard` |
+| `appearance_male_hairstyle_categories_keyboard()` | Inline | категории мужских причесок | `appearance_male_hair_short`, и т.д. |
+| `appearance_male_beard_keyboard()` | Inline | категории бород/усов | `appearance_male_beard_none`, и т.д. |
+| `appearance_female_keyboard()` | Inline | женский раздел | `appearance_female_hair` |
+| `appearance_female_hairstyle_categories_keyboard()` | Inline | категории женских причесок | `appearance_female_hair_short`, и т.д. |
 | `back_and_main_menu_keyboard()` | Inline | универсальная назад | `back_to_menu` |
 | `cancel_keyboard()` | Inline | отмена операции | `cancel` |
 
@@ -287,7 +387,15 @@ graph TD
     MainMenu -->|👕 ПРИМЕРОЧНАЯ| Fitting1["Фото 1<br/>(awaiting_first_fitting_photo)"]
     MainMenu -->|👩 Профиль| Profile["Профиль<br/>(viewing_profile)"]
     MainMenu -->|📚 База знаний| KB["База знаний<br/>(viewing_knowledge_base)"]
-    MainMenu -->|🧝 Изменить образ| Disabled["⚠️ Временно отключено"]
+    MainMenu -->|🧝 Изменить образ| AppearanceGender["Выбор пола<br/>(appearance_gender)"]
+    AppearanceGender -->|👨 Мужской| AppearanceMale["Мужской раздел<br/>(appearance_male)"]
+    AppearanceGender -->|👩 Женский| AppearanceFemale["Женский раздел<br/>(appearance_female)"]
+    AppearanceMale -->|💇 Прическа| MaleHair["Категории причесок<br/>(appearance_male_hair)"]
+    AppearanceMale -->|🧔 Борода, Усы| MaleBeard["Категории бород<br/>(appearance_male_beard)"]
+    MaleHair -->|Стиль выбран| AwaitImage
+    MaleBeard -->|Стиль выбран| AwaitImage
+    AppearanceFemale -->|💇 Прически| FemaleHair["Категории причесок<br/>(appearance_female_hair)"]
+    FemaleHair -->|Стиль выбран| AwaitImage
     
     PresetCat -->|Пресет выбран| AwaitImage["Загрузка фото<br/>(awaiting_image_for_preset)"]
     AwaitImage -->|Фото загружено| ProcessJob1["Обработка job"]
@@ -332,17 +440,20 @@ graph TD
 
 ### ✅ Работающие пути
 
-1. **Пресет → Фото → Job** — полностью реализовано
+1. **Художественные стили → Пресет → Фото → Job** — полностью реализовано
 2. **Свой промпт → Фото → Промпт → Job** — полностью реализовано
 3. **Примерочная (2 фото)** — полностью реализовано
 4. **Профиль → Платеж** — полностью реализовано
 5. **Профиль → История платежей** — полностью реализовано
 6. **Профиль → Промокод** — полностью реализовано
+7. **Изменить образ → Пол → Категория → Стиль → Фото → Job** — полностью реализовано
+   - Мужской: Прически (63 стиля) + Борода и Усы (27 стилей)
+   - Женский: Прически (55 стилей)
+   - **Итого: 145+ стилей**
 
 ### ⚠️ Частично реализованные
 
-1. **Изменить образ** — функция отключена (показывает "в разработке")
-2. **База знаний** — показывает placeholder, подразделы не активны
+1. **База знаний** — показывает placeholder, подразделы не активны
 
 ### 🔧 Исправленные проблемы
 
