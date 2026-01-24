@@ -87,55 +87,6 @@ class ComfyUIWindowWaker:
             pass
         return None
     
-    def _get_process_command_line(self, process_id: int) -> Optional[str]:
-        """Получить командную строку процесса"""
-        try:
-            # PROCESS_QUERY_INFORMATION | PROCESS_VM_READ
-            h_process = kernel32.OpenProcess(0x0410, False, process_id)
-            if h_process == 0:
-                return None
-            
-            try:
-                # Используем NtQueryInformationProcess для получения командной строки
-                # Это более сложный способ, но попробуем через GetCommandLine
-                # Для упрощения используем другой подход - проверяем рабочую директорию
-                current_dir = ctypes.create_unicode_buffer(260)
-                if kernel32.GetCurrentDirectoryW(260, current_dir):
-                    # Это не работает для другого процесса, нужно использовать другой метод
-                    pass
-            except Exception:
-                pass
-            finally:
-                kernel32.CloseHandle(h_process)
-        except Exception:
-            pass
-        return None
-    
-    def _get_process_working_directory(self, process_id: int) -> Optional[str]:
-        """Получить рабочую директорию процесса"""
-        try:
-            # PROCESS_QUERY_INFORMATION | PROCESS_VM_READ
-            h_process = kernel32.OpenProcess(0x0410, False, process_id)
-            if h_process == 0:
-                return None
-            
-            try:
-                # Используем QueryFullProcessImageName для получения пути к exe
-                # Но для рабочей директории нужен другой подход
-                # Для упрощения проверим через GetModuleFileNameEx
-                exe_path = ctypes.create_unicode_buffer(260)
-                size = ctypes.wintypes.DWORD(260)
-                if psapi.GetModuleFileNameExW(h_process, None, exe_path, size):
-                    # Это путь к exe, но нам нужна рабочая директория
-                    # Для cmd.exe это сложнее, поэтому используем другой подход
-                    pass
-            except Exception:
-                pass
-            finally:
-                kernel32.CloseHandle(h_process)
-        except Exception:
-            pass
-        return None
     
     def find_comfyui_window(self) -> Optional[int]:
         """
@@ -189,19 +140,33 @@ class ComfyUIWindowWaker:
                     # Консольные окна имеют класс "ConsoleWindowClass"
                     if 'console' in class_name_str.lower() or class_name_str == 'ConsoleWindowClass':
                         # Это консольное окно cmd.exe
-                        # Проверяем, что это не окно наших сервисов (они имеют специфичные названия)
-                        if length > 0:
-                            window_title = buffer.value
-                            # Если в названии есть "ComfyUI" или это просто консоль без специфичного названия
-                            # (наши сервисы имеют названия типа "QwenEditBot Worker", "ComfyUI Watchdog")
-                            if 'comfyui' in title_lower or (not any(keyword in title_lower for keyword in ['qwen', 'worker', 'bot', 'watchdog', 'waker'])):
-                                found_windows.append({
-                                    'hwnd': hwnd,
-                                    'title': window_title if length > 0 else '(no title)',
-                                    'process': process_name,
-                                    'class': class_name_str
-                                })
-                                logger.debug(f"Found potential ComfyUI window: '{window_title if length > 0 else '(no title)'}' (Process: {process_name}, Class: {class_name_str}, HWND: {hwnd})")
+                        window_title = buffer.value if length > 0 else ''
+                        title_lower = window_title.lower() if window_title else ''
+                        
+                        # Исключаем окна наших сервисов (они имеют специфичные названия)
+                        # Наши сервисы: "QwenEditBot Worker", "ComfyUI Watchdog", "ComfyUI Window Waker", "QwenEditBot Bot"
+                        excluded_keywords = ['qwen', 'worker', 'bot', 'watchdog', 'waker', 'qweneditbot']
+                        if any(keyword in title_lower for keyword in excluded_keywords):
+                            return True  # Пропускаем окна наших сервисов
+                        
+                        # Если окно не имеет названия или имеет пустое/стандартное название cmd.exe
+                        # Это может быть окно ComfyUI (оно запускается через run_nvidia_gpu.bat)
+                        # Приоритет: окна с "comfyui" в названии, затем окна без специфичных названий
+                        priority = 0
+                        if 'comfyui' in title_lower:
+                            priority = 2  # Высокий приоритет
+                        elif not window_title or window_title.strip() == '' or 'cmd' in title_lower:
+                            priority = 1  # Средний приоритет (пустое или стандартное название)
+                        
+                        if priority > 0:
+                            found_windows.append({
+                                'hwnd': hwnd,
+                                'title': window_title if window_title else '(no title)',
+                                'process': process_name,
+                                'class': class_name_str,
+                                'priority': priority
+                            })
+                            logger.debug(f"Found potential ComfyUI window: '{window_title if window_title else '(no title)'}' (Process: {process_name}, Class: {class_name_str}, Priority: {priority}, HWND: {hwnd})")
             except Exception as e:
                 logger.debug(f"Error in enum_windows_callback: {e}")
             return True
@@ -221,10 +186,13 @@ class ComfyUIWindowWaker:
             return None
         
         if found_windows:
-            # Если найдено несколько окон, выбираем первое
-            # Логируем информацию о найденном окне
+            # Если найдено несколько окон, выбираем с наивысшим приоритетом
+            # Сортируем по приоритету (убывание) и берем первое
+            found_windows.sort(key=lambda x: x.get('priority', 0), reverse=True)
             selected = found_windows[0]
-            logger.info(f"Selected ComfyUI window: '{selected['title']}' (Process: {selected['process']}, Class: {selected['class']}, HWND: {selected['hwnd']})")
+            logger.info(f"Selected ComfyUI window: '{selected['title']}' (Process: {selected['process']}, Class: {selected['class']}, Priority: {selected.get('priority', 0)}, HWND: {selected['hwnd']})")
+            if len(found_windows) > 1:
+                logger.info(f"Found {len(found_windows)} potential ComfyUI windows, selected highest priority")
             return selected['hwnd']
         
         logger.warning(f"No ComfyUI window found (cmd.exe console window)")
