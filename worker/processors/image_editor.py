@@ -76,9 +76,10 @@ class ImageEditorProcessor:
                 if attempt % 10 == 0 and attempt > 0:
                     logger.info(f"Waiting for job {job_id}... (attempt {attempt}/{max_attempts}, {attempt * settings.COMFYUI_POLL_INTERVAL:.1f}s elapsed)")
                 
-                # Профилактическое "дергание" ComfyUI каждые 40 попыток (10 секунд)
+                # Профилактическое "дергание" ComfyUI каждые 20 попыток (5 секунд)
                 # Это предотвращает "засыпание" во время обработки
-                if attempt > 0 and attempt % 40 == 0:
+                # Уменьшено с 40 до 20 для более частых пробуждений
+                if attempt > 0 and attempt % 20 == 0:
                     logger.info(f"Proactive ComfyUI wakeup at attempt {attempt} to prevent sleeping...")
                     try:
                         # Легкий запрос к system_stats для поддержания активности

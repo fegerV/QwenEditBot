@@ -27,6 +27,9 @@ logger = logging.getLogger(__name__)
 WM_KEYDOWN = 0x0100
 WM_KEYUP = 0x0101
 WM_CHAR = 0x0102
+WM_LBUTTONDOWN = 0x0201
+WM_LBUTTONUP = 0x0202
+WM_MOUSEMOVE = 0x0200
 VK_SPACE = 0x20
 VK_RETURN = 0x0D
 
@@ -107,7 +110,7 @@ class ComfyUIWindowWaker:
     
     def wake_window(self, hwnd: int) -> bool:
         """
-        "Разбудить" окно через отправку событий
+        "Разбудить" окно через реальные клики и события
         
         Args:
             hwnd: Handle окна
@@ -116,17 +119,45 @@ class ComfyUIWindowWaker:
             True если успешно
         """
         try:
+            # Получаем координаты окна для клика
+            rect = ctypes.wintypes.RECT()
+            user32.GetWindowRect(hwnd, ctypes.byref(rect))
+            
+            # Вычисляем центр окна
+            center_x = (rect.left + rect.right) // 2
+            center_y = (rect.top + rect.bottom) // 2
+            
             # Активируем окно
             user32.SetForegroundWindow(hwnd)
             user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+            time.sleep(0.05)  # Даем время окну активироваться
             
-            # Отправляем легкое событие (пробел) для пробуждения
-            # Но не реально нажимаем, а просто отправляем сообщение
+            # Реальный клик по окну (более эффективно, чем PostMessage)
+            # Конвертируем координаты в lParam для SendMessage
+            lParam = center_y << 16 | (center_x & 0xFFFF)
+            
+            # Отправляем события клика мыши
+            WM_LBUTTONDOWN = 0x0201
+            WM_LBUTTONUP = 0x0202
+            WM_MOUSEMOVE = 0x0200
+            
+            # Движение мыши
+            user32.SendMessageW(hwnd, WM_MOUSEMOVE, 0, lParam)
+            time.sleep(0.01)
+            
+            # Нажатие левой кнопки мыши
+            user32.SendMessageW(hwnd, WM_LBUTTONDOWN, 0x0001, lParam)  # MK_LBUTTON
+            time.sleep(0.01)
+            
+            # Отпускание левой кнопки мыши
+            user32.SendMessageW(hwnd, WM_LBUTTONUP, 0, lParam)
+            time.sleep(0.01)
+            
+            # Дополнительно: отправляем событие клавиатуры
             user32.PostMessageW(hwnd, WM_KEYDOWN, VK_SPACE, 0)
             time.sleep(0.01)
             user32.PostMessageW(hwnd, WM_KEYUP, VK_SPACE, 0)
             
-            # Возвращаем фокус обратно (если нужно)
             return True
             
         except Exception as e:
