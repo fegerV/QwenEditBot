@@ -193,7 +193,7 @@ def main():
     
     # Параметры
     window_title = "ComfyUI"  # Можно изменить на точное название окна
-    interval = 30.0  # Пробуждение каждые 30 секунд
+    interval = 15.0  # Пробуждение каждые 15 секунд (уменьшено для более частых пробуждений)
     
     waker = ComfyUIWindowWaker(window_title=window_title, interval=interval)
     

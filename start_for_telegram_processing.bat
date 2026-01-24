@@ -179,9 +179,10 @@ if not exist "%LOG_DIR%\comfyui" mkdir "%LOG_DIR%\comfyui"
 start "ComfyUI Watchdog" cmd /c "cd /d "%~dp0" && title ComfyUI-Watchdog && python comfyui_watchdog.py > "%~dp0logs\comfyui\watchdog.log" 2>&1"
 timeout /t 1 /nobreak >nul
 
-:: Опционально: Window Waker (программное пробуждение окна через Windows API)
-:: Раскомментируйте следующую строку, если Watchdog недостаточно:
-:: start "ComfyUI Window Waker" cmd /c "cd /d "%~dp0" && title ComfyUI-Waker && python comfyui_window_waker.py > "%~dp0logs\comfyui\waker.log" 2>&1"
+:: Window Waker (программное пробуждение окна через Windows API) - включено для более надежной работы
+echo [6.6/7] Запуск ComfyUI Window Waker...
+start "ComfyUI Window Waker" cmd /c "cd /d "%~dp0" && title ComfyUI-Waker && python comfyui_window_waker.py > "%~dp0logs\comfyui\waker.log" 2>&1"
+timeout /t 1 /nobreak >nul
 
 echo.
 echo [7/7] Завершение...
