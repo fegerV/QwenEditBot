@@ -28,6 +28,7 @@ from ..keyboards import (
     appearance_female_hairstyle_categories_keyboard,
     appearance_short_hairstyles_keyboard,
     appearance_medium_hairstyles_keyboard,
+    appearance_long_hairstyles_keyboard,
 )
 from ..utils import send_error_message
 
@@ -330,6 +331,139 @@ FEMALE_MEDIUM_HAIRSTYLES_PRESETS: dict[str, dict[str, str]] = {
             "Photorealistic result.\n"
             "Apply a medium-length hairstyle with soft waves.\n"
             "Natural loose waves, relaxed look."
+        ),
+    },
+}
+
+
+# Female long hairstyles presets
+FEMALE_LONG_HAIRSTYLES_PRESETS: dict[str, dict[str, str]] = {
+    "h_long_straight": {
+        "name": "Прямые длинные",
+        "icon": "💁",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply long straight hair.\n"
+            "Smooth texture, natural shine."
+        ),
+    },
+    "h_long_wavy": {
+        "name": "Волнистые длинные",
+        "icon": "💁",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply long wavy hair.\n"
+            "Soft natural waves."
+        ),
+    },
+    "h_long_curly": {
+        "name": "Кудрявые длинные",
+        "icon": "💁",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply long curly hair.\n"
+            "Defined curls, realistic density."
+        ),
+    },
+    "h_long_layered": {
+        "name": "Длинные с слоями",
+        "icon": "💁",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply long layered hairstyle.\n"
+            "Visible layers for depth and movement."
+        ),
+    },
+    "h_long_volume": {
+        "name": "Длинные с объёмом",
+        "icon": "💁",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply long hairstyle with added volume.\n"
+            "Lifted roots, full silhouette."
+        ),
+    },
+    "h_long_sleek": {
+        "name": "Гладкие длинные",
+        "icon": "💁",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply sleek long hair.\n"
+            "Smooth polished finish."
+        ),
+    },
+    "h_long_natural": {
+        "name": "Натуральная текстура",
+        "icon": "💁",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply long hair with natural texture.\n"
+            "Minimal styling, realistic look."
+        ),
+    },
+    "h_long_soft_curls": {
+        "name": "Длинные с мягкими локонами",
+        "icon": "💁",
+        "price": 30,
+        "prompt": (
+            "Use the original photo as the primary reference.\n"
+            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
+            "Do NOT change the face or facial structure.\n"
+            "Do NOT change hair color.\n"
+            "Only change the hairstyle.\n"
+            "Maintain realistic hair texture, volume and proportions.\n"
+            "Photorealistic result.\n"
+            "Apply long hair with soft curls.\n"
+            "Loose curls, elegant movement."
         ),
     },
 }
@@ -1803,16 +1937,15 @@ async def callback_appearance_female_hair_medium(callback: types.CallbackQuery, 
 async def callback_appearance_female_hair_long(callback: types.CallbackQuery, state: FSMContext):
     """Handle long hairstyles"""
     try:
-        await callback.answer(
-            "💁 Раздел 'Длинные волосы' находится в разработке",
-            show_alert=True
+        await callback.message.edit_text(
+            "💁 Длинные волосы\n\n"
+            "Выберите стиль:",
+            reply_markup=appearance_long_hairstyles_keyboard()
         )
+        await callback.answer()
     except Exception as e:
         logger.error(f"Error in appearance_female_hair_long callback: {e}")
-        try:
-            await callback.answer("Произошла ошибка")
-        except Exception:
-            logger.warning("Callback too old, cannot send error message")
+        await callback.answer("Произошла ошибка")
 
 
 @router.callback_query(F.data == "appearance_female_hair_bangs")
@@ -1883,12 +2016,16 @@ async def callback_appearance_female_hair_styles(callback: types.CallbackQuery, 
 async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMContext):
     """Handle hairstyle preset selection"""
     try:
-        from ..handlers.menu import FEMALE_SHORT_HAIRSTYLES_PRESETS, FEMALE_MEDIUM_HAIRSTYLES_PRESETS
+        from ..handlers.menu import FEMALE_SHORT_HAIRSTYLES_PRESETS, FEMALE_MEDIUM_HAIRSTYLES_PRESETS, FEMALE_LONG_HAIRSTYLES_PRESETS
         
         hairstyle_id = callback.data.replace("hairstyle_", "")
         
-        # Check both dictionaries for the hairstyle
-        hairstyle = FEMALE_SHORT_HAIRSTYLES_PRESETS.get(hairstyle_id) or FEMALE_MEDIUM_HAIRSTYLES_PRESETS.get(hairstyle_id)
+        # Check all dictionaries for the hairstyle
+        hairstyle = (
+            FEMALE_SHORT_HAIRSTYLES_PRESETS.get(hairstyle_id) or 
+            FEMALE_MEDIUM_HAIRSTYLES_PRESETS.get(hairstyle_id) or 
+            FEMALE_LONG_HAIRSTYLES_PRESETS.get(hairstyle_id)
+        )
         
         if not hairstyle:
             await callback.answer("Причёска не найдена", show_alert=True)

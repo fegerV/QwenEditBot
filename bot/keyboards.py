@@ -493,6 +493,35 @@ def appearance_medium_hairstyles_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+def appearance_long_hairstyles_keyboard() -> InlineKeyboardMarkup:
+    """Create long hairstyles presets keyboard"""
+    builder = InlineKeyboardBuilder()
+    
+    # Add hairstyle presets (2 per row)
+    hairstyles = [
+        ("h_long_straight", "💁 Прямые"),
+        ("h_long_wavy", "💁 Волнистые"),
+        ("h_long_curly", "💁 Кудрявые"),
+        ("h_long_layered", "💁 С слоями"),
+        ("h_long_volume", "💁 С объёмом"),
+        ("h_long_sleek", "💁 Гладкие"),
+        ("h_long_natural", "💁 Натуральная текстура"),
+        ("h_long_soft_curls", "💁 С локонами"),
+    ]
+    
+    for i, (key, name) in enumerate(hairstyles):
+        button = InlineKeyboardButton(text=name, callback_data=f"hairstyle_{key}")
+        if i % 2 == 0:
+            builder.row(button)
+        else:
+            builder.add(button)
+    
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="appearance_female_hair"))
+    builder.add(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu"))
+    
+    return builder.as_markup()
+
+
 def appearance_gender_keyboard() -> InlineKeyboardMarkup:
     """Create gender selection keyboard for appearance customization"""
     builder = InlineKeyboardBuilder()
