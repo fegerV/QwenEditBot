@@ -2670,13 +2670,15 @@ async def handle_second_fitting_photo(message: types.Message, state: FSMContext)
         fitting_prompt = (
             "Use photo 1 as the primary subject reference. "
             "Preserve the face, facial features, skin texture, head shape and overall identity from photo 1 exactly. "
+            "IMPORTANT: Preserve the entire body figure, body shape, body proportions, pose, and silhouette from photo 1. "
+            "The body structure, physique, and physical build must come from photo 1, not from photo 2. "
             "Use photo 2 as clothing reference only. "
             "Take only the clothing item from photo 2. "
-            "Do not transfer the person, face, body shape, pose, hair or background from photo 2. "
-            "Dress the person from photo 1 in the clothing from photo 2. "
-            "Ensure the clothing fits naturally to the body proportions of the person from photo 1. "
+            "Do not transfer the person, face, body shape, body figure, pose, physique, silhouette, hair or background from photo 2. "
+            "Dress the person from photo 1 in the clothing from photo 2, keeping the body figure from photo 1. "
+            "Ensure the clothing fits naturally to the body proportions and figure of the person from photo 1. "
             "Maintain realistic fabric folds, texture, proportions and lighting. "
-            "Do not change the hairstyle, face, facial expression or body shape from photo 1. "
+            "Do not change the hairstyle, face, facial expression, body shape, body figure, or pose from photo 1. "
             "Photorealistic result, high realism, natural lighting."
         )
         
