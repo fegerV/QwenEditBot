@@ -13,13 +13,17 @@ class ComfyUIClient:
         self.base_url = settings.COMFYUI_URL.rstrip('/')
         logger.info(f"ComfyUI Client initialized with URL: {self.base_url}")
         self.timeout = aiohttp.ClientTimeout(total=settings.COMFYUI_TIMEOUT)
-        # Connection pooling to reuse sockets
-        self.connector = aiohttp.TCPConnector(limit=10, limit_per_host=5)
+        # Connection pooling - will be created lazily when session is first accessed
+        self.connector = None
         self.session = None
     
     async def _get_session(self) -> aiohttp.ClientSession:
         """Get or create HTTP session with connection pooling"""
         if self.session is None or self.session.closed:
+            # Create connector only when we have a running event loop
+            if self.connector is None:
+                self.connector = aiohttp.TCPConnector(limit=10, limit_per_host=5)
+            
             self.session = aiohttp.ClientSession(
                 connector=self.connector,
                 timeout=self.timeout
@@ -31,7 +35,8 @@ class ComfyUIClient:
         """Cleanup session and connector"""
         if self.session and not self.session.closed:
             await self.session.close()
-        await self.connector.close()
+        if self.connector:
+            await self.connector.close()
         logger.debug("Closed aiohttp session")
 
     async def send_workflow(self, workflow: Dict) -> str:
