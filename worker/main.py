@@ -93,7 +93,13 @@ class QwenEditWorker:
             try:
                 # 1. Get next job from queue (non-blocking)
                 logger.debug("Checking queue for next job...")
-                job_data = await redis_client.dequeue_job()
+                try:
+                    job_data = await redis_client.dequeue_job()
+                except Exception as redis_error:
+                    logger.error(f"Redis error while dequeuing job: {redis_error}")
+                    # Wait longer before retry if Redis is down
+                    await asyncio.sleep(5)
+                    continue
 
                 if not job_data:
                     # No job received - use exponential backoff
