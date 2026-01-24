@@ -2513,8 +2513,6 @@ async def callback_appearance_female_hair_styles(callback: types.CallbackQuery, 
 async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMContext):
     """Handle hairstyle preset selection"""
     try:
-        from ..handlers.menu import FEMALE_SHORT_HAIRSTYLES_PRESETS, FEMALE_MEDIUM_HAIRSTYLES_PRESETS, FEMALE_LONG_HAIRSTYLES_PRESETS, FEMALE_BANGS_PRESETS, FEMALE_UPDO_PRESETS, FEMALE_BRAIDS_PRESETS, FEMALE_STYLISTIC_PRESETS
-        
         hairstyle_id = callback.data.replace("hairstyle_", "")
         
         # Check all dictionaries for the hairstyle
@@ -2556,7 +2554,7 @@ async def callback_hairstyle_selected(callback: types.CallbackQuery, state: FSMC
         await callback.answer()
         
     except Exception as e:
-        logger.error(f"Error in hairstyle selection: {e}")
+        logger.error(f"Error in hairstyle selection: {e}", exc_info=True)
         await callback.answer("Произошла ошибка", show_alert=True)
 
 
