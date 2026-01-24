@@ -79,12 +79,13 @@ class ImageEditorProcessor:
                 # Профилактическое "дергание" ComfyUI каждые 40 попыток (10 секунд)
                 # Это предотвращает "засыпание" во время обработки
                 if attempt > 0 and attempt % 40 == 0:
-                    logger.debug(f"Proactive ComfyUI wakeup at attempt {attempt} to prevent sleeping...")
+                    logger.info(f"Proactive ComfyUI wakeup at attempt {attempt} to prevent sleeping...")
                     try:
                         # Легкий запрос к system_stats для поддержания активности
                         await self.comfyui_client.check_health()
+                        logger.debug(f"Proactive wakeup successful at attempt {attempt}")
                     except Exception as wakeup_error:
-                        logger.debug(f"Proactive wakeup failed (non-critical): {wakeup_error}")
+                        logger.warning(f"Proactive wakeup failed at attempt {attempt} (non-critical): {wakeup_error}")
                 
                 history = await self.comfyui_client.get_history(comfyui_job_id)
                 logger.debug(f"Attempt {attempt}: get_history returned: {type(history)} = {bool(history)}")

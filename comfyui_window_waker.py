@@ -146,14 +146,17 @@ class ComfyUIWindowWaker:
         
         if hwnd is None:
             self.stats['window_not_found'] += 1
-            logger.debug(f"ComfyUI window not found (title contains: '{self.window_title}')")
+            # Логируем только периодически, чтобы не засорять логи
+            if self.stats['window_not_found'] % 10 == 1:  # Каждые 10 попыток
+                logger.info(f"ComfyUI window not found (title contains: '{self.window_title}') - attempt {self.stats['window_not_found']}")
             return False
         
         success = self.wake_window(hwnd)
         
         if success:
             self.stats['successful_wakes'] += 1
-            logger.debug(f"ComfyUI window woken successfully (HWND: {hwnd})")
+            # Логируем каждое успешное пробуждение для видимости
+            logger.info(f"ComfyUI window woken successfully (HWND: {hwnd}, total: {self.stats['successful_wakes']})")
         else:
             self.stats['failed_wakes'] += 1
             logger.warning(f"Failed to wake ComfyUI window (HWND: {hwnd})")
