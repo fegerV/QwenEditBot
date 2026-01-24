@@ -69,7 +69,7 @@ def main():
         result = generate_single_promocode(args.single, args.custom_code)
         
         if result:
-            print("\n✅ Promocode generated successfully!")
+            print("\n[OK] Promocode generated successfully!")
             print(f"   Code: {result['code']}")
             print(f"   Amount: {result['amount']} points")
             print(f"   Status: {'USED' if result['is_used'] else 'AVAILABLE'}")
@@ -81,7 +81,7 @@ def main():
         result = batch_generate_promocodes(args.batch)
         
         if result:
-            print("\n✅ Promocodes generated successfully!")
+            print("\n[OK] Promocodes generated successfully!")
             print(f"   Total: {result['count']} promocodes")
             print(f"   File: {result['file_path']}")
             print("\nGenerated promocodes:")
@@ -104,7 +104,7 @@ def main():
             result = generate_single_promocode(amount, custom_code)
             
             if result:
-                print("\n✅ Promocode generated successfully!")
+                print("\n[OK] Promocode generated successfully!")
                 print(f"   Code: {result['code']}")
                 print(f"   Amount: {result['amount']} points")
         
@@ -115,7 +115,7 @@ def main():
             result = batch_generate_promocodes(amounts)
             
             if result:
-                print("\n✅ Promocodes generated successfully!")
+                print("\n[OK] Promocodes generated successfully!")
                 print(f"   Total: {result['count']} promocodes")
                 print(f"   File: {result['file_path']}")
         
