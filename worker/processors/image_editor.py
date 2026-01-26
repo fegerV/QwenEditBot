@@ -51,16 +51,23 @@ class ImageEditorProcessor:
             logger.error(f"Error processing job {job.id}: {str(e)}")
             raise
 
-        # Clean up input files only after a successful run.
-        # This is important because the worker can re-queue jobs for retry on failures.
-        for path in cleanup_paths:
-            try:
-                path.unlink()
-                logger.debug(f"Cleaned up input file: {path}")
-            except FileNotFoundError:
-                pass
-            except Exception as e:
-                logger.warning(f"Failed to clean up input file {path}: {str(e)}")
+        # NOTE: Input files are NOT deleted to preserve original photos for:
+        # - Debugging and troubleshooting
+        # - Re-processing if needed
+        # - User history and reference
+        # 
+        # If disk space becomes an issue, implement a cleanup job that removes
+        # old input files (e.g., older than 7 days) based on job.created_at
+        # 
+        # Original cleanup code (disabled):
+        # for path in cleanup_paths:
+        #     try:
+        #         path.unlink()
+        #         logger.debug(f"Cleaned up input file: {path}")
+        #     except FileNotFoundError:
+        #         pass
+        #     except Exception as e:
+        #         logger.warning(f"Failed to clean up input file {path}: {str(e)}")
 
         return str(result_path)
 
