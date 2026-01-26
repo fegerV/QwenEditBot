@@ -53,6 +53,7 @@ class Settings(BaseSettings):
     QWEN_EDIT_LORA_NAME: str = Field("Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors", env="QWEN_EDIT_LORA_NAME")
     QWEN_EDIT_SCALE_MEGAPIXELS: int = Field(2, env="QWEN_EDIT_SCALE_MEGAPIXELS")
     QWEN_EDIT_STEPS: int = Field(4, env="QWEN_EDIT_STEPS")
+    QWEN_EDIT_NEGATIVE_PROMPT: str = Field("", env="QWEN_EDIT_NEGATIVE_PROMPT")
 
     class Config:
         env_file = ".env"

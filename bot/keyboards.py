@@ -73,8 +73,7 @@ def main_menu_inline_keyboard() -> InlineKeyboardMarkup:
 def edit_photo_submenu_keyboard() -> InlineKeyboardMarkup:
     """Create edit photo submenu keyboard"""
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="🧩 Выбрать пресет", callback_data="edit_preset"))
-    builder.add(InlineKeyboardButton(text="✍️ Свой промпт", callback_data="edit_custom"))
+    # Подразделы временно удалены - функция еще не готова
     builder.row(
         InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"),
         InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")

@@ -105,7 +105,7 @@ def build_workflow(job: Job) -> dict:
         },
         "69": {
             "inputs": {
-                "prompt": "",
+                "prompt": settings.QWEN_EDIT_NEGATIVE_PROMPT,
                 "clip": ["61", 0],
                 "vae": ["10", 0],
                 "image1": ["79", 0],

@@ -2747,11 +2747,11 @@ async def handle_second_fitting_photo(message: types.Message, state: FSMContext)
 async def btn_edit_photo(message: types.Message, state: FSMContext):
     """Handle 'Редактировать фото' button"""
     try:
-        await state.set_state(UserState.select_preset_category)
-        
         await message.answer(
-            "Как вы хотите редактировать фото?",
-            reply_markup=edit_photo_submenu_keyboard()  # Already has Back and Main Menu buttons
+            "✨ Редактировать фото\n\n"
+            "Эта функция находится в разработке.\n"
+            "Пока используйте другие разделы меню для редактирования фото.",
+            reply_markup=edit_photo_submenu_keyboard()
         )
         
     except Exception as e:
@@ -2871,7 +2871,8 @@ async def callback_edit_photo(callback: types.CallbackQuery, state: FSMContext):
     try:
         await callback.message.edit_text(
             "✨ Редактировать фото\n\n"
-            "Выберите действие:",
+            "Эта функция находится в разработке.\n"
+            "Пока используйте другие разделы меню для редактирования фото.",
             reply_markup=edit_photo_submenu_keyboard()
         )
         await callback.answer()
