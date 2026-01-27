@@ -95,6 +95,20 @@ def back_and_main_menu_keyboard(back_callback: str = "back_to_menu") -> InlineKe
     return builder.as_markup()
 
 
+# Custom Prompt Type Selection Keyboard (Inline)
+
+def custom_prompt_type_keyboard() -> InlineKeyboardMarkup:
+    """Create keyboard for selecting custom prompt type (1 or 2 photos)"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="1️⃣ Промпт для 1 фото", callback_data="custom_prompt_1_photo"))
+    builder.row(InlineKeyboardButton(text="2️⃣ Промпт для 2 фото", callback_data="custom_prompt_2_photos"))
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu"),
+        InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_menu")
+    )
+    return builder.as_markup()
+
+
 # Fitting Room Instructions Keyboard (Inline)
 
 def fitting_room_instructions_keyboard() -> InlineKeyboardMarkup:

@@ -158,12 +158,12 @@ async def on_startup():
         logger.exception("Table creation error details")
         startup_errors.append(f"Tables: {str(e)[:100]}")
     
-    # Step 5: Seed presets
-    logger.info("[6/7] Seeding presets...")
+    # Step 5: Seed presets (deprecated - presets are now in menu.py)
+    logger.info("[6/7] Seeding presets (deprecated)...")
     db = SessionLocal()
     try:
         await asyncio.to_thread(seed_presets_if_empty, db)
-        logger.info("[OK] Presets initialization completed")
+        logger.info("[OK] Presets initialization completed (no-op, presets in menu.py)")
     except Exception as e:
         logger.error(f"[ERROR] Preset seeding failed: {e}")
         logger.exception("Preset seeding error details")

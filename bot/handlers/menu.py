@@ -57,50 +57,19 @@ FEMALE_SHORT_HAIRSTYLES_PRESETS: dict[str, dict[str, str]] = {
         "name": "Пикси",
         "icon": "✂️",
         "price": 30,
-        "prompt": (
-            "Use the original photo as the primary reference.\n"
-            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
-            "Do NOT change the face or facial structure.\n"
-            "Do NOT change hair color.\n"
-            "Only change the hairstyle.\n"
-            "Maintain realistic hair texture, volume and proportions.\n"
-            "Photorealistic result.\n"
-            "Apply a pixie haircut.\n"
-            "Short neat hairstyle with clean silhouette.\n"
-            "Natural hair texture, realistic density."
-        ),
+        "prompt": "Use the original photo as the primary reference, Preserve the face, facial features, head shape, expression and identity exactly, Do NOT change the face or facial structure, Do NOT change hair color, Only change the hairstyle, Maintain realistic hair texture, volume and proportions, Photorealistic result, Apply a pixie haircut, Short neat hairstyle with clean silhouette, Natural hair texture, realistic density",
     },
     "h_short_pixie_volume": {
         "name": "Пикси с объёмом",
         "icon": "✂️",
         "price": 30,
-        "prompt": (
-            "Use the original photo as the primary reference.\n"
-            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
-            "Do NOT change the face or facial structure.\n"
-            "Do NOT change hair color.\n"
-            "Only change the hairstyle.\n"
-            "Maintain realistic hair texture, volume and proportions.\n"
-            "Photorealistic result.\n"
-            "Apply a pixie haircut with added volume.\n"
-            "Lifted roots, airy structure, soft volume."
-        ),
+        "prompt": "Use the original photo as the primary reference, Preserve the face, facial features, head shape, expression and identity exactly, Do NOT change the face or facial structure, Do NOT change hair color, Only change the hairstyle, Maintain realistic hair texture, volume and proportions, Photorealistic result, Apply a pixie haircut with added volume, Lifted roots, airy structure, soft volume",
     },
     "h_short_bob": {
         "name": "Короткий боб",
         "icon": "✂️",
         "price": 30,
-        "prompt": (
-            "Use the original photo as the primary reference.\n"
-            "Preserve the face, facial features, head shape, expression and identity exactly.\n"
-            "Do NOT change the face or facial structure.\n"
-            "Do NOT change hair color.\n"
-            "Only change the hairstyle.\n"
-            "Maintain realistic hair texture, volume and proportions.\n"
-            "Photorealistic result.\n"
-            "Apply a short bob haircut.\n"
-            "Hair length above the jawline, clean shape."
-        ),
+        "prompt": "Use the original photo as the primary reference, Preserve the face, facial features, head shape, expression and identity exactly, Do NOT change the face or facial structure, Do NOT change hair color, Only change the hairstyle, Maintain realistic hair texture, volume and proportions, Photorealistic result, Apply a short bob haircut, Hair length above the jawline, clean shape",
     },
     "h_short_french_bob": {
         "name": "Французский боб",
@@ -2885,11 +2854,8 @@ async def callback_edit_photo(callback: types.CallbackQuery, state: FSMContext):
 async def callback_custom_prompt_main(callback: types.CallbackQuery, state: FSMContext):
     """Handle 'custom prompt' from main menu"""
     try:
-        await state.set_state(UserState.waiting_for_custom_prompt)
-        await callback.message.edit_text(
-            "✍️ Введите свой промпт\n\n"
-            "Опишите, как вы хотите изменить фото. Будьте детальны!"
-        )
+        from .custom_prompt import start_custom_prompt
+        await start_custom_prompt(callback.message, state, is_callback=True)
         await callback.answer()
     except Exception as e:
         logger.error(f"Error in custom_prompt callback: {e}")

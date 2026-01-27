@@ -70,21 +70,9 @@ async def handle_payment_amount(callback_query: CallbackQuery, state: FSMContext
         await callback_query.answer("Произошла ошибка")
 
 
-@router.message(StateFilter(UserState.awaiting_custom_prompt))
-async def handle_custom_amount(message: Message, state: FSMContext):
-    """Handle custom amount input"""
-    # Payment functionality is disabled
-    text = """💳 Пополнение баланса
-
-Функция временно отключена для тестирования."""
-    
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu")
-        ]
-    ])
-    
-    await message.answer(text, reply_markup=keyboard)
+# NOTE: This handler was removed because UserState.awaiting_custom_prompt 
+# is now used for custom prompt input, not payment amount.
+# If custom payment amount is needed, use a different state.
 
 
 async def show_payment_method_selection(message: Message, state: FSMContext):

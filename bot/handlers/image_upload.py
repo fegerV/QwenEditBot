@@ -7,7 +7,7 @@ from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
 from ..states import UserState
-from ..keyboards import main_menu_keyboard, main_menu_inline_keyboard, cancel_keyboard
+from ..keyboards import main_menu_keyboard, main_menu_inline_keyboard, cancel_keyboard, back_and_main_menu_keyboard
 from ..utils import download_telegram_photo, send_error_message
 
 logger = logging.getLogger(__name__)
@@ -217,6 +217,29 @@ async def handle_wrong_input(message: types.Message, state: FSMContext):
         "Пожалуйста, отправьте фото.\n\nЕсли вы хотите вернуться к меню баланса, нажмите на кнопку ниже.",
         reply_markup=balance_menu_keyboard()
     )
+
+
+@router.message(
+    StateFilter(UserState.awaiting_first_custom_photo_2, UserState.awaiting_second_custom_photo_2),
+    ~F.photo
+)
+async def handle_wrong_input_custom_2_photos(message: types.Message, state: FSMContext):
+    """Handle wrong input when expecting photo for 2 photos custom prompt"""
+    try:
+        current_state = await state.get_state()
+        if current_state == UserState.awaiting_first_custom_photo_2:
+            await message.answer(
+                "📸 Пожалуйста, загрузите ПЕРВОЕ фото (файл изображения).",
+                reply_markup=back_and_main_menu_keyboard("back_to_menu")
+            )
+        elif current_state == UserState.awaiting_second_custom_photo_2:
+            await message.answer(
+                "📸 Пожалуйста, загрузите ВТОРОЕ фото (файл изображения).",
+                reply_markup=back_and_main_menu_keyboard("back_to_menu")
+            )
+    except Exception as e:
+        logger.error(f"Error handling wrong input for 2 photos custom: {e}")
+        await send_error_message(message)
 
 
 @router.message(StateFilter(UserState.awaiting_image_for_custom), ~F.photo)

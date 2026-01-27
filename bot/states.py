@@ -21,7 +21,11 @@ class UserState(StatesGroup):
     awaiting_second_fitting_photo = State()  # Second photo (clothing item)
 
     # Custom prompt states
-    awaiting_custom_prompt = State()    # Ввод ручного промпта (после подтверждения фото)
+    selecting_custom_prompt_type = State()  # Выбор типа: 1 фото или 2 фото
+    awaiting_custom_prompt = State()    # Ввод ручного промпта (после подтверждения фото для 1 фото)
+    awaiting_first_custom_photo_2 = State()  # Первое фото для промпта с 2 фото
+    awaiting_second_custom_photo_2 = State()  # Второе фото для промпта с 2 фото
+    awaiting_custom_prompt_2_photos = State()  # Ввод промпта после загрузки 2 фото
 
     # Balance states
     checking_balance = State()
